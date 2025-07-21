@@ -1,0 +1,46 @@
+@import "./typography/mixin";
+@import "./typography/classes";
+@import "./utility";
+@import "./colors";
+@import "./shadow";
+@import "./particleAnimations";
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: $neutral-greys-400;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #f1f1f1;
+}
+
+.pointsBackground {
+  background: linear-gradient(180deg, #f55861 0%, #ce4497 100%);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+
+
+@media screen and (max-width: 767px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 2px;
+    height: 6px;
+  }
+  .pointsBackground {
+    background: linear-gradient(180deg, #f55861 0%, #ce4497 100%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+}

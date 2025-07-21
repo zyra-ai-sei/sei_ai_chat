@@ -1,0 +1,28 @@
+@import "/src/scss/colors";
+.custom-checkbox {
+  appearance: none;
+  background-color: $neutral-greys-100; /* Default background color */
+  border-radius: 50%; /* Makes the checkbox circular */
+  border: 1px solid $neutral-greys-500; /* Border color */
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  position: relative;
+}
+
+.custom-checkbox:checked {
+  background-color: $primary-main-500; /* Checked background color */
+}
+
+.custom-checkbox:checked::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 8px;
+  background: url("/src/assets/common/checkInner.svg"); /* Checkmark color */
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

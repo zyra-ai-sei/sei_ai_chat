@@ -1,0 +1,262 @@
+.typo-h1 {
+  &-bold {
+    @include typo-h1-bold;
+  }
+  &-semiBold {
+    @include typo-h1-semiBold;
+  }
+  &-regular {
+    @include typo-h1-regular;
+  }
+}
+
+.typo-h2 {
+  &-bold {
+    @include typo-h2-bold;
+  }
+  &-semiBold {
+    @include typo-h2-semiBold;
+  }
+  &-regular {
+    @include typo-h2-regular;
+  }
+}
+
+.typo-h3 {
+  &-bold {
+    @include typo-h3-bold;
+  }
+  &-semiBold {
+    @include typo-h3-semiBold;
+  }
+  &-regular {
+    @include typo-h3-regular;
+  }
+  &-light {
+    @include typo-h3-light;
+  }
+}
+
+.typo-h4 {
+  &-bold {
+    @include typo-h4-bold;
+  }
+  &-semiBold {
+    @include typo-h4-semiBold;
+  }
+  &-regular {
+    @include typo-h4-regular;
+  }
+  &-light {
+    @include typo-h4-light;
+  }
+}
+
+.typo-h5 {
+  &-bold {
+    @include typo-h5-bold;
+  }
+  &-semiBold {
+    @include typo-h5-semiBold;
+  }
+  &-regular {
+    @include typo-h5-regular;
+  }
+  &-light {
+    @include typo-h5-light;
+  }
+}
+
+.typo-b1 {
+  &-semiBold {
+    @include typo-b1-semiBold;
+  }
+  &-regular {
+    @include typo-b1-regular;
+  }
+  &-light {
+    @include typo-b1-light;
+  }
+}
+
+.typo-b2 {
+  &-semiBold {
+    @include typo-b2-semiBold;
+  }
+  &-regular {
+    @include typo-b2-regular;
+  }
+  &-line {
+    @include typo-b2-line;
+  }
+  &-light {
+    @include typo-b2-light;
+  }
+}
+
+.typo-b3 {
+  &-semiBold {
+    @include typo-b3-semiBold;
+  }
+  &-regular {
+    @include typo-b3-regular;
+  }
+  &-line {
+    @include typo-b3-line;
+  }
+  &-light {
+    @include typo-b3-light;
+  }
+}
+
+.typo-c1 {
+  &-semiBold {
+    @include typo-c1-semiBold;
+  }
+  &-regular {
+    @include typo-c1-regular;
+  }
+}
+
+.typo-c2 {
+  &-semiBold {
+    @include typo-c2-semiBold;
+  }
+  &-regular {
+    @include typo-c2-regular;
+  }
+}
+
+@media screen and (min-width: 767px) {
+  .md\: {
+    &typo-h1 {
+      &-bold {
+        @include typo-h1-bold;
+      }
+      &-semiBold {
+        @include typo-h1-semiBold;
+      }
+      &-regular {
+        @include typo-h1-regular;
+      }
+    }
+
+    &typo-h2 {
+      &-bold {
+        @include typo-h2-bold;
+      }
+      &-semiBold {
+        @include typo-h2-semiBold;
+      }
+      &-regular {
+        @include typo-h2-regular;
+      }
+    }
+
+    &typo-h3 {
+      &-bold {
+        @include typo-h3-bold;
+      }
+      &-semiBold {
+        @include typo-h3-semiBold;
+      }
+      &-regular {
+        @include typo-h3-regular;
+      }
+      &-light {
+        @include typo-h3-light;
+      }
+    }
+
+    &typo-h4 {
+      &-bold {
+        @include typo-h4-bold;
+      }
+      &-semiBold {
+        @include typo-h4-semiBold;
+      }
+      &-regular {
+        @include typo-h4-regular;
+      }
+      &-light {
+        @include typo-h4-light;
+      }
+    }
+
+    &typo-h5 {
+      &-bold {
+        @include typo-h5-bold;
+      }
+      &-semiBold {
+        @include typo-h5-semiBold;
+      }
+      &-regular {
+        @include typo-h5-regular;
+      }
+      &-light {
+        @include typo-h5-light;
+      }
+    }
+
+    &typo-b1 {
+      &-semiBold {
+        @include typo-b1-semiBold;
+      }
+      &-regular {
+        @include typo-b1-regular;
+      }
+      &-light {
+        @include typo-b1-light;
+      }
+    }
+
+    &typo-b2 {
+      &-semiBold {
+        @include typo-b2-semiBold;
+      }
+      &-regular {
+        @include typo-b2-regular;
+      }
+      &-line {
+        @include typo-b2-line;
+      }
+      &-light {
+        @include typo-b2-light;
+      }
+    }
+
+    &typo-b3 {
+      &-semiBold {
+        @include typo-b3-semiBold;
+      }
+      &-regular {
+        @include typo-b3-regular;
+      }
+      &-line {
+        @include typo-b3-line;
+      }
+      &-light {
+        @include typo-b3-light;
+      }
+    }
+
+    &typo-c1 {
+      &-semiBold {
+        @include typo-c1-semiBold;
+      }
+      &-regular {
+        @include typo-c1-regular;
+      }
+    }
+
+    &typo-c2 {
+      &-semiBold {
+        @include typo-c2-semiBold;
+      }
+
+      &-regular {
+        @include typo-c2-regular;
+      }
+    }
+  }
+}

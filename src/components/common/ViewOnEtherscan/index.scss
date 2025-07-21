@@ -1,0 +1,29 @@
+
+.view_on_etherscan_box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+
+    .voe_icon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background-image: url('./img/i_external_link_white.svg');
+        background-repeat: no-repeat;
+        background-size: 100%;
+    }
+
+    .voe_txt {
+        margin-left: 8px;
+        color: #707e85;
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .voe_txt:hover {
+        color: #2783b8;
+        text-decoration-line: underline;
+    }
+}

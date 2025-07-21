@@ -1,0 +1,1 @@
+export const RELEASE_NOTES_URL = "https://chaquen.s3.us-east-1.amazonaws.com/release-notes-polygon.json"

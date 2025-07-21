@@ -1,0 +1,282 @@
+.transaction_dialog_v2 {
+  .title_icon {
+    width: 64px;
+    height: 64px;
+
+    background-size: 100%;
+  }
+
+  .title_icon_confirm {
+    background-image: url("./img/icon_pop_confirm.svg");
+    //background-image: url("./img/Wallet.gif");
+    animation: loading 3s linear infinite;
+
+    @keyframes loading {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  .title_icon_pending {
+    //background-image: url("./img/Approving.gif");
+    background-image: url("./img/icon_pop_pending.svg");
+  }
+
+  .title_icon_success {
+    background-image: url("./img/icon_pop_success.svg");
+    //background-image: url("./img/Success.gif");
+  }
+  .title_icon_team_success {
+    background-image: url("./img/icon_pop_team_success.png");
+    //background-image: url("./img/Success.gif");
+  }
+
+  .title_icon_failed {
+    background-image: url("./img/icon_pop_failed.svg");
+    //background-image: url("./img/Failed.gif");
+  }
+}
+.transaction_dialog {
+  width: 525px;
+  border-radius: 20px;
+
+  .title_icon {
+    width: 80px;
+    height: 80px;
+    margin-top: 100px;
+    margin-bottom: 40px;
+    background-size: 100%;
+  }
+
+  .title_icon_confirm {
+    background-image: url("./img/icon_pop_confirm.svg");
+    //background-image: url("./img/Wallet.gif");
+    animation: loading 3s linear infinite;
+
+    @keyframes loading {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  .title_icon_pending {
+    //background-image: url("./img/Approving.gif");
+    background-image: url("./img/icon_pop_pending.svg");
+  }
+
+  .title_icon_success {
+    background-image: url("./img/icon_pop_success.svg");
+    //background-image: url("./img/Success.gif");
+  }
+
+  .title_icon_team_success {
+    background-image: url("./img/icon_pop_team_success.png");
+    //background-image: url("./img/Success.gif");
+  }
+  .title_icon_failed {
+    background-image: url("./img/icon_pop_failed.svg");
+    //background-image: url("./img/Failed.gif");
+  }
+
+  .content_title {
+    color: #1b2022;
+    font-size: 22px;
+    font-family: "MessinaSans-SemiBold";
+    line-height: 28px;
+  }
+
+  .d_content {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    color: #707e85;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .d_operation_box {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 25px;
+    padding: 20px 24px;
+    background-color: #f8fafa;
+    border-radius: 12px;
+  }
+
+  .d_hash_box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .hash {
+      color: #404b51;
+      font-size: 18px;
+      line-height: 26px;
+    }
+
+    .operations {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      margin-top: 10px;
+
+      .view_on_etherscan_box {
+        margin-left: 10px;
+        padding: 4px 8px;
+        background-color: #f8fafa;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .d_confirm_box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 388px;
+
+    .wallet {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .connection {
+      margin-left: 12px;
+
+      .wallet_name {
+        color: #404b51;
+        font-size: 16px;
+        line-height: 24px;
+      }
+
+      .wallet_add {
+        color: #707e85;
+        font-size: 12px;
+        line-height: 18px;
+      }
+    }
+
+    .status {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #09a57f;
+        border-radius: 4px;
+      }
+
+      .txt {
+        margin-left: 10px;
+        color: #09a57f;
+        font-size: 14px;
+        line-height: 20px;
+      }
+    }
+  }
+
+  .d_error_box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 20px;
+    color: #df320c;
+    font-size: 14px;
+    line-height: 20px;
+    background-color: #ffe3e1;
+    border-radius: 6px;
+
+    .e_icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      background-image: url("./img/icon_pop_error_msg.svg");
+      background-repeat: no-repeat;
+      background-size: 100%;
+    }
+
+    .e_msg {
+      max-width: 400px;
+      word-break: break-all;
+    }
+  }
+
+  .sub_btn_long_blue.close_btn,
+  .sub_btn_long_white.close_btn,
+  .sub_btn_long_red.close_btn {
+    width: 100%;
+    height: 48px;
+    margin-top: 24px;
+    padding: 0 40px;
+    color: #fff;
+    font-weight: 300;
+    font-size: 16px;
+    text-align: center;
+    background-color: #31c1bf;
+    border-radius: 90px;
+  }
+
+  .sub_btn_long_red.close_btn {
+    background-color: #df320c;
+  }
+
+  .sub_btn_long_white.close_btn {
+    color: #31c1bf;
+    border: 1px solid #31c1bf;
+    background-color: #fff;
+  }
+
+  .sub_btn_small_margin.close_btn {
+    margin-top: 12px;
+  }
+
+  .transaction_tips_box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px;
+    margin-top: 30px;
+    background-color: #ffffff !important;
+    border: 1px solid #e7ecef;
+    border-radius: 20px;
+    color: #1b2022;
+    font-size: 14px;
+    line-height: 20px;
+
+    .tips_btn {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 6px 16px;
+      background-color: #31c1bf;
+      border-radius: 90px;
+      color: #fff;
+      font-size: 14px;
+      font-family: "MessinaSans-SemiBold";
+      line-height: 20px;
+    }
+  }
+}

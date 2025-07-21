@@ -1,0 +1,54 @@
+@import "src/scss/index";
+.first_title {
+  align-self: start;
+  color: $neutral-greys-950;
+  font-size: 38px;
+}
+
+.second_title {
+  align-self: start;
+  color: $neutral-greys-800;
+  font-size: 28px;
+}
+
+.third_title {
+  align-self: start;
+  color: #fff;
+  font-size: 18px;
+}
+
+.update_time {
+  width: 100%;
+  color: #707e85;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.url {
+  color: $primary-main-500 !important;
+  cursor: pointer;
+}
+
+.content {
+  width: 100%;
+  color: $neutral-greys-800;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+.content_with_point {
+  display: flex;
+  width: 100%;
+  .important {
+    font-weight: 500;
+    font-size: 16px;
+    font-family: "";
+  }
+  .point {
+    margin-right: 10px;
+    font-weight: 500;
+    font-size: 28px;
+    font-family: "";
+  }
+  @extend .content;
+}

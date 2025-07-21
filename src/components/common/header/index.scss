@@ -1,0 +1,15 @@
+.custom-drawer {
+  .ant-drawer-body {
+    padding: 0 !important;
+  }
+}
+.ant-drawer-content-wrapper {
+  width: calc(100vw - 71px) !important;
+}
+@media screen and (min-width: 767px) {
+  .ant-drawer-content-wrapper {
+    width: 320px !important;
+    left: calc(50vw - 128px);
+    overflow: hidden !important;
+  }
+}

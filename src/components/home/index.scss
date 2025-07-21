@@ -1,0 +1,92 @@
+@import "/src/scss/index";
+
+.bannerBackground {
+  background: linear-gradient(
+    275deg,
+    rgba(5, 1, 66, 0) 1.26%,
+    #090143 19.03%,
+    #320143 84.37%
+  );
+}
+
+.upcomingBg {
+  background: url("/src/assets/home/upcomingBackgraound.png");
+  background-position: 4px 4px;
+  background-size: 98% 122px;
+  background-repeat: no-repeat;
+}
+
+.liveBg {
+  background: url("/src/assets/home/liveBanner.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.summaryBg {
+  background: url("/src/assets/home/summaryBg.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.nftLaunchTypo {
+  background: linear-gradient(
+    92deg,
+    #94a3b8 -1.1%,
+    rgba(66, 73, 82, 0.56) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-align: center;
+  font-size: 140px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.nftLaunchSubtitleTypo {
+  color: linear-gradient(105deg, #e0e0e0 -1.6%, rgba(224, 224, 224, 0) 110.31%);
+}
+.nftLaunchRedBlur {
+  width: 332px;
+  height: 273px;
+  transform: rotate(-17deg);
+  flex-shrink: 0;
+  border-radius: 332px;
+  background: #fa5e37;
+  mix-blend-mode: hard-light;
+  filter: blur(55px);
+}
+
+.comingSoonBackground {
+  background: url("/src/assets/home/comingSoon.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.comingSoonText {
+  background: var(
+    --gr,
+    linear-gradient(91deg, #8148f9 -17.77%, #e989c3 49.01%, #d83f3f 133.08%)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+@media screen and (max-width: 767px) {
+  .nftLaunchTypo {
+    font-size: 53px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  .nftLaunchRedBlur {
+    width: 144.516px;
+    height: 132.616px;
+  }
+}

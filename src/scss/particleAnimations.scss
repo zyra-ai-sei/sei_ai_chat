@@ -1,0 +1,35 @@
+/* Define the initial style for the div */
+// #particle-network-container {
+//   position: fixed;
+//   bottom: 0;
+//   left: 0;
+//   width: 100%;
+//   transform: translateY(100%); /* Start off-screen */
+//   opacity: 0; /* Start transparent */
+// }
+
+// /* Define the animation */
+// @keyframes slideUpFadeIn {
+//   from {
+//     transform: translateY(100%);
+//     opacity: 0;
+//   }
+//   to {
+//     transform: translateY(0);
+//     opacity: 1;
+//   }
+// }
+
+// /* When the 'active' class is added, the animation starts */
+// #particle-network-container.active {
+//   animation: slideUpFadeIn 0.5s ease-out forwards;
+// }
+// .particle-approve-popup-show {
+//   top: 88vh !important;
+// }
+
+// @media screen and (max-width: 600px) {
+//   .particle-approve-popup-show {
+//     bottom: 88vh !important;
+//   }
+// }

@@ -1,0 +1,18 @@
+@import "src/scss/colors";
+
+.ant-collapse {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px 0px !important;
+  transition: all ease-in-out 200 !important;
+}
+.ant-collapse-item {
+  background: $neutral-greys-100 !important;
+  color: $neutral-greys-950 !important;
+  border-radius: 16px !important;
+  border: 1px solid $neutral-greys-200 !important;
+  padding: 12px 12px !important;
+}
+.ant-collapse-item-active{
+    background: $neutral-greys-200 !important;
+}

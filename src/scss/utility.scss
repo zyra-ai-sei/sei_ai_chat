@@ -1,0 +1,377 @@
+* {
+  border: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+}
+
+html,
+body {
+  font-family: "Schibsted Grotesk" !important;
+  overscroll-behavior-y: none;
+}
+
+ul {
+  list-style-type: none;
+}
+
+button {
+  cursor: pointer;
+  background-color: transparent;
+}
+
+a {
+  text-decoration: none;
+}
+
+input {
+  user-select: all;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+input[type="checkbox"] {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and others */
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.select-disable {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and others */
+}
+
+body.modal-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.full-width-bottom-align-popup {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  bottom: 0;
+  top: auto;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin: 0px;
+  padding: 0px;
+}
+
+.full-width-corner-align-popup {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  bottom: 0;
+  top: auto;
+  left: 18px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin: 0px;
+  padding:90px 20px;
+}
+
+.transitionMedium {
+  transition: all ease-in-out 100;
+}
+.rc-input-number-input-wrap {
+  input {
+    text-align: center !important;
+  }
+}
+.mainFont {
+  font-family: "Schibsted Grotesk" !important;
+}
+.spacemonoFont {
+  font-family: "Space Mono", monospace;
+}
+.hotToPlayBackground {
+  background: linear-gradient(103deg, #84cc16 40.38%, #ccc516 88.59%);
+}
+.nftLaunchBackground {
+  background: linear-gradient(
+    93deg,
+    #140826 7.9%,
+    #0c191e 33.06%,
+    #070c12 90.24%
+  );
+}
+
+.singleMatchBackground {
+  background: linear-gradient(
+    52deg,
+    #121620 39.95%,
+    rgba(23, 30, 49, 0.71) 113.82%
+  );
+}
+.scoreCardBackground {
+  background: linear-gradient(279deg, #f8fafc 45.88%, #b1ece5 103.8%);
+}
+.main_player_checkbox {
+  .ant-checkbox-inner {
+    border: 1.5px solid #f8fafc !important;
+    border-radius: 5px;
+    width: 20px !important;
+    height: 20px !important;
+    background: transparent !important;
+  }
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background: #84cc16 !important;
+    border-radius: 5px;
+    border: none !important;
+  }
+}
+
+.sub_player_checkbox {
+  .ant-checkbox-inner {
+    border: 1.5px solid #f8fafc !important;
+    border-radius: 5px;
+    width: 20px !important;
+    height: 20px !important;
+    background: transparent !important;
+  }
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background: #d7d01d !important;
+    border-radius: 5px;
+    border: none !important;
+  }
+}
+.smooth {
+  transition: all ease-in-out 200;
+}
+
+.topBannerBackgroundT20 {
+  background: url("/src/assets/home/bannerT20.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.topBannerBackground {
+  background: url("/src/assets/home/bannerMobile.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.playerOverviewBackground {
+  background: linear-gradient(118deg, #142422 0.85%, #192019 99.15%);
+}
+.freeText {
+  background: var(
+    --gr,
+    linear-gradient(91deg, #8148f9 -17.77%, #e989c3 49.01%, #d83f3f 133.08%)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.usdcFont {
+  background: var(
+    --gr,
+    linear-gradient(91deg, #8148f9 -17.77%, #e989c3 49.01%, #d83f3f 133.08%)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.teamReady_gradient {
+  background: var(
+    --gr,
+    linear-gradient(91deg, #8148f9 -17.77%, #e989c3 49.01%, #d83f3f 133.08%)
+  );
+}
+.leaderboard_other_gradient {
+  background: linear-gradient(284deg, #99655a -2.5%, #6c8cbd 84.28%);
+}
+
+@keyframes blink-shadow {
+  0% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: 0px 0px 5px 0px rgba(206, 205, 205, 0.13);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+.signInAnimation {
+  animation: blink-shadow 1900ms infinite ease-in-out;
+}
+
+@keyframes blink-telegram {
+  0% {
+    box-shadow: none;
+    border: 1px solid #696868;
+  }
+  50% {
+    box-shadow: 0px 0px 6px 0px rgba(119, 118, 118, 0.5);
+    border: 1px solid #323232a8;
+  }
+  100% {
+    box-shadow: none;
+    border: 1px solid #5f5e5e84;
+  }
+}
+
+.telegramBlinkAnimation {
+  animation: blink-telegram 1200ms 1600ms infinite ease-in-out;
+}
+
+.referralBackgroundTop {
+  position: absolute;
+  top: -229px;
+  left: 17px;
+  height: 611px;
+  width: 611px;
+  border-radius: 50%;
+  transform: rotate(-24.911deg);
+  opacity: 0.1;
+  background: #65a30d;
+  filter: blur(190px);
+
+  z-index: 0;
+}
+
+.referralBackgroundBottom {
+  position: absolute;
+  top: 309px;
+  left: 0px;
+  height: 540px;
+  width: 540px;
+  border-radius: 50%;
+
+  opacity: 0.15;
+  background: linear-gradient(
+    91deg,
+    #8148f9 -17.77%,
+    #e989c3 49.01%,
+    #d83f3f 133.08%
+  );
+  filter: blur(167px);
+  z-index: 0;
+}
+
+.paidJoinedBackground {
+  background: linear-gradient(
+    91deg,
+    #8148f9 -17.77%,
+    #e989c3 49.01%,
+    #d83f3f 133.08%
+  );
+}
