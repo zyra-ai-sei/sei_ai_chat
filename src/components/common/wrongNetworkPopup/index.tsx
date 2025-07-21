@@ -19,7 +19,7 @@ function WrongNetworkPopupExport({isCenterAlignPopupOpen}:{isCenterAlignPopupOpe
           Wrong Network
         </h4>
       </section>
-      <div className="flex flex-col  items-center ">
+      <div className="flex flex-col items-center ">
         <p className="text-center max-w-[266px] typo-b2-regular text-neutral-greys-950 mt-[8px]">
           Please switch to the appropriate network for this platform
         </p>
@@ -31,7 +31,7 @@ function WrongNetworkPopupExport({isCenterAlignPopupOpen}:{isCenterAlignPopupOpe
           switchChain?.({chainId:Number(import.meta.env?.VITE_BASE_CHAIN_ID)});
         }}
       >
-        Switch to Polygon Network
+        Switch to Sei Network
       </button>
     </div>
   );
