@@ -17,7 +17,7 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
     const sessionId = state.chatData.sessionId;
     if (index < 0) return;
     try {
-      const response = await axiosInstance.post("http://localhost:3000/v1/llm/chat", { prompt: txdata, sessionId });
+      const response = await axiosInstance.post("/llm/chat", { prompt: txdata, sessionId });
       const apiData = response?.data;
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";
@@ -66,7 +66,7 @@ export const sendChatPrompt = createAsyncThunk<
     const index = getState().chatData.chats.length - 1;
     const sessionId = getState().chatData.sessionId;
     try {
-      const response = await axiosInstance.post("http://localhost:3000/v1/llm/chat", { prompt, sessionId });
+      const response = await axiosInstance.post("/llm/chat", { prompt, sessionId });
       const apiData = response?.data;
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";
@@ -97,7 +97,7 @@ void,
     "chatData/initializePrompt",
     async (_, { dispatch, getState }) => {
         try{
-            const response = await axiosInstance.post("http://localhost:3000/v1/llm/init", {sessionId:null});
+            const response = await axiosInstance.post("/llm/init", {sessionId:null});
             const apiData = response?.data;
             if(apiData?.status === 200 && apiData?.data){
                 const sessionId = apiData.data.sessionId;

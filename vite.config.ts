@@ -113,7 +113,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/github-api/, ""),
         },
         "/api": {
-          target: "https://api-staging.chaquen.io",
+          target: "http://localhost:3000",
 
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
