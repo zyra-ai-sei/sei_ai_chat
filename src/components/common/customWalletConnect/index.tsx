@@ -1,15 +1,23 @@
 import { withCenterAlignPopup } from "@/hoc/withCenterAlignedPopup";
-import React, { useState } from "react";
-import { useConnect, useConnections } from "wagmi";
+import React, { useEffect, useState } from "react";
+import { useAccount, useConnect, useConnections } from "wagmi";
 import okxIcon from "@/assets/walletPopup/okx.png";
 import metamaskIcon from "@/assets/walletPopup/metamask.png";
 import coinbaseIcon from "@/assets/walletPopup/coinbase.png";
 import walletconnectIcon from "@/assets/walletPopup/walletconnect.png";
+import { useAppSelector } from "@/hooks/useRedux";
+import SignatureVerification from "./SignatureVerification";
 
 const WalletConnectModal = () => {
-
-  const {} = useConnections();
-  const { connect, connectors, isPending, isSuccess } = useConnect();
+  const [isSignatureVerificationOpen, setIsSignatureVerificationOpen] = useState(false);
+  const {isConnected} = useAccount()
+  const { connect, connectors, isPending, isSuccess } = useConnect({
+    mutation:{
+      onSettled:()=>{
+        setIsSignatureVerificationOpen(true);
+      }
+    }
+  });
   const [pendingConnectorId, setPendingConnectorId] = useState<string | null>(null);
 
   const IdtoIcon = {
@@ -18,6 +26,11 @@ const WalletConnectModal = () => {
     "io.metamask": metamaskIcon,
     okxwallet: okxIcon,
   };
+  useEffect(()=>{
+    if(isConnected){
+      setIsSignatureVerificationOpen(true);
+    }
+  },[isConnected])
   return (
     <div className="flex flex-col items-center gap-4 p-4 border border-white/10 rounded-3xl backdrop-blur-2xl bg-white/5">
       <div className="text-[24px] text-white">Connect Your Wallet</div>
@@ -45,6 +58,7 @@ const WalletConnectModal = () => {
           {connector.name}
         </button>
       ))}
+      <SignatureVerification isCenterAlignPopupOpen={isSignatureVerificationOpen} setIsCenterAlignPopupOpen={setIsSignatureVerificationOpen} />
     </div>
   );
 };

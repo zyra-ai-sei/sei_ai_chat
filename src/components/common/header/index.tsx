@@ -14,6 +14,7 @@ import { useAccount, useDisconnect } from "wagmi";
 import "./index.scss";
 import WalletConnectPopup from "../customWalletConnect";
 import ConnectedDisplay from "../customWalletConnect/ConnectedDisplay";
+import SignatureVerification from "../customWalletConnect/SignatureVerification";
 
 function Header({ isBackNavigation }: { isBackNavigation?: boolean }) {
   const [headerToggleState, setHeaderToggleState] = useState<HeaderToggleEnum>(
@@ -27,9 +28,7 @@ function Header({ isBackNavigation }: { isBackNavigation?: boolean }) {
     (state) => state?.globalData?.data?.isPWAOpened
   );
 
-  const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
-  const [showDropdown, setShowDropdown] = useState(false);
+
   const token = useAppSelector((state) => state?.globalData?.data?.token);
 
   useEffect(() => {
@@ -45,7 +44,7 @@ function Header({ isBackNavigation }: { isBackNavigation?: boolean }) {
         <div className="pt-[15px] flex pb-[3px] sticky ">
           <ConnectedDisplay />
         </div>
-        <WalletConnectPopup isCenterAlignPopupOpen={!isConnected} />
+        <WalletConnectPopup isCenterAlignPopupOpen={!token} />
       </header>
     </>
   );

@@ -8,9 +8,6 @@ import { LocalStorageIdEnum } from "./enum/utility.enum";
 
 import { useEffect, useState } from "react";
 import { useAppSelector } from "./hooks/useRedux";
-import * as amplitude from "@amplitude/analytics-browser";
-import trackUserEvent from "@/utility/amplitude";
-import moengage from "./utility/moengage";
 import CookiePopup from "@/components/popups/cookie";
 import Cookies from "js-cookie";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,34 +26,6 @@ function App() {
   );
 
   const globalData = useAppSelector((state) => state.globalData.data);
-  useEffect(() => {
-    try{
-
-      if (globalData?.eoaAddress) {
-        const userId = globalData.eoaAddress;
-        const userName = globalData.name;
-        amplitude.setUserId(userId);
-        moengage.call_web_push({ soft_ask: false });
-        if (globalData.userEmail) {
-          moengage.add_email(globalData.userEmail);
-        }
-        if (globalData.name) {
-          moengage.add_first_name(globalData.name);
-          moengage.add_user_name(globalData.name);
-        }
-        moengage.add_unique_user_id(userId);
-        
-        trackUserEvent("user_engagement_session", {
-          user_id: userId,
-          user_name: userName,
-          session_start_time: new Date().getTime(),
-          is_referred_user: "NA",
-        });
-      }
-    } catch(error){
-      
-    }
-  }, [globalData.eoaAddress, globalData.name, globalData.userEmail]);
 
   const deletePerformanceCookies = () => {
     const cookies = document.cookie.split("; ");
