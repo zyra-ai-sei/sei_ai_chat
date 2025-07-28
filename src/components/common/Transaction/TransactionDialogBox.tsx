@@ -2,7 +2,6 @@ import "./index.scss";
 
 import { useState, useEffect, useMemo } from "react";
 import CrossIcon from "../../../assets/popup/cross.svg?react";
-import CopyAddress from "../CopyAddress";
 import ViewOnEtherscan from "../ViewOnEtherscan";
 import { Modal } from "antd";
 import { FixTypeLater } from "react-redux";
@@ -223,7 +222,6 @@ export function TransactionDialogBox({
                 {generateAddressSummary(accountAddress, 6)}
               </div>
               <div className="flex flex-row gap-[12px] mt-4">
-                <CopyAddress address={accountAddress} />
                 <ViewOnEtherscan
                   url={`${ContractConfig.etherscan(web3Context.chainId)}/tx/${transactionContext?.hash}`}
                   showTitle={true}
