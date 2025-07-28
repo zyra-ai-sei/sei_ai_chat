@@ -17,7 +17,7 @@ Chaquen Frontend.
 2. Clone this repository:
 
    ```bash
-   git clone https://github.com/Chaquen-fantasy-sports/chaquen-website.git
+   git clone https://github.com/mr-shreyansh/sei_ai_chat.git
 
    ```
 

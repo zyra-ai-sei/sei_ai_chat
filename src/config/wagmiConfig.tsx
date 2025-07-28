@@ -99,10 +99,10 @@ export const wagmiConfig = createConfig({
       customStoragePrefix: "wagmi",
 
       metadata: {
-        name: "Chaquen",
-        description: "Chaquen Dapp",
-        url: "https://app.chaquen.io/",
-        icons: ["https://app.chaquen.io/chaquen.svg"],
+        name: "Zyra",
+        description: "Zyra Dapp",
+        url: "https://main.dcyp2gnn0vmnu.amplifyapp.com/",
+        icons: ["https://main.dcyp2gnn0vmnu.amplifyapp.com/icon.svg"],
       },
       // showQrModal:false
     }),
