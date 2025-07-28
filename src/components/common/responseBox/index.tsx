@@ -18,7 +18,7 @@ const ResponseBox = () => {
       onSuccess:()=>{
         dispatch(eraseLatestToolOutput());
       },
-       onSettled(data, error, variables, context) {
+       onSettled(data) {
         dispatch(appendTxChatResponseToLatestChat({txdata:data as string}))
       },
     }
@@ -31,7 +31,7 @@ const ResponseBox = () => {
       onSuccess:()=>{
         dispatch(eraseLatestToolOutput());
       },
-      onSettled(data, error, variables, context) {
+      onSettled(data) {
         dispatch(appendTxChatResponseToLatestChat({txdata:data as string}))
       },
     }
@@ -73,7 +73,7 @@ const ResponseBox = () => {
     h3: ({node, ...props}: any) => (
       <h3 style={{ color: '#e0e0e0', fontWeight: 700 }} className="text-lg" {...props} />
     ),
-    text: ({node, children, ...props}: any) => {
+    text: ({children }: any) => {
       // Highlight blockchain addresses
       if (typeof children === 'string') {
         const parts = children.split(addressRegex);

@@ -29,17 +29,12 @@ function RouterConfig() {
 
   const globalData = useAppSelector((state) => state?.globalData?.data);
   const {
-    token,
-
     isPWAOpened,
     eoaAddress,
   } = globalData || {};
 
   const isMobile = useAppSelector((state) => state?.globalData?.isMobile);
 
-  const chainIdSelected = useAppSelector(
-    (state) => state?.globalData?.data?.chainIdSelected
-  );
 
   const { isConnected, address, chain } = useAccount();
   const { disconnect } = useDisconnect();

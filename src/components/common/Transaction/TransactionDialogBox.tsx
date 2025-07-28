@@ -28,7 +28,6 @@ export function TransactionDialogBox({
   const [content, setContent] = useState("Confirm transaction on your wallet");
 
   const [confirmed, setConfirmed] = useState(false);
-  const [isReportBoxOpen, setIsReportBoxOpen] = useState(false);
 
   const connectedWalletName = useMemo(() => {
     if (window.localStorage && open) {
@@ -293,7 +292,6 @@ export function TransactionDialogBox({
             />
             <p className="text-neutral-greys-500 text-white mt-3 flex items-center justify-center flex-wrap text-[12px] gap-1 ">
               <InfoIcon className="text-neutral-greys-500 bg-none w-[18px] h-[18px]" /> Facing any issue in Chaquen
-              <button onClick={() => { setIsReportBoxOpen(true) }} className="underline text-primary-main-500">Report issue</button>
             </p>
           </ConditionDisplay>
         </div>

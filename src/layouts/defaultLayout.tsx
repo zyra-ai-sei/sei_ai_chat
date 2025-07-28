@@ -11,21 +11,16 @@ import { useEffect, useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import {
   fetchUserData,
-  logoutUserRequest,
   resetGlobalData,
   setGlobalData,
   validateToken,
 } from "@/redux/globalData/action";
 import { useNavigate } from "react-router-dom";
-import PullToRefresh from "react-simple-pull-to-refresh";
 import { AuthStatusEnum } from "@/enum/utility.enum";
-import { fetchReleaseNotes } from "@/utility/releaseNotes";
-import bgImage from '@/assets/common/background.jpeg';
 import "./index.scss"
 
 function DefaultLayout({
   MainContentComponent,
-  isBackNavigation,
 }: {
   MainContentComponent: React.FC;
   isBackNavigation?: boolean;
@@ -35,21 +30,16 @@ function DefaultLayout({
   );
   const globalData = useAppSelector((state) => state?.globalData?.data);
   const isMobile = useAppSelector((state) => state?.globalData?.isMobile);
-  const { token, isPWAOpened, eoaAddress, name } = globalData || {};
+  const { token, name } = globalData || {};
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const referralCodeParams = window?.location?.href?.split("inviteCode=")?.[1];
-  const [isWelcomeBackPopupOpened, setIsWelcomeBackPopupOpened] =
-    useState<boolean>(false);
   const [authStatus, setAuthStatus] = useState<AuthStatusEnum>(
     AuthStatusEnum.Default
   );
-  const [releaseNotes, setReleaseNotes] = useState<{
-    version: string;
-    changes: string[];
-  } | null>(null);
+
 
   useEffect(() => {
     if (!token || !isConnected) {
@@ -91,17 +81,6 @@ function DefaultLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const handleSetWelcomeBackPopupOpened: React.Dispatch<
-    React.SetStateAction<boolean>
-  > = (value) => {
-    setIsWelcomeBackPopupOpened(value);
-  };
-
-  const handleRefresh = async () => {
-    if (isPWAOpened) {
-      window?.location?.reload();
-    }
-  };
 
   useEffect(() => {
     if (token) {
@@ -109,20 +88,6 @@ function DefaultLayout({
         setAuthStatus(AuthStatusEnum.NewLogin);
     } else {
       setAuthStatus(AuthStatusEnum.LoggedOut);
-    }
-    if (name) {
-      if (authStatus === AuthStatusEnum.NewLogin)
-        fetchReleaseNotes(
-          (data: { version: string; changes: string[] } | null) => {
-            if (data) {
-              setReleaseNotes({
-                version: data?.version,
-                changes: data?.changes,
-              });
-            }
-            setIsWelcomeBackPopupOpened(true);
-          }
-        );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, token]);
@@ -139,7 +104,7 @@ function DefaultLayout({
               className={`${isMobile ? "h-screen" : " mx-auto h-screen"} flex flex-col overflow-hidden max-w-[1440px] mx-auto`}
             >
               {isEarlyFan && <EarlyFanProgressbar />}
-              <Header isBackNavigation={isBackNavigation} />
+              <Header />
               
               <div className="flex-1 overflow-hidden">
                 <MainContentComponent />

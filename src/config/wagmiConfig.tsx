@@ -7,7 +7,6 @@ import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
 import { amoy } from "./amoy";
 import { http } from "viem";
-import { particleGoogleWallet, particleWallet } from "./particleWallet";
 import { sei, seiTestnet } from "viem/chains";
 
 export const wagmiConfig = createConfig({

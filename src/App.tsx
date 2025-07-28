@@ -7,7 +7,6 @@ import useLocalStorage, { getLocalStorageData } from "./hooks/useLocalStorage";
 import { LocalStorageIdEnum } from "./enum/utility.enum";
 
 import { useEffect, useState } from "react";
-import { useAppSelector } from "./hooks/useRedux";
 import CookiePopup from "@/components/popups/cookie";
 import Cookies from "js-cookie";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,7 +24,6 @@ function App() {
     !cookieValue || !cookieValue.necessary
   );
 
-  const globalData = useAppSelector((state) => state.globalData.data);
 
   const deletePerformanceCookies = () => {
     const cookies = document.cookie.split("; ");

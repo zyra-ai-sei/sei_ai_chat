@@ -14,7 +14,6 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
   async ({ txdata }, { dispatch, getState }) => {
     const state = getState();
     const index = state.chatData.chats.length - 1;
-    const sessionId = state.chatData.sessionId;
     if (index < 0) return;
     try {
       const response = await axiosInstance.post("/llm/chat", { prompt: txdata });
@@ -64,7 +63,6 @@ export const sendChatPrompt = createAsyncThunk<
     // Add prompt to chat list
     dispatch(addPrompt(prompt));
     const index = getState().chatData.chats.length - 1;
-    const sessionId = getState().chatData.sessionId;
     try {
       const response = await axiosInstance.post("/llm/chat", { prompt });
       const apiData = response?.data;
@@ -95,7 +93,7 @@ void,
 {state: IRootState}
 >(
     "chatData/initializePrompt",
-    async (_, { dispatch, getState }) => {
+    async (_, { dispatch }) => {
         try{
             const response = await axiosInstance.post("/llm/init");
             const apiData = response?.data;

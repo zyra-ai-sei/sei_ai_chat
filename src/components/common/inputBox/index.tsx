@@ -1,7 +1,6 @@
 import { useAppDispatch } from "@/hooks/useRedux";
 import { sendChatPrompt } from "@/redux/chatData/action";
 import React, { useRef, useState } from "react";
-import { useAccount } from "wagmi";
 
 const InputBox = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);

@@ -1,4 +1,3 @@
-import React from 'react';
 import ChatIcon from '@/assets/common/icon.svg?react'
 const suggestions = [
   "What is the chainId of Sei blockchain?",

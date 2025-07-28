@@ -1,17 +1,16 @@
 import { withCenterAlignPopup } from "@/hoc/withCenterAlignedPopup";
-import React, { useEffect, useState } from "react";
-import { useAccount, useConnect, useConnections } from "wagmi";
+import { useEffect, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
 import okxIcon from "@/assets/walletPopup/okx.png";
 import metamaskIcon from "@/assets/walletPopup/metamask.png";
 import coinbaseIcon from "@/assets/walletPopup/coinbase.png";
 import walletconnectIcon from "@/assets/walletPopup/walletconnect.png";
-import { useAppSelector } from "@/hooks/useRedux";
 import SignatureVerification from "./SignatureVerification";
 
 const WalletConnectModal = () => {
   const [isSignatureVerificationOpen, setIsSignatureVerificationOpen] = useState(false);
   const {isConnected} = useAccount()
-  const { connect, connectors, isPending, isSuccess } = useConnect({
+  const { connect, connectors, isPending } = useConnect({
     mutation:{
       onSettled:()=>{
         setIsSignatureVerificationOpen(true);

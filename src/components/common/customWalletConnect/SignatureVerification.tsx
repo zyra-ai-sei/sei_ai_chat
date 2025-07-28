@@ -2,9 +2,7 @@ import { withCenterAlignPopup } from "@/hoc/withCenterAlignedPopup";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { setGlobalData } from "@/redux/globalData/action";
 import { axiosInstance } from "@/services/axios";
-import { isPending } from "@reduxjs/toolkit";
-import { ethers } from "ethers";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 
 const SignatureVerificationPopup = () => {
@@ -12,13 +10,12 @@ const SignatureVerificationPopup = () => {
   const { address } = useAccount();
   const dispatch = useAppDispatch();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const globalData = useAppSelector((state) => state.globalData.data);
 
   const handleVerification = async () => {
     try {
       setPending(true);
-      setError(null);
+      // setError(null);
       const nonceResponse = await axiosInstance.get("/auth/login");
 
       const nonce = nonceResponse.data.data.message;
@@ -41,11 +38,11 @@ const SignatureVerificationPopup = () => {
           })
         );
         setPending(false);
-        setError(null);
+        // setError(null);
       }
     } catch (err: any) {
       setPending(false);
-      setError(err?.message ? err?.message : "Error in signing the message");
+      // setError(err?.message ? err?.message : "Error in signing the message");
     }
   };
   useEffect(() => {
