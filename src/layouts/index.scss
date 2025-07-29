@@ -18,7 +18,7 @@ html {
     background: 
       linear-gradient(to right, #02061767 0%, rgba(2, 6, 23, 0.27) 15%, rgba(2, 6, 23, 0.301) 85%, #020617f1 100%),
       linear-gradient(to top, #02061700 0%, rgba(2, 6, 23, 0) 15%,rgba(2, 6, 23, 0) 35%, rgba(2, 6, 23, 0.304) 45%, #030d3e00 100%),
-      url('@/assets/common/background.jpeg') no-repeat bottom center fixed;
+      url('../assets/common/background.jpeg') no-repeat bottom center fixed;
     position: relative;
 
   }
