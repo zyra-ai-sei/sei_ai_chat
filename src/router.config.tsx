@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import PageNotFound from "./pages/pageNotFound";
-import Home from "./pages/home";
+import Chat from "./pages/chat";
 import DefaultLayout from "./layouts/defaultLayout";
 import { useAppDispatch, useAppSelector } from "./hooks/useRedux";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import { setGlobalData } from "./redux/globalData/action";
 import useLocalStorage from "./hooks/useLocalStorage";
 import { LocalStorageIdEnum } from "./enum/utility.enum";
 import PwaDownloadPopup from "./components/common/pwaDownloadPopup";
+import Home from "./pages/home";
 
 
 function RouterConfig() {
@@ -106,6 +107,10 @@ function RouterConfig() {
         <Route
           path="/"
           element={<DefaultLayout MainContentComponent={Home} />}
+        />
+        <Route
+          path="/chat"
+          element={<DefaultLayout MainContentComponent={Chat} />}
         />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

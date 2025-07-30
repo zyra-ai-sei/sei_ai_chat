@@ -1,15 +1,17 @@
+import Features from "./components/Features";
+import Hero from "./components/Hero";
+import Milestones from "./components/Milestones";
+import Working from "./components/Working";
 
-import InputBox from "@/components/common/inputBox";
-import ResponseBox from "@/components/common/responseBox";
-function Home() {
+const Home = () => {
   return (
-    <div className="h-full p-4 overflow-hidden">
-      <div className="flex flex-col justify-end h-full gap-0 lg:max-w-[60%] mx-auto">
-        <ResponseBox/>
-        <InputBox />
-      </div>
+    <div className="flex flex-col gap-[64px]">
+      <Hero/>
+      <Working/>
+      <Features/>
+      <Milestones/>
     </div>
   );
-}
+};
 
 export default Home;

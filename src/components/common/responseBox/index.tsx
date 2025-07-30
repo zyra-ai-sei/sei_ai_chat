@@ -98,7 +98,7 @@ const ResponseBox = () => {
   };
 
   return (
-    <div ref={containerRef} className="flex flex-col flex-grow max-h-screen gap-6 py-2 pr-4 overflow-y-auto scrollbar-thin">
+    <div ref={containerRef} className="z-30 flex flex-col justify-start flex-grow max-h-screen gap-6 py-2 pr-4 overflow-y-auto scrollbar-thin">
       {
       chats.length > 0 ?
       chats.map((chat, idx) => (
