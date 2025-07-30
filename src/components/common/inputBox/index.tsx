@@ -32,7 +32,7 @@ const InputBox = () => {
   };
 
   return (
-    <div className="w-full p-[1px] flex flex-col  max-h-[400px] rounded-3xl bg-gradient-to-r from-[#F44E4E] via-[#E76EF2] to-[#4CBEE1]">
+    <div className="w-full p-[1px] flex flex-col  max-h-[400px] rounded-3xl bg-gradient-to-r from-[#F44E4E] via-[#E76EF2] to-[#4CBEE1] z-30">
       <div className="flex flex-col items-end w-full p-2 mx-auto rounded-3xl bg-[#0F172A] ">
         <textarea
           ref={textareaRef}
