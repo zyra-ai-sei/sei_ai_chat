@@ -13,7 +13,7 @@ interface ToolOutput {
 
 interface ChatResponse {
   chat: string;
-  tool_output?: ToolOutput;
+  tool_outputs?: ToolOutput[];
 }
 
 export interface ChatItem {
@@ -79,7 +79,7 @@ const chatDataSlice = createSlice({
     },
     eraseLatestToolOutput(state) {
       if (state.chats.length > 0) {
-        state.chats[state.chats.length - 1].response.tool_output = undefined;
+        state.chats[state.chats.length - 1].response.tool_outputs = [];
       }
     },
   },

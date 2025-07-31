@@ -20,13 +20,13 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
       const apiData = response?.data;
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";
-        const tool_output = apiData.data.tool?.tool_output;
+        const tool_outputs = apiData.data.tool?.tool_outputs;
         dispatch(
           updateResponse({
             index,
             response: {
               chat,
-              ...(tool_output ? { tool_output } : {}),
+              ...(tool_outputs ? { tool_outputs } : {}),
             },
           })
         );
@@ -68,13 +68,19 @@ export const sendChatPrompt = createAsyncThunk<
       const apiData = response?.data;
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";
-        const tool_output = apiData.data.tool?.tool_output;
+        const tools = apiData.data.tools;
+        let tool_outputs = [];
+        if(tools){
+          for(let i=0;i<tools.length;i++){
+            tool_outputs.push(tools[i].tool_output);
+          }
+        }
         dispatch(
           setResponse({
             index,
             response: {
               chat,
-              ...(tool_output ? { tool_output } : {}),
+              ...(tool_outputs ? { tool_outputs } : {}),
             },
           })
         );
