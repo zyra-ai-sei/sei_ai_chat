@@ -35,7 +35,7 @@ const ResponseBox = () => {
     }
   };
 
-  const { writeContract, isPending } = useWriteContract({
+  const { writeContract } = useWriteContract({
     mutation: {
       onError: () => {
         dispatch(eraseLatestToolOutput());
