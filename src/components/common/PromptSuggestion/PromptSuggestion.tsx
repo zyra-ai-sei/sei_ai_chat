@@ -3,9 +3,7 @@ const suggestions = [
   "gm, how can I help you?",
   "Send 15 SEI to 0x0000000000000000000",
   "How do I bridge assets to Sei?",
-  "List the latest blocks on Sei network.",
   "Place limit for for USDC",
-  "What is the current gas price on Sei?",
 ];
 
 const PromptSuggestion = () => {

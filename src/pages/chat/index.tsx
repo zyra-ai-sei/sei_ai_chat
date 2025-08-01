@@ -49,13 +49,16 @@ function Chat() {
   }, [token]);
 
   return (
-    <div className="relative flex flex-col justify-end w-full h-screen p-4 overflow-hidden">
+    <div className="relative flex flex-col justify-end w-full h-screen p-4 overflow-scroll">
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent via-10% via-90% to-black/50 pointer-events-none z-20"></div>
 
       <img src={BackgroundImage} className="absolute bottom-0 z-0" />
-      <div className="flex flex-col justify-end h-[calc(100%-40px)] w-full gap-0 lg:max-w-[60%] mx-auto z-30">
-        <ResponseBox />
-        <InputBox />
+      <div className="flex justify-end h-[calc(100%-40px)] overflow-scroll">
+        <div className="h-full bg-red-50"></div>
+        <div className="flex flex-col justify-end  w-full gap-0 lg:max-w-[60%] mx-auto z-30 overflow-scroll">
+          <ResponseBox />
+          <InputBox />
+        </div>
       </div>
       <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
     </div>
