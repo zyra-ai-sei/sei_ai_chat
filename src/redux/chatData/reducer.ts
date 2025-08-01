@@ -17,6 +17,7 @@ interface ChatResponse {
 }
 
 export interface ChatItem {
+  id:string;
   prompt: string;
   response: ChatResponse;
   loading?: boolean;
@@ -41,7 +42,7 @@ const chatDataSlice = createSlice({
       state.sessionId = action.payload;
     },
     addPrompt(state, action: PayloadAction<string>) {
-      state.chats.push({ prompt: action.payload, response: { chat: "" }, loading: true });
+      state.chats.push({id:Date.now().toLocaleString(), prompt: action.payload, response: { chat: "" }, loading: true });
     },
     setResponse(
       state,
