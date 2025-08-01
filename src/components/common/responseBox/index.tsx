@@ -70,13 +70,21 @@ const ResponseBox = () => {
     processTx(0);
   };
 
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-    handleSignature(chats[chats.length - 1]);
-  }, [chats]);
+const lastProcessedChatId = useRef<string | number | null>(null);
 
+useEffect(() => {
+  const latestChat = chats[chats.length - 1];
+  
+  if (
+    latestChat &&
+    latestChat.id !== lastProcessedChatId.current &&
+    latestChat.response.tool_outputs &&
+    latestChat?.response?.tool_outputs?.length > 0
+  ) {
+    lastProcessedChatId.current = latestChat.id;
+    handleSignature(latestChat);
+  }
+}, [chats]);
   // Custom markdown renderers
   const addressRegex = /0x[a-fA-F0-9]{40}/g;
   const components = {
