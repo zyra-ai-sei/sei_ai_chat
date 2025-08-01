@@ -7,7 +7,7 @@ function WrongNetworkPopupExport({isCenterAlignPopupOpen}:{isCenterAlignPopupOpe
   const { switchChain } = useSwitchChain();
   useModalScrollLock({ isCenterAlignPopupOpen });
   return (
-    <div className="bg-neutral-greys-0 shadow1  rounded-t-[10px] md:rounded-[10px]  border-[1px] border-solid border-neutral-greys-100 px-[24px] py-[24px]  w-full md:min-w-[580px]">
+    <div className="bg-black/40 shadow1  rounded-t-[10px] md:rounded-[10px]  border-[1px] border-solid border-neutral-greys-100 px-[24px] py-[24px]  w-full ">
       <section className="flex items-center flex-col gap-y-[32px]">
         <img
           src={wrongNetwork}
