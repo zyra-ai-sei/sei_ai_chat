@@ -57,7 +57,7 @@ function Chat() {
         <ResponseBox />
         <InputBox />
       </div>
-      <WalletConnectPopup isCenterAlignPopupOpen={!token} />
+      <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
     </div>
   );
 }
