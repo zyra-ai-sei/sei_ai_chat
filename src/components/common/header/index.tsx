@@ -25,7 +25,7 @@ function Header() {
 
   return (
     <header
-      className={`px-[16px] top-3 z-50 p-2 max-w-[1440px] flex justify-between rounded-xl  ${currentPath === '/' ? 'fixed left-4 right-4' : 'absolute w-[calc(100% - 32px)] left-4 right-4 max-w-[1440px] '} transition-all duration-500 
+      className={`px-[16px] top-3 z-50 p-2 max-w-[1440px] flex justify-between rounded-xl  ${currentPath === '/' ? 'absolute w-[calc(100% - 32px)] left-4 right-4 max-w-[1440px]' : 'absolute w-[calc(100% - 32px)] left-4 right-4 max-w-[1440px] '} transition-all duration-500 
         ${scrolled || currentPath === '/chat' ? "bg-grey-600/10 backdrop-blur-sm border-gray-800/70 border" : "border-gray-800/10 border"}
       `}
     >
