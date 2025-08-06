@@ -16,7 +16,7 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
     const index = state.chatData.chats.length - 1;
     if (index < 0) return;
     try {
-      const response = await axiosInstance.post("/llm/chat", { prompt: txdata });
+      const response = await axiosInstance.post("/llm/addtxn", { prompt: txdata });
       const apiData = response?.data;
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";

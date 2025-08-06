@@ -32,8 +32,8 @@ const InputBox = () => {
   };
 
   return (
-    <div className="w-full p-[1px] flex flex-col  max-h-[400px] rounded-3xl bg-gradient-to-r from-[#F44E4E] via-[#E76EF2] to-[#4CBEE1] z-30">
-      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-3xl bg-[#0F172A] ">
+    <div className="w-full p-[1px] flex flex-col  max-h-[400px] rounded-xl bg-gradient-to-r from-[#F44E4E] via-[#E76EF2] to-[#4CBEE1] z-30">
+      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0F172A] ">
         <textarea
           ref={textareaRef}
           className="flex-grow w-full rounded-2xl min-h-[60px] max-h-[200px] resize-none overflow-y-auto bg-transparent border-none outline-none text-white placeholder-white/50 p-3"

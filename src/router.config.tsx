@@ -5,7 +5,7 @@ import DefaultLayout from "./layouts/defaultLayout";
 import { useAppDispatch, useAppSelector } from "./hooks/useRedux";
 import { useEffect, useState } from "react";
 
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount, useChainId, useDisconnect } from "wagmi";
 import WrongNetworkPopup from "./components/common/wrongNetworkPopup";
 
 import useScreenWidth from "./hooks/useScreenWidth";
@@ -39,19 +39,21 @@ function RouterConfig() {
 
   const { isConnected, address, chain } = useAccount();
   const { disconnect } = useDisconnect();
+  const chainId = useChainId()
 
 
   useEffect(() => {
     if (
-      chain &&
-      chain?.id !== Number(import.meta.env?.VITE_BASE_CHAIN_ID) &&
-      chain?.id !== Number(import.meta.env?.VITE_ALTERNATE_CHAIN_ID)
+      chainId &&
+      chainId !== Number(import.meta.env?.VITE_BASE_CHAIN_ID) &&
+      chainId !== Number(import.meta.env?.VITE_ALTERNATE_CHAIN_ID)
     ) {
       setIswrongNetworkpopupOpened(true);
     } else {
       setIswrongNetworkpopupOpened(false);
     }
-  }, [chain]);
+    console.log('chainid', chainId, chain?.id)
+  }, [chainId]);
 
   useScreenWidth();
 

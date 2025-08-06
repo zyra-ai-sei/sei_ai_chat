@@ -21,11 +21,10 @@ function DefaultLayout({
       <AlertProvider>
         <Toast />
         <TransactionContextProvider>
-          <div className="bg-[#010207] font-sans">
+          <div className="bg-[#010207] min-h-screen h-full font-sans">
             <div
-              className={`${isMobile ? "" : " mx-auto"} flex flex-col overflow-hidden max-w-[1440px] mx-auto relative`}
+              className={`${isMobile ? "" : " mx-auto"} flex flex-col overflow-hidden mx-auto relative`}
             >
-              <Header />
               <div className="flex-1 overflow-hidden">
                 <MainContentComponent />
               </div>
