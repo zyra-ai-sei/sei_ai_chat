@@ -1,5 +1,5 @@
 import PrimaryCard from "@/components/home/cards/PrimaryCard";
-import { Parallax, useParallax } from "react-scroll-parallax";
+import { Parallax } from "react-scroll-parallax";
 
 const Working = () => {
   const worksData = [
