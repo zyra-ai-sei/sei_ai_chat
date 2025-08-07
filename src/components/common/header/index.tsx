@@ -25,8 +25,8 @@ function Header() {
 
   return (
     <header
-      className={`px-[16px] top-3 z-50 p-2 max-w-[1440px] flex justify-between rounded-xl  ${currentPath === '/' ? 'fixed left-4 right-4' : 'absolute w-[calc(100% - 32px)] left-4 right-4 max-w-[1440px] '} transition-all duration-500 
-        ${scrolled || currentPath === '/chat' ? "bg-grey-600/10 backdrop-blur-sm border-gray-800/70 border" : "border-gray-800/10 border"}
+      className={`px-[16px] top-3 z-50 p-2 w-[calc(100vw-32px)] max-w-[calc(1440px-32px)] flex justify-between rounded-xl fixed left-1/2 right-1/2 transform -translate-x-1/2 self-center  transition-all duration-500 
+        ${scrolled || currentPath === '/chat' ? "bg-grey-600/10 backdrop-blur-sm border-gray-500/60 border" : "border-gray-500/50 border"}
       `}
     >
       <div className="flex items-center gap-1">

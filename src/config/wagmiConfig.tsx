@@ -7,52 +7,62 @@ import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
 import { amoy } from "./amoy";
 import { http } from "viem";
-import { sei, seiTestnet } from "viem/chains";
+import { arbitrum, arbitrumSepolia, base, mainnet, monadTestnet, opBNB, optimism, sei, seiTestnet, sepolia } from "viem/chains";
 
 export const wagmiConfig = createConfig({
-  chains: [polygon, amoy, polygonMumbai, seiTestnet, sei],
+  chains: [polygon, amoy, polygonMumbai, seiTestnet, sei, arbitrum, mainnet, optimism, sepolia, arbitrumSepolia, base, monadTestnet, opBNB],
+  
   transports: {
+    [mainnet.id]: fallback([
+      http(`https://eth-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://eth-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [optimism.id]: fallback([
+      http(`https://opt-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://opt-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [arbitrum.id]: fallback([
+      http(`https://arb-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://arb-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [sepolia.id]: fallback([
+      http(`https://eth-sepolia.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://eth-sepolia.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [arbitrumSepolia.id]: fallback([
+      http(`https://arb-sepolia.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://arb-sepolia.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [base.id]: fallback([
+      http(`https://base-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://base-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+    ]),
+    [monadTestnet.id]: fallback([
+      http(`https://monad-testnet.rpc.thirdweb.com`),
+    ]),
+    [opBNB.id]: fallback([
+      http(`https://opbnb-mainnet-rpc.bnbchain.org`),
+    ]),
     [polygon.id]: fallback([
-      http(
-        `https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
-      webSocket(
-        `wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
+      http(`https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
     [amoy.id]: fallback([
-      http(
-        `https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
-      webSocket(
-        `wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
+      http(`https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
     [polygonMumbai.id]: fallback([
-      http(
-        `https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
-      webSocket(
-        `wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
+      http(`https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://polygon-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
     [sei.id]: fallback([
-      http(
-        `https://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
-      webSocket(
-        `wss://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
+      http(`https://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
     [seiTestnet.id]: fallback([
-      http(
-        `https://sei-testnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
-      webSocket(
-        `wss://sei-testnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`
-      ),
+      http(`https://sei-testnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      webSocket(`wss://sei-testnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
-   
   },
 
   connectors: [

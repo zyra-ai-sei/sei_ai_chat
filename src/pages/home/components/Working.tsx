@@ -1,4 +1,5 @@
 import PrimaryCard from "@/components/home/cards/PrimaryCard";
+import { Parallax, useParallax } from "react-scroll-parallax";
 
 const Working = () => {
   const worksData = [
@@ -20,24 +21,33 @@ const Working = () => {
         "The trade is executed trustlessly on Sei using smart contracts.",
     },
   ];
+
+
   return (
-    <div className="flex flex-col gap-[min(6vw,80px)] justify-center w-full mx-auto">
-      <div className="font-bold  text-[min(4vw,40px)] flex flex-col justify-center items-center">
-        <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text">HOW IT WORKS</h1>
-        <h2 className="font-thin font-sans text-[#98999A] text-[min(2vw,16px)]">
-          "Trade crypto like you're texting a friend."
-        </h2>
+    <Parallax speed={2}>
+      <div className="flex flex-col gap-[min(6vw,80px)] justify-center w-full mx-auto">
+        <div className="font-bold  text-[min(4vw,40px)] flex flex-col justify-center items-center">
+          <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text">
+            HOW IT WORKS
+          </h1>
+          <h2 className="font-thin font-sans text-[#98999A] text-[min(2vw,16px)]">
+            "Trade crypto like you're texting a friend."
+          </h2>
+        </div>
+        <div className="flex justify-center flex-col md:flex-row items-center  w-full gap-[min(2vw,20px)]">
+          {worksData.map((work) => (
+            <Parallax scale={[0.1,1,'easeOutExpo']}>
+
+            <PrimaryCard
+              index={work.index}
+              title={work.title}
+              content={work.content}
+            />
+            </Parallax>
+          ))}
+        </div>
       </div>
-      <div className="flex justify-center flex-col md:flex-row items-center  w-full gap-[min(2vw,20px)]">
-        {worksData.map((work) => (
-          <PrimaryCard
-            index={work.index}
-            title={work.title}
-            content={work.content}
-          />
-        ))}
-      </div>
-    </div>
+    </Parallax>
   );
 };
 

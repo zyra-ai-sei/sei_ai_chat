@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import CookiePopup from "@/components/popups/cookie";
 import Cookies from "js-cookie";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {ParallaxProvider} from 'react-scroll-parallax'
 
 const queryClient = new QueryClient()
 
@@ -98,14 +99,17 @@ function App() {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
+        <ParallaxProvider>
+
 
         <RouterConfig />
 
         <CookiePopup
           isCenterAlignPopupOpen={isCookiePopupOpen}
           setIsCenterAlignPopupOpen={setCookiePopupOpen}
-        />
+          />
 
+          </ParallaxProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
