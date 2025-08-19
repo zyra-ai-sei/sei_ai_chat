@@ -3,6 +3,10 @@ import { getTransactions } from "@/redux/transactionData/action";
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import Arrow from "@/assets/home/downArrow.svg?react";
+import { headerWalletAddressShrinker } from "@/utility/walletAddressShrinker";
+import CopyIcon from "@/assets/common/copy.svg?react";
+import CopyToClipboard from "react-copy-to-clipboard";
+import TooltipCustom from "../common/tooltip";
 
 const TransactionHistory = () => {
   const dispatch = useAppDispatch();
@@ -11,19 +15,49 @@ const TransactionHistory = () => {
   );
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | string | null>(null);
+  const [isAddressCopied, setIsAddressCopied] = useState<boolean>(false);
+
+  const CopyToClipboardComponent =
+    CopyToClipboard as unknown as React.ComponentType<any>;
+
+  const handleCopy = () => {
+    setIsAddressCopied(true);
+    setTimeout(() => {
+      setIsAddressCopied(false);
+    }, 3000);
+  };
 
   useEffect(() => {
     dispatch(getTransactions());
   }, []);
   return (
-    <div className="flex flex-col gap-2 h-[48%] p-2 border-gray-500/50 ">
-      <h1 className="text-white/80 text-[20px] font-semibold">Transactions</h1>
-      <div className="relative flex flex-col gap-3 overflow-auto">
+    <div className="flex flex-col flex-shrink-0 gap-4 p-4 scrollbar-none">
+      <h1 className="text-white/80 text-[20px] font-semibold">
+        Transaction History
+      </h1>
+      <div className="relative flex flex-col gap-3 h-[100%] overflow-auto">
         {transactions?.map((transaction, index) => (
-          <div key={index} className="p-2 rounded-md bg-white/10">
-            <div className="flex w-[100%] justify-between ">
-              <div className="w-[80%]">
-                <h1 className="text-white truncate">{transaction.hash}</h1>
+          <div key={index} className="p-2 rounded-md bg-purple-200/10">
+            <div className="flex justify-between ">
+              <div className="w-[90%]">
+                <h1 className="flex items-center gap-2 text-white">
+                  {headerWalletAddressShrinker(transaction.hash)}
+                  <TooltipCustom
+                    title={
+                      <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
+                        {isAddressCopied ? "Copied" : "Copy"}
+                      </p>
+                    }
+                    position="top"
+                  >
+                    <CopyToClipboardComponent
+                      text={transaction.hash}
+                      onCopy={handleCopy}
+                    >
+                      <CopyIcon className="h-[14px] w-[14px]" />
+                    </CopyToClipboardComponent>
+                  </TooltipCustom>
+                </h1>
                 {transaction.timestamp && (
                   <span className="ml-2 text-xs text-gray-400">
                     {formatDistanceToNow(new Date(transaction.timestamp), {
@@ -36,7 +70,7 @@ const TransactionHistory = () => {
                 onClick={() =>
                   setCurrentIndex((prev) => (prev === index ? null : index))
                 }
-                className={`text-white ${currentIndex === index ? "" : "-rotate-90"} transition-all text-[32px]`}
+                className={`text-white/60 ${currentIndex === index ? "" : "-rotate-90"} transition-all text-[32px]`}
               />
             </div>
             <div
@@ -77,7 +111,7 @@ const TransactionHistory = () => {
                   <span className="px-2 font-thin truncate rounded-full bg-white/30">
                     {Number(transaction.value).toExponential()}
                   </span>
-                    {copiedIndex === transaction?.value && (
+                  {copiedIndex === transaction?.value && (
                     <span className="absolute right-0 px-2 ml-2 text-xs rounded-full bottom-2 text-white/80 bg-white/5 backdrop-blur-md">
                       Copied!
                     </span>

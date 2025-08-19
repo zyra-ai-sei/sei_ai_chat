@@ -57,7 +57,7 @@ export const wagmiConfig = createConfig({
     ]),
     [sei.id]: fallback([
       http(`https://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
-      webSocket(`wss://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
+      // webSocket(`wss://sei-mainnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),
     ]),
     [seiTestnet.id]: fallback([
       http(`https://sei-testnet.g.alchemy.com/v2/${import.meta.env?.VITE_BASE_ALCHEMY_KEY}`),

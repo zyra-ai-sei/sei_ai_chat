@@ -1,8 +1,24 @@
 import MileStone from "@/assets/home/milestone.svg?react";
 import Dot from "@/assets/home/dot.svg?react";
 import { Parallax } from "react-scroll-parallax";
+import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 
 const Milestones = () => {
+  const [ref, inView] = useInView({
+    /* Optional options */
+    threshold: 0.5,
+    triggerOnce: true,
+  });
+  const variants = {
+    visible: { opacity: 1, scale: 1, y: 0 },
+    hidden: {
+      opacity: 0,
+      scale: 0.65,
+      y: 50,
+    },
+  };
+
   const timelineData = [
     {
       quarter: "Q2 2025",
@@ -42,7 +58,10 @@ const Milestones = () => {
 
   return (
     <Parallax speed={5}>
-      <div className="flex flex-col gap-[min(6vw,80px)] justify-center w-full mx-auto">
+      <div
+        id="timeline"
+        className="flex flex-col gap-[min(6vw,80px)] py-[80px] justify-center w-full mx-auto"
+      >
         <div className="font-bold text-[min(4vw,40px)] flex flex-col justify-center items-center">
           <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text flex items-center gap-3">
             <MileStone className="w-[34px] h-[40px]" />
@@ -56,36 +75,40 @@ const Milestones = () => {
             <div className="hidden md:block">
               <div className="relative">
                 {/* Horizontal dashed line */}
-                <Parallax
-                  scaleX={[0,1,'easeOutExpo']}
+                <div
                   className="absolute top-2 left-0 w-full h-0.5 border-t-2 border-dashed border-gray-600"
                   style={{
                     borderImage:
                       "repeating-linear-gradient(to right, #4b5563 0, #4b5563 20px, transparent 20px, transparent 35px) 1",
                   }}
-                ></Parallax>
+                ></div>
                 {/* Timeline items */}
                 <div className="relative flex items-start justify-between">
                   {timelineData.map((item, index) => (
-                    <div
+                    <motion.div
                       key={index}
+                      ref={ref}
+                      initial="hidden"
+                      animate={inView ? "visible" : "hidden"}
+                      variants={variants}
                       className="flex flex-col items-center w-64"
                     >
                       {/* Dot */}
-                      <Parallax opacity={[-0,1,'easeOutExpo']} scale={[0,1,'easeOutExpo']}>
-                      <Dot className="relative z-10 w-5 h-5 mb-4 rounded-full" />
-                      </Parallax>
+                      <div>
+                        <Dot className="relative z-10 w-5 h-5 mb-4 rounded-full" />
+                      </div>
 
                       {/* Quarter */}
-                      <Parallax opacity={[0,1,'easeOutExpo']} scale={[0,1,'easeOutExpo']} className="absolute mb-2 text-[24px] font-medium text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E000] bg-clip-text whitespace-nowrap -top-12">
+                      <Parallax
+                        opacity={[0, 1, "easeOutExpo"]}
+                        scale={[0, 1, "easeOutExpo"]}
+                        className="absolute mb-2 text-[24px] font-medium text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E000] bg-clip-text whitespace-nowrap -top-12"
+                      >
                         {item.quarter}
                       </Parallax>
 
                       {/* Content card */}
-                      <Parallax
-                        translateY={[200, -10, "easeOutExpo"]}
-                        className="p-4 rounded-lg max-w-60"
-                      >
+                      <div className="p-4 rounded-lg max-w-60">
                         <h3 className="mb-3 text-sm font-semibold text-[#94A3B8]">
                           {item.title}
                         </h3>
@@ -97,8 +120,8 @@ const Milestones = () => {
                             {content}
                           </p>
                         ))}
-                      </Parallax>
-                    </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
