@@ -29,10 +29,10 @@ function Header() {
         ${scrolled || currentPath === '/chat' ? "bg-grey-600/10 backdrop-blur-sm border-gray-500/60 border" : "border-gray-500/50 border"}
       `}
     >
-      <div className="flex items-center gap-1">
-        <img src={Icon} className="size-[18px] md:size-[24px]" />
-        <h1 className="font-bold text-white text-[14px] md:text-[18px]">
-          Zyra.ai
+      <div className="flex items-center gap-2">
+        <img src={Icon} className="size-[18px] md:size-[40px] bg-gradient-to-r from-[#9ED9F9] to-[#D6D6D6] rounded-xl p-2 " />
+        <h1 className=" text-white text-[14px] md:text-[24px]">
+          Zyra
         </h1>
       </div>
       {

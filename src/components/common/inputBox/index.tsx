@@ -32,22 +32,22 @@ const InputBox = () => {
   };
 
   return (
-    <div className="w-full p-[1px] flex flex-col  max-h-[400px] rounded-xl bg-gradient-to-r from-[#F44E4E] via-[#E76EF2] to-[#4CBEE1] z-30">
-      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0F172A] ">
+    <div className="w-full p-[2px] flex flex-col max-w-[1280px] mx-auto max-h-[400px] rounded-xl z-30">
+      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0f172a8c] ">
         <textarea
           ref={textareaRef}
-          className="flex-grow w-full rounded-2xl min-h-[60px] max-h-[200px] resize-none overflow-y-auto bg-transparent border-none outline-none text-white placeholder-white/50 p-3"
+          className="flex-grow w-full rounded-2xl min-h-[40px] max-h-[200px] resize-none overflow-y-auto bg-transparent border-none outline-none text-white placeholder-white/50 p-3"
           placeholder="Type your message..."
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           value={prompt}
-          style={{ height: "20px" }}
+          style={{ height: "10px" }}
         />
         <button
           onClick={handleSendPromt}
-          className="w-[40px] h-[40px] border border-white/10 bg-[#3B82F6] rounded-full"
+          className="w-[40px] h-[40px]  bg-[#7441f493] rounded-full"
         >
-          <span className="text-[24px] text-white">↑</span>
+          <span className="text-[24px] text-white/70">↑</span>
         </button>
       </div>
     </div>

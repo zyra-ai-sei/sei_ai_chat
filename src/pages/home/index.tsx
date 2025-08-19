@@ -7,7 +7,7 @@ import Footer from "@/components/common/footer";
 
 const Home = () => {
   return (
-    <div className="flex flex-col gap-[100px] max-w-[1440px] mx-auto relative">
+    <div className="flex flex-col gap-[100px]  mx-auto relative">
       <Header/>
       <Hero/>
       <Working/>

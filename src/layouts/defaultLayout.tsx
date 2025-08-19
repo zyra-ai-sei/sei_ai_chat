@@ -1,4 +1,3 @@
-import Header from "@/components/common/header";
 import "../components/icons/index.scss";
 import WebThreeProvider from "@/hooks/useWeb3Context";
 import TransactionContextProvider from "@/components/common/Transaction/TransactionContextProvider";
@@ -21,7 +20,7 @@ function DefaultLayout({
       <AlertProvider>
         <Toast />
         <TransactionContextProvider>
-          <div className="bg-[#010207] min-h-screen h-full font-sans">
+          <div className="bg-[#000000] min-h-screen h-full font-sans">
             <div
               className={`${isMobile ? "" : " mx-auto"} flex flex-col overflow-hidden mx-auto relative`}
             >

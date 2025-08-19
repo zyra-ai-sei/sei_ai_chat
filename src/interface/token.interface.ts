@@ -3,6 +3,7 @@ export interface IToken {
   address: string;
   name: string;
   symbol: string;
+  denom: string;
   decimals: number;
   localName: string;
   nameOnChain: string;

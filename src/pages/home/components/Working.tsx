@@ -1,49 +1,49 @@
 import PrimaryCard from "@/components/home/cards/PrimaryCard";
-import { Parallax, useParallax } from "react-scroll-parallax";
+import { Parallax } from "react-scroll-parallax";
 
 const Working = () => {
   const worksData = [
     {
-      index: "01",
-      title: "Chat",
+      index: "1",
+      title: "Speak Naturally",
       content:
-        'Type your intent in plain English: "Swap 50 SEI to USDC every hour."',
+        'Tell Zyra what you want to do in plain English. "Send 10 SEI to Alice" or "Swap my USDC for BTC"',
     },
     {
-      index: "02",
-      title: "Zyra parses and plans",
-      content: "Zyra turns your text into optimized blockchain strategy.",
+      index: "2",
+      title: "AI Processing",
+      content: "Our advanced AI understands your intent and converts it into precise blockchain transactions",
     },
     {
-      index: "03",
-      title: "Transaction Executed",
+      index: "3",
+      title: "Execute On-Chain",
       content:
-        "The trade is executed trustlessly on Sei using smart contracts.",
+        "Review and confirm the transaction. Zyro executes it securely on the blockchain in real-time",
     },
   ];
 
 
   return (
     <Parallax speed={2}>
-      <div className="flex flex-col gap-[min(6vw,80px)] justify-center w-full mx-auto">
+      <div id="#about" className="flex flex-col gap-[min(6vw,80px)] bg-[#13161a80] py-[20px] justify-start max-w-[1440px] mx-auto">
         <div className="font-bold  text-[min(4vw,40px)] flex flex-col justify-center items-center">
           <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text">
-            HOW IT WORKS
+            HOW ZYRA WORKS
           </h1>
           <h2 className="font-thin font-sans text-[#98999A] text-[min(2vw,16px)]">
-            "Trade crypto like you're texting a friend."
+          Three simple steps to transform your words into blockchain actions
           </h2>
         </div>
-        <div className="flex justify-center flex-col md:flex-row items-center  w-full gap-[min(2vw,20px)]">
+        <div className="flex justify-center flex-col md:flex-row items-center  w-full gap-[min(2vw,30px)]">
           {worksData.map((work) => (
-            <Parallax scale={[0.1,1,'easeOutExpo']}>
+            <div>
 
             <PrimaryCard
               index={work.index}
               title={work.title}
               content={work.content}
             />
-            </Parallax>
+            </div>
           ))}
         </div>
       </div>
