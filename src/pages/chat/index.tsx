@@ -52,20 +52,19 @@ function Chat() {
 
   return (
     <div className="flex flex-col h-screen w-screen p-4 bg-gradient-to-tr from-[#0c04214d] via-[#12053454] to-[#4d02a838]">
-      <div className="relative flex flex-col border rounded-[16px] border-zinc-800 justify-end h-full overflow-y-scroll w-full">
+      <div className="relative flex flex-col border rounded-[16px] border-zinc-800 justify-end h-full w-full">
         <div
           style={{ boxShadow: " -10vw 20vh 200px 17vw rgba(60,0,160,0.12)" }}
           className="absolute rounded-full top-[15vh] shadow-3xl size-4 right-[20vw] shadow-purple-200"
         ></div>
-        <div className="flex justify-end w-full h-full overflow-scroll">
+        <div className="flex justify-end w-full h-full">
           <TransactionHistory />
 
-          {/* <div className="relative z-30 flex flex-col justify-end w-full h-full gap-0 mx-auto overflow-scroll"> */}
             <div className="relative z-30 flex flex-col justify-end flex-grow h-full p-4 mx-auto overflow-auto border-x border-zinc-800">
               <ResponseBox />
               <InputBox />
             </div>
-          {/* </div> */}
+
           <Assets />
         </div>
         <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />

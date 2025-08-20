@@ -31,15 +31,15 @@ const TransactionHistory = () => {
     dispatch(getTransactions());
   }, []);
   return (
-    <div className="flex flex-col flex-shrink-0 gap-4 p-4 scrollbar-none">
+    <div className="flex flex-col flex-shrink-0 gap-4 p-4 ">
       <h1 className="text-white/80 text-[20px] font-semibold">
         Transaction History
       </h1>
-      <div className="relative flex flex-col gap-3 h-[100%] overflow-auto">
+      <div className="relative flex flex-col gap-3 ">
         {transactions?.map((transaction, index) => (
           <div key={index} className="p-2 rounded-md bg-purple-200/10">
-            <div className="flex justify-between ">
-              <div className="w-[90%]">
+            <div className="flex justify-between w-full px-2">
+              <div className="">
                 <h1 className="flex items-center gap-2 text-white">
                   {headerWalletAddressShrinker(transaction.hash)}
                   <TooltipCustom
@@ -74,90 +74,116 @@ const TransactionHistory = () => {
               />
             </div>
             <div
-              className={`flex flex-col gap-2 ${currentIndex === index ? "" : "h-0 absolute opacity-0 -z-30"} transition-all  duration-100 text-white/80`}
+              className={`flex flex-col gap-2 ${currentIndex === index ? "max-h-[500px]" : "max-h-0 absolute opacity-0 -z-30"} transition-all w-full duration-100 text-white/80`}
             >
               <div
-                className="relative flex gap-2 font-bold cursor-pointer"
-                onClick={() => {
-                  navigator.clipboard.writeText(transaction.blockNumber || "");
-                  setCopiedIndex(transaction?.blockNumber!);
-                  setTimeout(() => setCopiedIndex(null), 1200);
-                }}
+                className="relative flex gap-2 font-bold "
                 title="Copy address"
               >
-                {" "}
-                Block:{" "}
-                <span className="px-2 font-thin truncate rounded-full bg-white/30">
-                  {transaction.blockNumber}
-                </span>
-                {copiedIndex === transaction?.blockNumber && (
-                  <span className="absolute right-0 px-2 ml-2 text-xs rounded-full bottom-2 text-white/80 bg-white/5 backdrop-blur-md">
-                    Copied!
+                <p className="min-w-[45px]"> Block: </p>
+                <TooltipCustom
+                  title={
+                    <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
+                      {copiedIndex === transaction?.blockNumber
+                        ? "Copied"
+                        : "Copy"}
+                    </p>
+                  }
+                  position="top"
+                >
+                  <span
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        transaction.blockNumber || ""
+                      );
+                      setCopiedIndex(transaction?.blockNumber!);
+                      setTimeout(() => setCopiedIndex(null), 1200);
+                    }}
+                    className="px-2 py-1 font-thin truncate rounded-sm cursor-pointer bg-white/10"
+                  >
+                    {transaction.blockNumber}
                   </span>
-                )}
+                </TooltipCustom>
               </div>
               {transaction?.value && (
                 <div
                   className="relative flex gap-2 font-bold cursor-pointer"
-                  onClick={() => {
-                    navigator.clipboard.writeText(transaction.value || "");
-                    setCopiedIndex(transaction?.value!);
-                    setTimeout(() => setCopiedIndex(null), 1200);
-                  }}
                   title="Copy address"
                 >
-                  {" "}
-                  value:{" "}
-                  <span className="px-2 font-thin truncate rounded-full bg-white/30">
-                    {Number(transaction.value).toExponential()}
-                  </span>
-                  {copiedIndex === transaction?.value && (
-                    <span className="absolute right-0 px-2 ml-2 text-xs rounded-full bottom-2 text-white/80 bg-white/5 backdrop-blur-md">
-                      Copied!
+                  <p className="min-w-[45px]"> value: </p>
+                  <TooltipCustom
+                    title={
+                      <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
+                        {copiedIndex === transaction?.value ? "Copied" : "Copy"}
+                      </p>
+                    }
+                    position="top"
+                  >
+                    <span
+                      onClick={() => {
+                        navigator.clipboard.writeText(transaction.value || "");
+                        setCopiedIndex(transaction?.value!);
+                        setTimeout(() => setCopiedIndex(null), 1200);
+                      }}
+                      className="px-2 font-thin truncate rounded-sm cursor-pointer bg-white/10"
+                    >
+                      {Number(transaction.value).toExponential()}
                     </span>
-                  )}
+                  </TooltipCustom>
                 </div>
               )}
               {transaction?.from && (
                 <div
                   className="flex gap-2 font-bold cursor-pointer"
-                  onClick={() => {
-                    navigator.clipboard.writeText(transaction.from || "");
-                    setCopiedIndex(transaction?.from!);
-                    setTimeout(() => setCopiedIndex(null), 1200);
-                  }}
                   title="Copy address"
                 >
-                  from:
-                  <span className="relative px-2 font-thin truncate rounded-full bg-white/30">
-                    {transaction.from}
-                  </span>
-                  {copiedIndex === transaction?.from && (
-                    <span className="absolute right-0 px-2 ml-2 text-xs rounded-full bottom-2 text-white/80 bg-white/5 backdrop-blur-md">
-                      Copied!
+                  <p className="min-w-[45px]">from:</p>
+                  <TooltipCustom
+                    title={
+                      <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
+                        {copiedIndex === transaction?.from ? "Copied" : "Copy"}
+                      </p>
+                    }
+                    position="top"
+                  >
+                    <span
+                      onClick={() => {
+                        navigator.clipboard.writeText(transaction.from || "");
+                        setCopiedIndex(transaction?.from!);
+                        setTimeout(() => setCopiedIndex(null), 1200);
+                      }}
+                      className="relative px-2 py-1 font-thin truncate rounded-sm bg-white/10"
+                    >
+                      {headerWalletAddressShrinker(transaction.from)}
                     </span>
-                  )}
+                  </TooltipCustom>
                 </div>
               )}
               {transaction?.to && (
                 <div
                   className="relative flex gap-2 font-bold cursor-pointer"
-                  onClick={() => {
-                    navigator.clipboard.writeText(transaction.to || "");
-                    setCopiedIndex(transaction?.to!);
-                    setTimeout(() => setCopiedIndex(null), 1200);
-                  }}
                   title="Copy address"
                 >
-                  to:{" "}
-                  <span className="px-2 font-thin truncate rounded-full bg-white/30">
-                    {transaction.to}
-                  </span>
-                  {copiedIndex === transaction?.to && (
-                    <span className="absolute right-0 px-2 ml-2 text-xs rounded-full bottom-3 text-white/80 bg-white/5 backdrop-blur-md">
-                      Copied!
+                  <p className="min-w-[45px]">to: </p>
+                  <TooltipCustom
+                    title={
+                      <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
+                        {copiedIndex === transaction?.to ? "Copied" : "Copy"}
+                      </p>
+                    }
+                    position="top"
+                  >
+                    <span
+                      onClick={() => {
+                        navigator.clipboard.writeText(transaction.to || "");
+                        setCopiedIndex(transaction?.to!);
+                        setTimeout(() => setCopiedIndex(null), 1200);
+                      }}
+                      className="px-2 py-1 font-thin truncate rounded-sm bg-white/10"
+                    >
+                      {headerWalletAddressShrinker(transaction.to)}
                     </span>
-                  )}
+                  </TooltipCustom>
                 </div>
               )}
             </div>
