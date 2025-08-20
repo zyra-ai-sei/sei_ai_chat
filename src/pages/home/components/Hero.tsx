@@ -11,13 +11,13 @@ const Hero = () => {
     <Parallax speed={-2}>
       <div className="relative h-screen bg-gradient-to-b from-[#a880f7] to-[#a880f7]  overflow-visible">
         <div className="flex flex-col items-center justify-center bg-gradient-to-b text-purple-50 from-black via-[#2f0061] to-[#a880f7] h-[85%] z-0 overflow-visible">
-          <div className="flex flex-col gap-1 text-[calc(10px+10vw)] w-fit text-center font-semibold text-white relative">
-            <FlipLink href={"#"}>One&nbsp;Task </FlipLink>
-            <FlipLink href="#">at&nbsp;a&nbsp;Time</FlipLink>
+          <div className="flex flex-col gap-6 text-[calc(10px+3vw)] w-fit text-center font-semibold text-white relative">
+            <FlipLink href={"#"}>Your&nbsp;AI-POWERED </FlipLink>
+            <FlipLink href="#">CRYPTO&nbsp;ASSISTANT</FlipLink>
             {/* Left icon with synchronized rotation and floating */}
             <motion.img
               src={NewIcon}
-              className="size-[10vw] absolute -bottom-[3vw] -left-[8vw] opacity-90"
+              className="size-[10vw] absolute -bottom-[3vw] -left-[9vw] opacity-90"
               animate={{
                 y: [-5, 5, -5],
                 rotate: [-3, 3, -3],
@@ -47,9 +47,7 @@ const Hero = () => {
             />
           </div>
           <p className="text-gray-300 max-w-[50vw] text-center p-4 text-[1vw] ">
-            Celebrate the joy of accomplishment with an app designed to track
-            your progress, motivate your efforts, and celebrate your successes,
-            one task at a time.
+            Zyra turns natural language into real transactions on Sei. Market orders, DCA, limit trades — all via chat.
           </p>
         </div>
 
