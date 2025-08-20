@@ -12,7 +12,7 @@ const Hero = () => {
       <div className="relative h-screen bg-gradient-to-b from-[#a880f7] to-[#a880f7]  overflow-visible">
         <div className="flex flex-col items-center justify-center bg-gradient-to-b text-purple-50 from-black via-[#2f0061] to-[#a880f7] h-[85%] z-0 overflow-visible">
           <div className="flex flex-col gap-6 text-[calc(10px+3vw)] w-fit text-center font-semibold text-white relative">
-            <FlipLink href={"#"}>Your&nbsp;AI-POWERED </FlipLink>
+            <FlipLink href={"#"}>YOUR&nbsp;AI-POWERED </FlipLink>
             <FlipLink href="#">CRYPTO&nbsp;ASSISTANT</FlipLink>
             {/* Left icon with synchronized rotation and floating */}
             <motion.img
