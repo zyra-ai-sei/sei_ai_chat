@@ -36,7 +36,7 @@ const InputBox = () => {
       <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0f172a8c] ">
         <textarea
           ref={textareaRef}
-          className="flex-grow w-full rounded-2xl min-h-[40px] max-h-[200px] resize-none bg-transparent border-none outline-none text-white placeholder-white/50 p-3"
+          className="flex-grow w-full rounded-2xl min-h-[40px] max-h-[200px] resize-none bg-transparent scrollbar-none border-none outline-none text-white placeholder-white/50 p-3"
           placeholder="Type your message..."
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}

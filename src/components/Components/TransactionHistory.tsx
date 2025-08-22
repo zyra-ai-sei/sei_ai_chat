@@ -1,12 +1,13 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { getTransactions } from "@/redux/transactionData/action";
 import { useEffect, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import Arrow from "@/assets/home/downArrow.svg?react";
 import { headerWalletAddressShrinker } from "@/utility/walletAddressShrinker";
 import CopyIcon from "@/assets/common/copy.svg?react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
+import { useAccount } from "wagmi";
 
 const TransactionHistory = () => {
   const dispatch = useAppDispatch();
@@ -16,6 +17,10 @@ const TransactionHistory = () => {
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | string | null>(null);
   const [isAddressCopied, setIsAddressCopied] = useState<boolean>(false);
+  const {address} = useAccount()
+  const globalData = useAppSelector(
+    (state)=>state.globalData.data
+  )
 
   const CopyToClipboardComponent =
     CopyToClipboard as unknown as React.ComponentType<any>;
@@ -29,13 +34,13 @@ const TransactionHistory = () => {
 
   useEffect(() => {
     dispatch(getTransactions());
-  }, []);
+  }, [address, globalData.token]);
   return (
     <div className="flex flex-col flex-shrink-0 gap-4 p-4 ">
       <h1 className="text-white/80 text-[20px] font-semibold">
         Transaction History
       </h1>
-      <div className="relative flex flex-col gap-3 ">
+      <div className="relative flex flex-col gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
         {transactions?.map((transaction, index) => (
           <div key={index} className="p-2 rounded-md bg-purple-200/10">
             <div className="flex justify-between w-full px-2">
@@ -60,8 +65,9 @@ const TransactionHistory = () => {
                 </h1>
                 {transaction.timestamp && (
                   <span className="ml-2 text-xs text-gray-400">
-                    {formatDistanceToNow(new Date(transaction.timestamp), {
+                    {formatDistanceToNow(parseISO(transaction.timestamp), {
                       addSuffix: true,
+                      includeSeconds: true,
                     })}
                   </span>
                 )}
