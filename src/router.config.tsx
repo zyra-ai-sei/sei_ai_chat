@@ -94,7 +94,7 @@ function RouterConfig() {
 
     window.addEventListener("appinstalled", handleAppInstalled);
 
-    // Cleanup event listener
+    // Cleanup event listener 
     return () => {
       window.removeEventListener("appinstalled", handleAppInstalled);
     };

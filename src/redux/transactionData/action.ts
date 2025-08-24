@@ -15,10 +15,12 @@ export const getTransactions = createAsyncThunk<
     dispatch(setLoading());
     const result = await axiosInstance.get("user/transactions");
     const apiData = result?.data;
+
     if (apiData?.status === 200 && apiData?.data) {
   const cleanedData = apiData.data.items.map(
     ({ __v, _id,updatedAt, ...rest }: any) => rest
   );
+  console.log('transaction dtaa',cleanedData)
   dispatch(setTransactions({response:cleanedData}));      
     } else {
       dispatch(resetTransactions());

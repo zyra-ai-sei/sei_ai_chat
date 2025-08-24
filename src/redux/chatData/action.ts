@@ -32,6 +32,7 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
       if (apiData?.status === 200 && apiData?.data) {
         const chat = apiData.data.chat || "";
         const tools = apiData.data.tools;
+        console.log("these are the tools", tools);
         let tool_outputs = [];
         if (tools) {
           for (let i = 0; i < tools.length; i++) {
@@ -92,10 +93,12 @@ export const sendChatPrompt = createAsyncThunk<
     if (apiData?.status === 200 && apiData?.data) {
       const chat = apiData.data.chat || "";
       const tools = apiData.data.tools;
+      console.log("these are the tools", tools);
       let tool_outputs = [];
       if (tools) {
         for (let i = 0; i < tools.length; i++) {
-          tool_outputs.push(tools[i].tool_output);
+          if (tools[i].tool_output != undefined || tools[i].tool_output != null)
+            tool_outputs.push(tools[i].tool_output);
         }
       }
       dispatch(
@@ -112,6 +115,40 @@ export const sendChatPrompt = createAsyncThunk<
     }
   } catch (err) {
     dispatch(setError({ index }));
+  }
+});
+
+export const getChatHistory = createAsyncThunk<
+  void,
+  void,
+  { state: IRootState }
+>("chatData/getChatHistory", async (_, { dispatch, getState }) => {
+  try {
+    const response = await axiosInstance.get("/llm/getChatHistory");
+    const apiData = response?.data;
+    if (apiData?.status === 200 && apiData?.data) {
+      const data = apiData?.data?.items;
+      console.log("chatHistory", data);
+      if (data && data.length > 0) {
+        for (let i = 0; i < data.length; i++) {
+          if (data[i]["type"] == "HumanMessage") {
+            console.log("content", data[i]["content"]);
+            dispatch(addPrompt(data[i]["content"]));
+          } else {
+            dispatch(
+              setResponse({
+                index: getState().chatData.chats.length - 1,
+                response: {
+                  chat: data[i]["content"],
+                },
+              })
+            );
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.log("err", err);
   }
 });
 

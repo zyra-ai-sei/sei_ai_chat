@@ -10,10 +10,13 @@ import TooltipCustom from "../common/tooltip";
 import { useAccount } from "wagmi";
 import RefreshIcon from "@/assets/common/refresh.svg?react";
 import ConnectedDisplay from "../common/customWalletConnect/ConnectedDisplay";
+import newChatIcon from "@/assets/common/newChat.png";
+import { axiosInstance } from "@/services/axios";
+import { resetChat } from "@/redux/chatData/reducer";
 
 const TransactionHistory = () => {
   const dispatch = useAppDispatch();
-  const {transactions, loading:isLoading} = useAppSelector(
+  const { transactions, loading: isLoading } = useAppSelector(
     (state) => state.transactionData
   );
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
@@ -33,6 +36,15 @@ const TransactionHistory = () => {
 
     return () => clearTimeout(timeoutId);
   };
+
+  const handleClearChat = async () => {
+    try{
+      await axiosInstance("llm/clearChat");
+      dispatch(resetChat())
+    } catch(err){
+      console.log('err',err)
+    }
+  }
 
   const handleRefresh = () => {
     dispatch(getTransactions()); // Refresh transactions
@@ -54,8 +66,11 @@ const TransactionHistory = () => {
             isLoading ? "animate-spin" : ""
           }`}
         />
-        
       </div>
+      <button onClick={handleClearChat} className="flex items-center justify-center gap-4 p-2 rounded-md cursor-pointer bg-gradient-to-r from-purple-200/10 to-purple-500/10">
+        <img src={newChatIcon} className="size-[20px]" />
+        <p className="text-[16px] text-white">New Chat</p>
+      </button>
       <div className="relative flex flex-col flex-grow gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
         {transactions?.map((transaction, index) => (
           <div key={index} className="p-2 rounded-md bg-purple-200/10">
@@ -213,7 +228,7 @@ const TransactionHistory = () => {
         ))}
       </div>
       <div className="flex-shrink-0 -mx-4 border-t border-zinc-800 h-fit ">
-        <ConnectedDisplay/>
+        <ConnectedDisplay />
       </div>
     </div>
   );

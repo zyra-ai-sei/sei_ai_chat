@@ -7,12 +7,15 @@ import { useSendTransaction, useWriteContract } from "wagmi";
 import {
   appendTxChatResponseToLatestChat,
   eraseLatestToolOutput,
+  getChatHistory,
 } from "@/redux/chatData/action";
+
 
 const ResponseBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
   const containerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
+  
 
   const txIndexRef = useRef(0);
   const txOutputsRef = useRef<any[]>([]);
@@ -40,8 +43,8 @@ const ResponseBox = () => {
       onError: () => {
         dispatch(eraseLatestToolOutput());
       },
-      onSuccess: () => {},
-      onSettled(data) {
+   
+      onSettled(data,) {
         processTx(txIndexRef.current + 1);
         dispatch(appendTxChatResponseToLatestChat({ txdata: data as string }));
       },
@@ -61,6 +64,8 @@ const ResponseBox = () => {
       },
     },
   });
+
+
 
   const handleSignature = async (chat: ChatItem) => {
     const outputs = chat.response.tool_outputs;
@@ -88,6 +93,10 @@ const ResponseBox = () => {
       handleSignature(latestChat);
     }
   }, [chats]);
+
+  useEffect(()=>{
+    dispatch(getChatHistory())
+  },[])
   // Custom markdown renderers
   const addressRegex = /0x[a-fA-F0-9]{40}/g;
   const components = {
