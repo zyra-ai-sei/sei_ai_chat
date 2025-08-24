@@ -13,7 +13,6 @@ import { setGlobalData } from "./redux/globalData/action";
 
 import useLocalStorage from "./hooks/useLocalStorage";
 import { LocalStorageIdEnum } from "./enum/utility.enum";
-import PwaDownloadPopup from "./components/common/pwaDownloadPopup";
 import Home from "./pages/home";
 
 
@@ -26,7 +25,6 @@ function RouterConfig() {
     LocalStorageIdEnum.IS_PWA_FIRST_TIME,
     true
   );
-  const [isPwaPopopOpened, setIsPwapopupOpened] = useState<boolean>(false);
 
   const globalData = useAppSelector((state) => state?.globalData?.data);
   const {
@@ -75,7 +73,6 @@ function RouterConfig() {
     if (!isPWAOpened && isMobile && isIsPwaFirstTime) {
       setTimeout(() => {
         setIsPwaFirstTime(false);
-        setIsPwapopupOpened(true);
       }, 60000);
     }
 
@@ -120,11 +117,6 @@ function RouterConfig() {
         isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
         setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
         isNonClosable
-      />
-      <PwaDownloadPopup
-        isCenterAlignPopupOpen={isPwaPopopOpened}
-        setIsCenterAlignPopupOpen={setIsPwapopupOpened}
-        setIsPwapopupOpened={setIsPwapopupOpened}
       />
     </Router>
   );

@@ -88,7 +88,22 @@ export const WethToken: IToken = {
   imageUrl: wethIcon,
 };
 
+export const SeiToken: IToken = {
+  chainId: 1329,
+  address:"",
+  name:"SEI",
+  symbol:"SEI",
+  denom:"usei",
+  decimals:18,
+  localName:"SEI",
+  nameOnChain:"SEI",
+  native: true,
+  divisor: BigInt(10 ** 18),
+  imageUrl: seiIcon
+}
+
 export const TokenList: IToken[] = [
+  // Sei,
   UsdcToken,
   UsdcnToken,
   UsdtToken,

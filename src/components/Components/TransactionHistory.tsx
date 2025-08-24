@@ -9,6 +9,7 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
 import { useAccount } from "wagmi";
 import RefreshIcon from "@/assets/common/refresh.svg?react";
+import ConnectedDisplay from "../common/customWalletConnect/ConnectedDisplay";
 
 const TransactionHistory = () => {
   const dispatch = useAppDispatch();
@@ -41,7 +42,7 @@ const TransactionHistory = () => {
     dispatch(getTransactions());
   }, [address, globalData.token]);
   return (
-    <div className="flex flex-col flex-shrink-0 gap-4 p-4 ">
+    <div className="flex flex-col justify-between flex-shrink-0 gap-4 px-4 pt-4">
       <div className="flex items-center justify-between w-full gap-3">
         <h1 className="text-white/80 text-[20px] font-semibold">
           Transaction History
@@ -55,7 +56,7 @@ const TransactionHistory = () => {
         />
         
       </div>
-      <div className="relative flex flex-col gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
+      <div className="relative flex flex-col flex-grow gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
         {transactions?.map((transaction, index) => (
           <div key={index} className="p-2 rounded-md bg-purple-200/10">
             <div className="flex justify-between w-full px-2">
@@ -210,6 +211,9 @@ const TransactionHistory = () => {
             </div>
           </div>
         ))}
+      </div>
+      <div className="flex-shrink-0 -mx-4 border-t border-zinc-800 h-fit ">
+        <ConnectedDisplay/>
       </div>
     </div>
   );
