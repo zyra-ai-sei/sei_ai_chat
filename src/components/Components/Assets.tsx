@@ -2,12 +2,15 @@ import { wagmiConfig } from "@/config/wagmiConfig";
 import { TokenList } from "@/constants/token";
 import { formatBalance } from "@/utility/formatBalance";
 import { useEffect, useState } from "react";
-import { erc20Abi } from "viem";
+import { Address, erc20Abi } from "viem";
 import { readContract } from "viem/actions";
-import { useAccount, useReadContracts } from "wagmi";
+import { useAccount, useBalance, useReadContracts } from "wagmi";
 import ContractIcon from "@/assets/tokens/contract.svg?react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
+import seiIcon from "@/assets/tokens/sei.png";
+import { SeiToken } from "@/constants/token";
+
 
 const ORACLE_PRECOMPILE_ADDRESS: `0x${string}` =
   "0x0000000000000000000000000000000000001008";
@@ -68,6 +71,7 @@ export const ORACLE_PRECOMPILE_ABI = [
 const Assets = () => {
   const { address, chain } = useAccount();
   const [updatedTokenList, setUpdatedTokenList] = useState<any[]>([]);
+  const [nativeTokenData, setNativeTokenData] = useState<any>(null);
   const [exchangeRates, setExchangeRates] = useState<
     { denom: string; price: number; lastUpdate: Date; lastUpdateString: any }[]
   >([]);
@@ -87,6 +91,10 @@ const Assets = () => {
   const { data, isFetched } = useReadContracts({
     contracts: contractData,
   });
+
+  const seiBalance = useBalance({
+    address: address as Address,
+  })
 
   async function getCurrentPrices() {
     const result = await readContract(wagmiConfig.getClient(), {
@@ -115,6 +123,28 @@ const Assets = () => {
 
   useEffect(() => {
     if (data) {
+       const seiPrice = exchangeRates.find(
+          (rate) => rate.denom === SeiToken.denom
+        )?.price;
+
+        const seiData = {
+          ...SeiToken,
+          balanceAmount: seiBalance?.data ? parseFloat(formatBalance(seiBalance.data.value, seiBalance.data.decimals)).toFixed(6) : "0",
+          balancePrice: seiBalance?.data && seiPrice ? String(
+            (
+              parseFloat(
+                formatBalance(
+                  seiBalance.data.value,
+                  seiBalance.data.decimals
+                )
+              ) * seiPrice
+            ).toFixed(6)
+          ) : "0",
+          price: seiPrice?.toPrecision(4)
+        }
+
+        setNativeTokenData(seiData);
+
       const newUpdatedTokenList = TokenList.map((token, index) => {
         const price = exchangeRates.find(
           (rate) => rate.denom === token.denom
@@ -153,8 +183,38 @@ const Assets = () => {
   console.log("your token balances", data, chain?.name);
 
   return (
-    <div className="flex flex-col flex-shrink-0 gap-4 p-4 scrollbar-none">
+    <div className="flex-col flex-shrink-0 hidden gap-4 p-4 scrollbar-none lg:flex ">
       <h1 className="text-white/80 text-[20px] font-semibold">Assets</h1>
+      {/* Native sei */}
+      {
+        <div
+            className="flex items-start justify-between gap-6 p-2 text-white bg-gradient-to-r from-purple-200/10 to-purple-500/10 rounded-xl"
+          >
+            <div className="flex gap-3">
+              <img src={seiIcon} className="size-[40px]" />
+              <div>
+                <p className="flex items-center gap-1 font-semibold text-white">
+                  {nativeTokenData?.symbol}
+                 <div className="font-light bg-white/10 text-[10px] px-1 py-[2px] rounded-sm text-white/50 mx-1">
+                  native
+                 </div>
+                </p>
+                <p className="text-[12px] text-white/60">
+                  {nativeTokenData?.balanceAmount}
+                </p>
+                <p className="text-[12px] text-white/60">
+                  {"$ "}
+                  {nativeTokenData?.balancePrice}
+                </p>
+              </div>
+            </div>
+            <p className="font-thin text-[12px] text-white/60">
+              {"$ "}
+              {nativeTokenData?.price}
+            </p>
+          </div>
+      }
+
       {updatedTokenList.length > 0 &&
         updatedTokenList?.map((token, index) => (
           <div

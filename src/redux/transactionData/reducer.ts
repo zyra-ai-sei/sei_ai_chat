@@ -18,26 +18,36 @@ interface transaction {
 
 export interface TransactionDataState {
     transactions: transaction[],
+    loading: boolean,
 }
 
 const initialState: TransactionDataState ={
-    transactions: []
+    transactions: [],
+    loading: false,
 }
 
 const transactionDataSlice = createSlice({
     name: "transactionData",
     initialState,
     reducers:{
+        setLoading(state){
+            return {
+                ...state,
+                loading:true
+            }
+        },
         setTransactions(
             state,
             action: PayloadAction<{response: transaction[]}>
         ){
             state.transactions =action.payload.response;
+            state.loading = false;
         },
         resetTransactions(
             state
         ){
             state.transactions = []
+            state.loading = false;
         }
     }
 })
