@@ -10,7 +10,7 @@ import TooltipCustom from "../common/tooltip";
 import { useAccount } from "wagmi";
 import RefreshIcon from "@/assets/common/refresh.svg?react";
 import ConnectedDisplay from "../common/customWalletConnect/ConnectedDisplay";
-import newChatIcon from "@/assets/common/newChat.png";
+import newChatIcon from "@/assets/common/newchat.png";
 import { axiosInstance } from "@/services/axios";
 import { resetChat } from "@/redux/chatData/reducer";
 
