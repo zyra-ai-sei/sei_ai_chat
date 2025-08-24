@@ -13,6 +13,7 @@ import {
 
 const ResponseBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
+  console.log('chat',chats)
   const containerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
   
@@ -22,6 +23,7 @@ const ResponseBox = () => {
 
   const processTx = (idx: number) => {
     const outputs = txOutputsRef.current;
+    console.log('outputs',outputs, txOutputsRef.current, idx)
     if (idx >= outputs.length) {
       dispatch(eraseLatestToolOutput());
       return;
@@ -82,13 +84,13 @@ const ResponseBox = () => {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
     const latestChat = chats[chats.length - 1];
-
+    console.log("talets chat", latestChat)
     if (
       latestChat &&
-      latestChat.id !== lastProcessedChatId.current &&
       latestChat.response.tool_outputs &&
       latestChat?.response?.tool_outputs?.length > 0
     ) {
+      console.log("latest chat1", latestChat)
       lastProcessedChatId.current = latestChat.id;
       handleSignature(latestChat);
     }

@@ -25,6 +25,9 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
     const index = state.chatData.chats.length - 1;
     if (index < 0) return;
     try {
+
+      // check if tx is successful
+      
       const response = await axiosInstance.post("/llm/addtxn", {
         prompt: txdata,
       });
@@ -35,12 +38,14 @@ export const appendTxChatResponseToLatestChat = createAsyncThunk<
         console.log("these are the tools", tools);
         let tool_outputs = [];
         if (tools) {
-          for (let i = 0; i < tools.length; i++) {
-            tool_outputs.push(tools[i].tool_output);
+          for (let i = 0; i < tools.length; i++) {   
+            if (tools[i]!=null && (tools[i].tool_output != undefined || tools[i].tool_output != null))
+              tool_outputs.push(tools[i].tool_output);
           }
         }
+        console.log("tool output", tool_outputs)
         dispatch(
-          updateResponse({
+          setResponse({
             index,
             response: {
               chat,
@@ -96,11 +101,13 @@ export const sendChatPrompt = createAsyncThunk<
       console.log("these are the tools", tools);
       let tool_outputs = [];
       if (tools) {
-        for (let i = 0; i < tools.length; i++) {
-          if (tools[i].tool_output != undefined || tools[i].tool_output != null)
+        for (let i = 0; i < tools.length; i++) {   
+          if (tools[i]!=null && (tools[i].tool_output != undefined || tools[i].tool_output != null))
             tool_outputs.push(tools[i].tool_output);
         }
       }
+      console.log("tool output sendchat", tool_outputs)
+
       dispatch(
         setResponse({
           index,
