@@ -8,28 +8,33 @@ import CopyIcon from "@/assets/common/copy.svg?react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
 import { useAccount } from "wagmi";
+import RefreshIcon from "@/assets/common/refresh.svg?react";
 
 const TransactionHistory = () => {
   const dispatch = useAppDispatch();
-  const transactions = useAppSelector(
-    (state) => state.transactionData.transactions
+  const {transactions, loading:isLoading} = useAppSelector(
+    (state) => state.transactionData
   );
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | string | null>(null);
   const [isAddressCopied, setIsAddressCopied] = useState<boolean>(false);
-  const {address} = useAccount()
-  const globalData = useAppSelector(
-    (state)=>state.globalData.data
-  )
+  const { address } = useAccount();
+  const globalData = useAppSelector((state) => state.globalData.data);
 
   const CopyToClipboardComponent =
     CopyToClipboard as unknown as React.ComponentType<any>;
 
   const handleCopy = () => {
     setIsAddressCopied(true);
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setIsAddressCopied(false);
     }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const handleRefresh = () => {
+    dispatch(getTransactions()); // Refresh transactions
   };
 
   useEffect(() => {
@@ -37,9 +42,19 @@ const TransactionHistory = () => {
   }, [address, globalData.token]);
   return (
     <div className="flex flex-col flex-shrink-0 gap-4 p-4 ">
-      <h1 className="text-white/80 text-[20px] font-semibold">
-        Transaction History
-      </h1>
+      <div className="flex items-center justify-between w-full gap-3">
+        <h1 className="text-white/80 text-[20px] font-semibold">
+          Transaction History
+        </h1>
+
+        <RefreshIcon
+          onClick={handleRefresh}
+          className={`text-[#bdbdbd] size-[22px] ${
+            isLoading ? "animate-spin" : ""
+          }`}
+        />
+        
+      </div>
       <div className="relative flex flex-col gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
         {transactions?.map((transaction, index) => (
           <div key={index} className="p-2 rounded-md bg-purple-200/10">

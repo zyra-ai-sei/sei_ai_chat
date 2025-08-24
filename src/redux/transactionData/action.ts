@@ -3,7 +3,7 @@ import { transactionDataSlice } from "./reducer";
 import { IRootState } from "../store";
 import { axiosInstance } from "@/services/axios";
 
-export const { setTransactions, resetTransactions } =
+export const { setTransactions, resetTransactions, setLoading } =
   transactionDataSlice.actions;
 
 export const getTransactions = createAsyncThunk<
@@ -12,6 +12,7 @@ export const getTransactions = createAsyncThunk<
   { state: IRootState }
 >("transactionData/getTransactions", async (_, { dispatch }) => {
   try {
+    dispatch(setLoading());
     const result = await axiosInstance.get("user/transactions");
     const apiData = result?.data;
     if (apiData?.status === 200 && apiData?.data) {
