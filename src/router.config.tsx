@@ -3,55 +3,23 @@ import PageNotFound from "./pages/pageNotFound";
 import Chat from "./pages/chat";
 import DefaultLayout from "./layouts/defaultLayout";
 import { useAppDispatch, useAppSelector } from "./hooks/useRedux";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { useAccount, useChainId, useDisconnect } from "wagmi";
-import WrongNetworkPopup from "./components/common/wrongNetworkPopup";
+import { useAccount, useDisconnect } from "wagmi";
 
 import useScreenWidth from "./hooks/useScreenWidth";
 import { setGlobalData } from "./redux/globalData/action";
 
-import useLocalStorage from "./hooks/useLocalStorage";
-import { LocalStorageIdEnum } from "./enum/utility.enum";
 import Home from "./pages/home";
-
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
-  const [isWrongNetworkPopupOpened, setIswrongNetworkpopupOpened] =
-    useState<boolean>(false);
-
-  const [isIsPwaFirstTime, setIsPwaFirstTime] = useLocalStorage(
-    LocalStorageIdEnum.IS_PWA_FIRST_TIME,
-    true
-  );
 
   const globalData = useAppSelector((state) => state?.globalData?.data);
-  const {
-    isPWAOpened,
-    eoaAddress,
-  } = globalData || {};
+  const { eoaAddress } = globalData || {};
 
-  const isMobile = useAppSelector((state) => state?.globalData?.isMobile);
-
-
-  const { isConnected, address, chain } = useAccount();
+  const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
-  const chainId = useChainId()
-
-
-  useEffect(() => {
-    if (
-      chainId &&
-      chainId !== Number(import.meta.env?.VITE_BASE_CHAIN_ID) &&
-      chainId !== Number(import.meta.env?.VITE_ALTERNATE_CHAIN_ID)
-    ) {
-      setIswrongNetworkpopupOpened(true);
-    } else {
-      setIswrongNetworkpopupOpened(false);
-    }
-    console.log('chainid', chainId, chain?.id)
-  }, [chainId]);
 
   useScreenWidth();
 
@@ -64,20 +32,9 @@ function RouterConfig() {
     ) {
       disconnect();
       dispatch(setGlobalData({ ...globalData, token: "", eoaAddress: "" }));
-
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
-
-  useEffect(() => {
-    if (!isPWAOpened && isMobile && isIsPwaFirstTime) {
-      setTimeout(() => {
-        setIsPwaFirstTime(false);
-      }, 60000);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     // Listen for the PWA installation event
@@ -94,7 +51,7 @@ function RouterConfig() {
 
     window.addEventListener("appinstalled", handleAppInstalled);
 
-    // Cleanup event listener 
+    // Cleanup event listener
     return () => {
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
@@ -113,11 +70,6 @@ function RouterConfig() {
         />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-      <WrongNetworkPopup
-        isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
-        setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
-        isNonClosable
-      />
     </Router>
   );
 }

@@ -2,8 +2,8 @@ import InputBox from "@/components/common/inputBox";
 import ResponseBox from "@/components/common/responseBox";
 import "./index.scss";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { useAccount, useDisconnect } from "wagmi";
-import { useEffect } from "react";
+import { useAccount, useChainId, useDisconnect } from "wagmi";
+import { useEffect, useState } from "react";
 import {
   fetchUserData,
   resetGlobalData,
@@ -13,6 +13,7 @@ import {
 import WalletConnectPopup from "@/components/common/customWalletConnect";
 import TransactionHistory from "@/components/Components/TransactionHistory";
 import Assets from "@/components/Components/Assets";
+import WrongNetworkPopup from "@/components/common/wrongNetworkPopup";
 
 function Chat() {
   const globalData = useAppSelector((state) => state?.globalData?.data);
@@ -20,6 +21,11 @@ function Chat() {
   const dispatch = useAppDispatch();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+
+  const [isWrongNetworkPopupOpened, setIswrongNetworkpopupOpened] =
+    useState<boolean>(false);
+
+  const chainId = useChainId();
 
   useEffect(() => {
     if (!token || !isConnected) {
@@ -50,6 +56,18 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    if (
+      chainId &&
+      chainId !== Number(import.meta.env?.VITE_BASE_CHAIN_ID) &&
+      chainId !== Number(import.meta.env?.VITE_ALTERNATE_CHAIN_ID)
+    ) {
+      setIswrongNetworkpopupOpened(true);
+    } else {
+      setIswrongNetworkpopupOpened(false);
+    }
+  }, [chainId]);
+
   return (
     <div className="flex flex-col h-screen w-screen p-4 bg-gradient-to-tr from-[#0c04214d] via-[#12053454] to-[#4d02a838]">
       <div className="relative flex flex-col border rounded-[16px] border-zinc-800 justify-end h-full w-full">
@@ -60,14 +78,19 @@ function Chat() {
         <div className="flex justify-end w-full h-full">
           <TransactionHistory />
 
-            <div className="relative z-30 flex flex-col justify-end flex-grow h-full p-4 mx-auto overflow-auto border-x border-zinc-800">
-              <ResponseBox />
-              <InputBox />
-            </div>
+          <div className="relative z-30 flex flex-col justify-end flex-grow h-full p-4 mx-auto overflow-auto border-x border-zinc-800">
+            <ResponseBox />
+            <InputBox />
+          </div>
 
           <Assets />
         </div>
         <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
+        <WrongNetworkPopup
+          isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
+          setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
+          isNonClosable
+        />
       </div>
     </div>
   );

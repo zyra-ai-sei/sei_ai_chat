@@ -28,6 +28,8 @@ const WalletConnectModal = () => {
   useEffect(()=>{
     if(isConnected){
       setIsSignatureVerificationOpen(true);
+    }else{
+      setIsSignatureVerificationOpen(false)
     }
   },[isConnected])
   return (
