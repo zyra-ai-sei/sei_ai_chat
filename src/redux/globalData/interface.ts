@@ -6,9 +6,6 @@ export interface IGlobalData {
   smartAccountAddress: string;
   eoaAddress: string;
   biconomySmartAccount: BiconomySmartAccountV2 | null;
-  userEmail: string;
-  isEmailVerified: boolean;
-  isOtpSent: boolean;
   token: string;
   isEoaEnabled: boolean;
   smartWalletBalance: number;
@@ -16,19 +13,12 @@ export interface IGlobalData {
   chainIdSelected: number;
   name: string;
   isMboile: boolean;
-  isPWAOpened: boolean;
-  isEarlyFan: boolean;
   auth_date?: number;
   hash?: string;
-  telegramId?: number;
-  telegramFirstName?: string;
-  telegramLastName?: string;
   photo_url?: string;
   username?: string;
-  referralCode?: string;
-  inviteCode?: string;
-  tgVerified?: boolean;
-  buyTokenReminder?: BuyTokenReminderEnum
+  modelFamily: string;
+  model: string;
 }
 
 export interface IGlobalReducerState {

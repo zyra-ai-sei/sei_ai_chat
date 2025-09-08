@@ -1,3 +1,4 @@
+import ModelSelector from "@/components/chat/modelSelector/Index";
 import { useAppDispatch } from "@/hooks/useRedux";
 import { sendChatPrompt } from "@/redux/chatData/action";
 import React, { useRef, useState } from "react";
@@ -43,12 +44,15 @@ const InputBox = () => {
           value={prompt}
           style={{ height: "10px" }}
         />
-        <button
-          onClick={handleSendPromt}
-          className="w-[40px] h-[40px]  bg-[#7441f493] rounded-full"
-        >
-          <span className="text-[24px] text-white/70">↑</span>
-        </button>
+        <div className="flex gap-3">
+          <ModelSelector/>
+          <button
+            onClick={handleSendPromt}
+            className="w-[40px] h-[40px]  bg-[#7441f493] rounded-full"
+          >
+            <span className="text-[24px] text-white/70">↑</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { BuyTokenReminderEnum, LocalStorageIdEnum } from "../../enum/utility.enum";
+import { LocalStorageIdEnum } from "../../enum/utility.enum";
 import {
   getLocalStorageData,
   setLocalStorageData,
@@ -9,9 +9,7 @@ import { IGlobalReducerState } from "./interface";
 const userDetails = getLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
   isDarkModeEnabled: true,
   smartAccountAddress: "",
-  userEmail: "",
-  isEmailVerified: false,
-  isOtpSent: false,
+
   token: "",
   isEoaEnabled: false,
   smartWalletBalance: 0,
@@ -19,20 +17,13 @@ const userDetails = getLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
   chainIdSelected: import.meta.env?.VITE_BASE_CHAIN_ID || 137,
   name: "",
   isMobile: window?.innerWidth < 768,
-  isPWAOpened: window.matchMedia("(display-mode: standalone)").matches,
   eoaAddress: "",
-  isEarlyFan: false,
   auth_date: 0,
   hash: "",
-  telegramId: 0,
-  telegramFirstName: "",
-  telegramLastName: "",
   photo_url: "",
   username: "",
-  referralCode: "",
-  inviteCode: "",
-  tgVerified: false,
-  buyTokenReminder: BuyTokenReminderEnum?.NotSet
+  modelFamily: "gemini",
+  model: "gemini-2.5-flash",
 });
 
 export const initialState: IGlobalReducerState = {
@@ -41,9 +32,6 @@ export const initialState: IGlobalReducerState = {
   isMobile: window?.innerWidth < 768,
   data: {
     isDarkModeEnabled: userDetails?.isDarkModeEnabled,
-    isEmailVerified: userDetails?.isEmailVerified,
-    isOtpSent: userDetails?.isOtpSent,
-    userEmail: userDetails?.userEmail,
     smartAccountAddress: userDetails?.smartAccountAddress,
     biconomySmartAccount: null,
     token: userDetails?.token,
@@ -53,20 +41,13 @@ export const initialState: IGlobalReducerState = {
     chainIdSelected: userDetails?.chainIdSelected,
     name: userDetails?.name,
     isMboile: userDetails.isMobile,
-    isPWAOpened: userDetails?.isPWAOpened,
     eoaAddress: userDetails.eoaAddress,
-    isEarlyFan: userDetails?.isEarlyFan,
     auth_date: userDetails.auth_date,
     hash: userDetails.hash,
-    telegramId: userDetails.telegramId,
-    telegramFirstName: userDetails.telegramFirstName,
-    telegramLastName: userDetails.telegramLastName,
     photo_url: userDetails?.photo_url,
     username: userDetails?.username,
-    referralCode: userDetails?.referralCode,
-    inviteCode: userDetails?.inviteCode,
-    tgVerified: userDetails?.tgVerified,
-    buyTokenReminder: BuyTokenReminderEnum?.NotSet
+    modelFamily: userDetails?.modelFamily,
+    model: userDetails?.model,
   },
 };
 
@@ -80,9 +61,6 @@ export const globalDataSlice = createSlice({
     ) => {
       setLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
         isDarkModeEnabled: payload.isDarkModeEnabled,
-        isEmailVerified: payload.isEmailVerified,
-        isOtpSent: payload.isOtpSent,
-        userEmail: payload.userEmail,
         smartAccountAddress: payload.smartAccountAddress,
         token: payload?.token,
         isEoaEnabled: payload?.isEoaEnabled,
@@ -91,20 +69,13 @@ export const globalDataSlice = createSlice({
         chainIdSelected: payload?.chainIdSelected,
         name: payload.name,
         isMobile: payload.isMboile,
-        isPWAOpened: window.matchMedia("(display-mode: standalone)").matches,
         eoaAddress: payload?.eoaAddress,
-        isEarlyFan: payload?.isEarlyFan,
         auth_date: payload.auth_date,
         hash: payload.hash,
-        telegramId: payload.telegramId,
-        telegramFirstName: payload.telegramFirstName,
-        telegramLastName: payload.telegramLastName,
         photo_url: payload.photo_url,
         username: payload.username,
-        referralCode: payload.referralCode,
-        inviteCode: payload?.inviteCode,
-        tgVerified: payload?.tgVerified,
-        buyTokenReminder: payload?.buyTokenReminder
+        modelFamily: payload.modelFamily,
+        model: payload.model,
       });
 
       if (payload.isDarkModeEnabled) {
@@ -118,7 +89,6 @@ export const globalDataSlice = createSlice({
         error: "",
         data: {
           ...payload,
-          isPWAOpened: window.matchMedia("(display-mode: standalone)").matches,
         },
       };
     },
@@ -127,14 +97,9 @@ export const globalDataSlice = createSlice({
       { payload }: PayloadAction<IGlobalReducerState["error"]>
     ) => {
       setLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
-        isPWAOpened: window.matchMedia("(display-mode: standalone)").matches,
-
         isDarkModeEnabled: true,
         smartAccountAddress: "",
         biconomySmartAccount: null,
-        isEmailVerified: false,
-        isOtpSent: false,
-        userEmail: "",
         token: "",
         isEoaEnabled: false,
         smartWalletBalance: 0,
@@ -144,18 +109,12 @@ export const globalDataSlice = createSlice({
         isMboile: false,
 
         eoaAddress: "",
-        isEarlyFan: false,
         auth_date: 0,
         hash: "",
-        telegramId: 0,
-        telegramFirstName: "",
-        telegramLastName: "",
         photo_url: "",
         username: "",
-        referralCode: "",
-        inviteCode: "",
-        tgVerified: false,
-        buyTokenReminder: BuyTokenReminderEnum?.NotSet
+        modelFamily: "gemini",
+        model: "gemini-2.5-flash",
       });
 
       return {
@@ -166,9 +125,6 @@ export const globalDataSlice = createSlice({
           isDarkModeEnabled: false,
           smartAccountAddress: "",
           biconomySmartAccount: null,
-          isEmailVerified: false,
-          isOtpSent: false,
-          userEmail: "",
           token: "",
           isEoaEnabled: false,
           smartWalletBalance: 0,
@@ -176,33 +132,21 @@ export const globalDataSlice = createSlice({
           chainIdSelected: import.meta.env?.VITE_BASE_CHAIN_ID || 137,
           name: "",
           isMboile: false,
-          isPWAOpened: false,
           eoaAddress: "",
-          isEarlyFan: false,
           auth_date: 0,
           hash: "",
-          telegramId: 0,
-          telegramFirstName: "",
-          telegramLastName: "",
           photo_url: "",
           username: "",
-          referralCode: "",
-          inviteCode: "",
-          tgVerified: false,
-          buyTokenReminder: BuyTokenReminderEnum?.NotSet
+          model: "gemini-2.5-flash",
+          modelFamily: "gemini",
         },
       };
     },
     resetGlobalData: (state) => {
       setLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
-        isPWAOpened: window.matchMedia("(display-mode: standalone)").matches,
-
         isDarkModeEnabled: true,
         smartAccountAddress: "",
         biconomySmartAccount: null,
-        isEmailVerified: false,
-        isOtpSent: false,
-        userEmail: "",
         token: "",
         isEoaEnabled: false,
         smartWalletBalance: 0,
@@ -212,18 +156,12 @@ export const globalDataSlice = createSlice({
         isMboile: false,
 
         eoaAddress: "",
-        isEarlyFan: false,
         auth_date: 0,
         hash: "",
-        telegramId: 0,
-        telegramFirstName: "",
-        telegramLastName: "",
         photo_url: "",
         username: "",
-        referralCode: "",
-        inviteCode: "",
-        tgVerified: false,
-        buyTokenReminder: BuyTokenReminderEnum?.NotSet
+        modelFamily: "gemini",
+        model: "gemini-2.5-flash",
       });
 
       return {
@@ -234,9 +172,6 @@ export const globalDataSlice = createSlice({
           isDarkModeEnabled: true,
           smartAccountAddress: "",
           biconomySmartAccount: null,
-          isEmailVerified: false,
-          isOtpSent: false,
-          userEmail: "",
           token: "",
           isEoaEnabled: false,
           smartWalletBalance: 0,
@@ -244,20 +179,13 @@ export const globalDataSlice = createSlice({
           chainIdSelected: import.meta.env?.VITE_BASE_CHAIN_ID || 137,
           name: "",
           isMboile: false,
-          isPWAOpened: false,
           eoaAddress: "",
-          isEarlyFan: false,
           auth_date: 0,
           hash: "",
-          telegramId: 0,
-          telegramFirstName: "",
-          telegramLastName: "",
           photo_url: "",
           username: "",
-          referralCode: "",
-          inviteCode: "",
-          tgVerified: false,
-          buyTokenReminder: BuyTokenReminderEnum?.NotSet
+          modelFamily: "gemini",
+          model: "gemini-2.5-flash",
         },
       };
     },

@@ -100,57 +100,6 @@ const ResponseBox = () => {
     dispatch(getChatHistory())
   },[])
   // Custom markdown renderers
-  const addressRegex = /0x[a-fA-F0-9]{40}/g;
-  const components = {
-    strong: ({ node, ...props }: any) => (
-      <strong style={{ color: "#e0e0e0", fontWeight: 700 }} {...props} />
-    ),
-    h1: ({ node, ...props }: any) => (
-      <h1
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-2xl"
-        {...props}
-      />
-    ),
-    h2: ({ node, ...props }: any) => (
-      <h2
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-xl"
-        {...props}
-      />
-    ),
-    h3: ({ node, ...props }: any) => (
-      <h3
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-lg"
-        {...props}
-      />
-    ),
-    text: ({ children }: any) => {
-      // Highlight blockchain addresses
-      if (typeof children === "string") {
-        const parts = children.split(addressRegex);
-        const matches = children.match(addressRegex);
-        if (matches) {
-          return (
-            <>
-              {parts.map((part, i) => (
-                <React.Fragment key={i}>
-                  {part}
-                  {matches[i] && (
-                    <span style={{ color: "#eaff7b", fontWeight: 600 }}>
-                      {matches[i]}
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
-            </>
-          );
-        }
-      }
-      return <>{children}</>;
-    },
-  };
 
   return (
     <div
@@ -163,8 +112,8 @@ const ResponseBox = () => {
             <div className="self-end p-4 text-white bg-gradient-to-r from-[#222f44] to-[#202c3f] rounded-tr-sm min-w-[80px] rounded-3xl w-fit max-w-[80%]">
               {chat.prompt}
             </div>
-            <div className={`self-start p-4 text-white ${chat.response.chat ? 'bg-[#0F172A]' : ''} rounded-tl-sm rounded-2xl w-fit max-w-[80%] text-wrap break-words whitespace-pre-line`}>
-              <ReactMarkDown components={components}>
+            <div className={`self-start p-4 text-white ${chat.response.chat ? '' : ''} rounded-tl-sm rounded-2xl w-fit max-w-[80%] text-wrap break-words whitespace-pre-line`}>
+              <ReactMarkDown>
                 {chat.response.chat || ""}
               </ReactMarkDown>
               {!chat.response.chat && (
