@@ -1,172 +1,35 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import PromptSuggestion from "../PromptSuggestion/PromptSuggestion";
 import ReactMarkDown from "react-markdown";
-import { ChatItem } from "@/redux/chatData/reducer";
-import { useSendTransaction, useWriteContract } from "wagmi";
-import {
-  appendTxChatResponseToLatestChat,
-  eraseLatestToolOutput,
-  getChatHistory,
-} from "@/redux/chatData/action";
-
+import { getChatHistory } from "@/redux/chatData/action";
+import TransactionCanvas from "./components/TransactionCanvas";
 
 const ResponseBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
-  console.log('chat',chats)
-  const containerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-  
-
-  const txIndexRef = useRef(0);
-  const txOutputsRef = useRef<any[]>([]);
-
-  const processTx = (idx: number) => {
-    const outputs = txOutputsRef.current;
-    console.log('outputs',outputs, txOutputsRef.current, idx)
-    if (idx >= outputs.length) {
-      dispatch(eraseLatestToolOutput());
-      return;
-    }
-    const unsignedtx = outputs[idx];
-    txIndexRef.current = idx;
-
-    if (unsignedtx) {
-      if (unsignedtx.abi) {
-        writeContract({ ...(unsignedtx as any) });
-      } else {
-        sendTransaction({ ...(unsignedtx as any) });
-      }
-    }
-  };
-
-  const { writeContract } = useWriteContract({
-    mutation: {
-      onError: () => {
-        dispatch(eraseLatestToolOutput());
-      },
-   
-      onSettled(data,) {
-        processTx(txIndexRef.current + 1);
-        dispatch(appendTxChatResponseToLatestChat({ txdata: data as string }));
-      },
-    },
-  });
-  const { sendTransaction } = useSendTransaction({
-    mutation: {
-      onError: () => {
-        dispatch(eraseLatestToolOutput());
-      },
-      onSuccess: () => {
-        // dispatch(eraseLatestToolOutput());
-      },
-      onSettled(data) {
-        processTx(txIndexRef.current + 1);
-        dispatch(appendTxChatResponseToLatestChat({ txdata: data as string }));
-      },
-    },
-  });
-
-
-
-  const handleSignature = async (chat: ChatItem) => {
-    const outputs = chat.response.tool_outputs;
-    if (!outputs || outputs.length === 0) return;
-    txOutputsRef.current = outputs;
-    txIndexRef.current = 0;
-    processTx(0);
-  };
-
-  const lastProcessedChatId = useRef<string | number | null>(null);
 
   useEffect(() => {
-     if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-    const latestChat = chats[chats.length - 1];
-    console.log("talets chat", latestChat)
-    if (
-      latestChat &&
-      latestChat.response.tool_outputs &&
-      latestChat?.response?.tool_outputs?.length > 0
-    ) {
-      console.log("latest chat1", latestChat)
-      lastProcessedChatId.current = latestChat.id;
-      handleSignature(latestChat);
-    }
-  }, [chats]);
-
-  useEffect(()=>{
-    dispatch(getChatHistory())
-  },[])
-  // Custom markdown renderers
-  const addressRegex = /0x[a-fA-F0-9]{40}/g;
-  const components = {
-    strong: ({ node, ...props }: any) => (
-      <strong style={{ color: "#e0e0e0", fontWeight: 700 }} {...props} />
-    ),
-    h1: ({ node, ...props }: any) => (
-      <h1
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-2xl"
-        {...props}
-      />
-    ),
-    h2: ({ node, ...props }: any) => (
-      <h2
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-xl"
-        {...props}
-      />
-    ),
-    h3: ({ node, ...props }: any) => (
-      <h3
-        style={{ color: "#e0e0e0", fontWeight: 700 }}
-        className="text-lg"
-        {...props}
-      />
-    ),
-    text: ({ children }: any) => {
-      // Highlight blockchain addresses
-      if (typeof children === "string") {
-        const parts = children.split(addressRegex);
-        const matches = children.match(addressRegex);
-        if (matches) {
-          return (
-            <>
-              {parts.map((part, i) => (
-                <React.Fragment key={i}>
-                  {part}
-                  {matches[i] && (
-                    <span style={{ color: "#eaff7b", fontWeight: 600 }}>
-                      {matches[i]}
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
-            </>
-          );
-        }
-      }
-      return <>{children}</>;
-    },
-  };
+    dispatch(getChatHistory());
+  }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="z-30 flex flex-col w-full max-w-[1280px] mx-auto justify-start flex-grow max-h-[calc(100%-140px)] gap-6 py-2 pr-4 overflow-y-auto scrollbar-none"
-    >
+    <div className="z-30 flex flex-col w-full relative max-w-[1280px] mx-auto justify-start flex-grow max-h-[calc(100%-140px)] gap-6 py-2 pr-4 overflow-y-auto scrollbar-none">
       {chats.length > 0 ? (
         chats.map((chat, idx) => (
           <React.Fragment key={idx}>
             <div className="self-end p-4 text-white bg-gradient-to-r from-[#222f44] to-[#202c3f] rounded-tr-sm min-w-[80px] rounded-3xl w-fit max-w-[80%]">
               {chat.prompt}
             </div>
-            <div className={`self-start p-4 text-white ${chat.response.chat ? 'bg-[#0F172A]' : ''} rounded-tl-sm rounded-2xl w-fit max-w-[80%] text-wrap break-words whitespace-pre-line`}>
-              <ReactMarkDown components={components}>
-                {chat.response.chat || ""}
+            <div
+              className={`self-start p-4 text-white rounded-tl-sm rounded-2xl w-fit max-w-[80%] text-wrap break-words whitespace-pre-line`}
+            >
+              <ReactMarkDown>
+                {typeof chat.response.chat == "string"
+                  ? chat.response.chat || ""
+                  : "response format error from model"}
               </ReactMarkDown>
+
               {!chat.response.chat && (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -211,6 +74,14 @@ const ResponseBox = () => {
                     ></animate>
                   </circle>
                 </svg>
+              )}
+            </div>
+            <div>
+              {chat?.response?.tool_outputs && (
+                <TransactionCanvas
+                  txns={chat.response.tool_outputs}
+                  chatIndex={idx}
+                />
               )}
             </div>
           </React.Fragment>

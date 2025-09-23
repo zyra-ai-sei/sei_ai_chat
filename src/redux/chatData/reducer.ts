@@ -1,14 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { StatusEnum } from "@/enum/status.enum";
 
-
-interface ToolOutput {
-  address?: string;
-  abi?: any[];
-  functionName?: string;
-  args?: any[];
-  value?: string;
-  to?: string;
-  [key: string]: any;
+export interface ToolOutput {
+  metadata: any;
+  transaction: {
+    address?: string;
+    abi?: any[];
+    functionName?: string;
+    args?: any[];
+    value?: string;
+    to?: string;
+    [key: string]: any;
+  };
+  status?: StatusEnum;
+  txHash?: string;
 }
 
 interface ChatResponse {
@@ -17,7 +22,7 @@ interface ChatResponse {
 }
 
 export interface ChatItem {
-  id:string;
+  id: string;
   prompt: string;
   response: ChatResponse;
   loading?: boolean;
@@ -30,9 +35,8 @@ export interface ChatDataState {
 
 const initialState: ChatDataState = {
   chats: [],
-  sessionId:null,
+  sessionId: null,
 };
-
 
 const chatDataSlice = createSlice({
   name: "chatData",
@@ -42,7 +46,12 @@ const chatDataSlice = createSlice({
       state.sessionId = action.payload;
     },
     addPrompt(state, action: PayloadAction<string>) {
-      state.chats.push({id:Date.now().toLocaleString(), prompt: action.payload, response: { chat: "" }, loading: true });
+      state.chats.push({
+        id: Date.now().toLocaleString(),
+        prompt: action.payload,
+        response: { chat: "" },
+        loading: true,
+      });
     },
     setResponse(
       state,
@@ -58,7 +67,8 @@ const chatDataSlice = createSlice({
       action: PayloadAction<{ index: number; response: ChatResponse }>
     ) {
       if (state.chats[action.payload.index]) {
-        state.chats[action.payload.index].response.chat += action.payload.response.chat;
+        state.chats[action.payload.index].response.chat +=
+          action.payload.response.chat;
       }
     },
     setLoading(
@@ -83,9 +93,51 @@ const chatDataSlice = createSlice({
         state.chats[state.chats.length - 1].response.tool_outputs = [];
       }
     },
+    updateTransactionStatus(
+      state,
+      action: PayloadAction<{
+        chatIndex: number;
+        toolOutputIndex: number;
+        status: StatusEnum;
+        txHash?: string;
+      }>
+    ) {
+      const { chatIndex, toolOutputIndex, status, txHash } = action.payload;
+      if (
+        state.chats[chatIndex] &&
+        state.chats[chatIndex].response.tool_outputs &&
+        state.chats[chatIndex].response.tool_outputs[toolOutputIndex]
+      ) {
+        state.chats[chatIndex].response.tool_outputs[toolOutputIndex].status = status;
+        if (txHash) {
+          state.chats[chatIndex].response.tool_outputs[toolOutputIndex].txHash = txHash;
+        }
+      }
+    },
+    reorderTransactions(
+      state,
+      action: PayloadAction<{
+        chatIndex: number;
+        reorderedTxns: ToolOutput[];
+      }>
+    ) {
+      const { chatIndex, reorderedTxns } = action.payload;
+      if (state.chats[chatIndex]) {
+        state.chats[chatIndex].response.tool_outputs = reorderedTxns;
+      }
+    },
   },
 });
 
-export const { addPrompt, setResponse, setError, resetChat, addSessionId, eraseLatestToolOutput,setLoading } = chatDataSlice.actions;
+export const {
+  addPrompt,
+  setResponse,
+  setError,
+  resetChat,
+  addSessionId,
+  eraseLatestToolOutput,
+  setLoading,
+  updateTransactionStatus,
+} = chatDataSlice.actions;
 export default chatDataSlice.reducer;
 export { chatDataSlice };

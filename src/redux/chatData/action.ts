@@ -12,6 +12,8 @@ export const {
   addSessionId,
   eraseLatestToolOutput,
   updateResponse,
+  updateTransactionStatus,
+  reorderTransactions,
 } = chatDataSlice.actions;
 // Thunk to call chat API with txdata as prompt and append response to latest chat
 export const appendTxChatResponseToLatestChat = createAsyncThunk<
