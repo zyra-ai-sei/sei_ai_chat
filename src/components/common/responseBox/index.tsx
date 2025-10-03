@@ -77,7 +77,7 @@ const ResponseBox = () => {
               )}
             </div>
             <div>
-              {chat?.response?.tool_outputs && (
+              {chat?.response?.tool_outputs && chat?.response?.tool_outputs.length > 0 && (
                 <TransactionCanvas
                   txns={chat.response.tool_outputs}
                   chatIndex={idx}

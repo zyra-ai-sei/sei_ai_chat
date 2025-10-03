@@ -48,10 +48,17 @@ const transactionDataSlice = createSlice({
         ){
             state.transactions = []
             state.loading = false;
+        },
+        addTransaction(
+            state,
+            action: PayloadAction<{transaction: transaction}>
+        ){
+            state.transactions.unshift(action.payload.transaction);
+            state.loading = false;
         }
     }
 })
 
-export const {setTransactions, resetTransactions} = transactionDataSlice.actions;
+export const {setTransactions, resetTransactions, addTransaction} = transactionDataSlice.actions;
 export default transactionDataSlice.reducer;
 export {transactionDataSlice}

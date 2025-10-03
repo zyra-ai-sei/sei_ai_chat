@@ -1,137 +1,88 @@
-import React, { useState, useCallback } from "react";
-import { ToolOutput } from "@/redux/chatData/reducer";
+import React, { useState } from "react";
+import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSendTransaction, useWriteContract } from "wagmi";
 import TransactionForm from "./TransactionForm";
+import ExecuteAllButton from "./ExecuteAllButton";
 import { Address } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
-import { updateTransactionStatus, reorderTransactions } from "@/redux/chatData/action";
-
-interface FormValues {
-  to: { value: string; type: string };
-  address: { value: string; type: string };
-  functionName: { value: string; type: string };
-  value: { value: string; type: string };
-  args: any[];
-}
+import { updateTransactionStatus, reorderTransactions, completeTool, abortTool } from "@/redux/chatData/action";
+import { addTxn } from "@/redux/transactionData/action";
 
 const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefined; chatIndex: number }) => {
   const dispatch = useAppDispatch();
   const chats = useAppSelector((state) => state.chatData.chats);
-  const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
-  
-  const [orderedTxns, setOrderedTxns] = useState<ToolOutput[]>(txns || []);
-  const [formValuesMap, setFormValuesMap] = useState<Record<string, FormValues>>({});
-  const [executionState, setExecutionState] = useState<{
-    isExecuting: boolean;
-    currentIndex: number | null;
-    completedCount: number;
-    hasErrors: boolean;
-    isCompleted: boolean;
-  }>({
+  const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
     completedCount: 0,
     hasErrors: false,
     isCompleted: false,
-  });
+  };
+  const [orderedTxns, setOrderedTxns] = useState<ToolOutput[]>(txns || []);
 
   // Update orderedTxns when txns prop changes or when Redux store updates
   React.useEffect(() => {
-    const latestTxns = currentTxns.length > 0 ? currentTxns : (txns || []);
+    const latestTxns = chats[chatIndex]?.response?.tool_outputs || (txns || []);
     setOrderedTxns(latestTxns);
-  }, [txns, currentTxns]);
+  }, [txns, chats[chatIndex]?.response?.tool_outputs, chatIndex]);
 
-  const { writeContract } = useWriteContract({
-    mutation: {
-      onSuccess: (data) => {
-        console.log("Transaction success:", data);
-        setExecutionState(prev => ({
-          ...prev,
-          completedCount: prev.completedCount + 1
+  // Auto-update execution state based on tool_outputs status
+  React.useEffect(() => {
+    const toolOutputs = chats[chatIndex]?.response?.tool_outputs;
+    if (toolOutputs && toolOutputs.length > 0) {
+      const hasErrors = toolOutputs.some(txn => txn.status === StatusEnum.ERROR);
+      const hasPending = toolOutputs.some(txn => txn.status === StatusEnum.PENDING);
+      const allCompleted = toolOutputs.every(txn =>
+        txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR
+      );
+
+      // Only update if all transactions are completed and we're not currently executing
+      if (allCompleted && !hasPending && !executionState.isExecuting) {
+        dispatch(updateExecutionState({
+          index: chatIndex,
+          response: {
+            hasErrors,
+            isCompleted: !hasErrors,
+          }
         }));
-      },
-      onError: (error) => {
-        console.error("Transaction failed:", error);
-      },
-      onSettled: (data, error) => {
-        if (error) {
-          console.error("Transaction settled with error:", error);
-        } else {
-          console.log("Transaction settled:", data);
-        }
       }
     }
-  });
+  }, [chats[chatIndex]?.response?.tool_outputs, chatIndex, dispatch]);
 
-  const { sendTransaction } = useSendTransaction({
-    mutation: {
-      onSuccess: (data) => {
-        console.log("Send transaction success:", data);
-        setExecutionState(prev => ({
-          ...prev,
-          completedCount: prev.completedCount + 1
-        }));
-      },
-      onError: (error) => {
-        console.error("Send transaction failed:", error);
-      },
-      onSettled: (data, error) => {
-        if (error) {
-          console.error("Send transaction settled with error:", error);
-        } else {
-          console.log("Send transaction settled:", data);
-        }
-      }
-    }
-  });
+  const { writeContract } = useWriteContract();
+
+  const { sendTransaction } = useSendTransaction();
  
-  const reorder = (list: ToolOutput[], startIndex: number, endIndex: number) => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
-  };
-
   const onDragEnd = (result: any) => {
-    if (!result.destination) {
-      return;
-    }
+    if (!result.destination) return;
 
-    const items = reorder(
-      orderedTxns,
-      result.source.index,
-      result.destination.index
-    );
+    const items = Array.from(orderedTxns);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
     setOrderedTxns(items);
-    
-    // Update Redux store with reordered transactions
     dispatch(reorderTransactions({
       chatIndex,
       reorderedTxns: items
     }));
   };
 
-  // Handle form value updates from individual TransactionForm components
-  const handleFormValuesChange = useCallback((txnId: string, values: FormValues) => {
-    setFormValuesMap(prev => ({
-      ...prev,
-      [txnId]: values
-    }));
-  }, []);
-
   // Execute all transactions sequentially
   const executeAllTransactions = async () => {
     if (orderedTxns.length === 0) return;
 
-    setExecutionState({
-      isExecuting: true,
-      currentIndex: 0,
-      completedCount: 0,
-      hasErrors: false,
-      isCompleted: false,
-    });
+    dispatch(updateExecutionState({
+      index: chatIndex,
+      response: {
+        isExecuting: true,
+        currentIndex: 0,
+        completedCount: 0,
+        hasErrors: false,
+        isCompleted: false,
+      }
+    }));
 
     for (let i = 0; i < orderedTxns.length; i++) {
       const txn = orderedTxns[i];
@@ -139,21 +90,18 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
       // Skip if transaction is already successful
       if (txn.status === StatusEnum.SUCCESS) {
         console.log(`Skipping transaction ${i} - already successful`);
-        setExecutionState(prev => ({
-          ...prev,
-          completedCount: prev.completedCount + 1
+        const currentCount = executionState.completedCount;
+        dispatch(updateExecutionState({
+          index: chatIndex,
+          response: { completedCount: currentCount + 1 }
         }));
         continue;
       }
 
-      setExecutionState(prev => ({ ...prev, currentIndex: i }));
-
-      const formValues = formValuesMap[i.toString()];
-
-      if (!formValues) {
-        console.error(`No form values found for transaction ${i}`);
-        continue;
-      }
+      dispatch(updateExecutionState({
+        index: chatIndex,
+        response: { currentIndex: i }
+      }));
 
       try {
         // Execute the transaction and wait for it to complete
@@ -165,16 +113,17 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
           if (txn.transaction?.abi) {
             writeContract({
               abi: txn.transaction!.abi!,
-              address: formValues.address.value as Address,
-              functionName: formValues.functionName.value,
-              args: formValues.args,
+              address: txn.transaction!.address as Address,
+              functionName: txn.transaction!.functionName,
+              args: txn.transaction!.args || [],
             }, {
               onSuccess: (data) => {
                 clearTimeout(timeout);
                 console.log(`Transaction ${i} success:`, data);
-                setExecutionState(prev => ({
-                  ...prev,
-                  completedCount: prev.completedCount + 1
+                const currentCount = executionState.completedCount;
+                dispatch(updateExecutionState({
+                  index: chatIndex,
+                  response: { completedCount: currentCount + 1 }
                 }));
                 // Update status in Redux store
                 dispatch(updateTransactionStatus({
@@ -183,6 +132,15 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
                   status: StatusEnum.SUCCESS,
                   txHash: data as string
                 }));
+                // Add transaction to transaction store
+                dispatch(addTxn(data as string));
+                // Mark tool as completed
+                if (txn.id) {
+                  dispatch(completeTool({ 
+                    toolId: txn.id.toString(), 
+                    hash: data as string 
+                  }));
+                }
                 resolve();
               },
               onError: (error) => {
@@ -194,20 +152,25 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
                   toolOutputIndex: i,
                   status: StatusEnum.ERROR
                 }));
+                // Mark tool as aborted
+                if (txn.id) {
+                  dispatch(abortTool({ toolId: txn.id.toString() }));
+                }
                 reject(error);
               }
             });
           } else {
             sendTransaction({
-              to: formValues.to.value as Address,
-              value: BigInt(formValues.value.value),
+              to: txn.transaction!.to as Address,
+              value: BigInt(txn.transaction!.value || "0"),
             }, {
               onSuccess: (data) => {
                 clearTimeout(timeout);
                 console.log(`Transaction ${i} success:`, data);
-                setExecutionState(prev => ({
-                  ...prev,
-                  completedCount: prev.completedCount + 1
+                const currentCount = executionState.completedCount;
+                dispatch(updateExecutionState({
+                  index: chatIndex,
+                  response: { completedCount: currentCount + 1 }
                 }));
                 // Update status in Redux store
                 dispatch(updateTransactionStatus({
@@ -216,6 +179,15 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
                   status: StatusEnum.SUCCESS,
                   txHash: data as string
                 }));
+                // Add transaction to transaction store
+                dispatch(addTxn(data as string));
+                // Mark tool as completed
+                if (txn.id) {
+                  dispatch(completeTool({ 
+                    toolId: txn.id.toString(), 
+                    hash: data as string 
+                  }));
+                }
                 resolve();
               },
               onError: (error) => {
@@ -227,6 +199,10 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
                   toolOutputIndex: i,
                   status: StatusEnum.ERROR
                 }));
+                // Mark tool as aborted
+                if (txn.id) {
+                  dispatch(abortTool({ toolId: txn.id.toString() }));
+                }
                 reject(error);
               }
             });
@@ -239,21 +215,25 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
       } catch (error) {
         console.error(`Failed to execute transaction ${i}:`, error);
         // Mark transaction as failed and stop execution
-        setExecutionState(prev => ({
-          ...prev,
-          isExecuting: false,
-          currentIndex: null,
-          hasErrors: true,
+        dispatch(updateExecutionState({
+          index: chatIndex,
+          response: {
+            isExecuting: false,
+            currentIndex: null,
+            hasErrors: true,
+          }
         }));
         break; // Stop executing subsequent transactions
       }
     }
 
-    setExecutionState(prev => ({
-      ...prev,
-      isExecuting: false,
-      currentIndex: null,
-      isCompleted: true,
+    dispatch(updateExecutionState({
+      index: chatIndex,
+      response: {
+        isExecuting: false,
+        currentIndex: null,
+        isCompleted: true,
+      }
     }));
   };
   return (
@@ -263,30 +243,11 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
         <h2 className="text-lg font-semibold text-white">
           Transaction Queue ({orderedTxns.length})
         </h2>
-        <button
-          onClick={executeAllTransactions}
-          disabled={executionState.isExecuting || orderedTxns.length === 0}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            executionState.isExecuting
-              ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-              : executionState.isCompleted
-              ? executionState.hasErrors
-                ? "bg-red-600 hover:bg-red-700 text-white cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700 text-white cursor-not-allowed"
-              : orderedTxns.length === 0
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-700 text-white"
-          }`}
-        >
-          {executionState.isExecuting
-            ? `Executing ${executionState.currentIndex !== null ? executionState.currentIndex + 1 : 0}/${orderedTxns.length}`
-            : executionState.isCompleted
-            ? executionState.hasErrors
-              ? "Aborted"
-              : "Completed"
-            : "Execute All"
-          }
-        </button>
+        <ExecuteAllButton
+          executionState={executionState}
+          orderedTxns={orderedTxns}
+          onExecuteAll={executeAllTransactions}
+        />
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -330,7 +291,6 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
                         txn={txn}
                         txnIndex={index}
                         chatIndex={chatIndex}
-                        onFormValuesChange={handleFormValuesChange}
                         isExecuting={executionState.isExecuting && executionState.currentIndex === index}
                       />
                     </div>

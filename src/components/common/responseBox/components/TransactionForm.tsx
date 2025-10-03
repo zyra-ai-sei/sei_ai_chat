@@ -1,10 +1,15 @@
-import {ToolOutput } from "@/redux/chatData/reducer";
+import { ToolOutput } from "@/redux/chatData/reducer";
 import { getArgNames } from "@/utility/getArgNames";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
 import TextInput from "../../input/TextInput";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAppDispatch } from "@/hooks/useRedux";
-import { updateTransactionStatus } from "@/redux/chatData/action";
+import {
+  updateTransactionStatus,
+  updateTransactionData,
+  completeTool,
+  abortTool,
+} from "@/redux/chatData/action";
 import { Address } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
 import TransactionStatus from "../../status/TransactionStatus";
@@ -13,69 +18,69 @@ import TickIcon from "@/assets/popup/Tick.svg?react";
 import ErrorIcon from "@/assets/popup/failed.svg?react";
 import ExternalIcon from "@/assets/button/external.svg?react";
 import GetInputComponent from "./GetInputComponent";
-
-interface FormValues {
-  to: { value: string; type: string };
-  address: { value: string; type: string };
-  functionName: { value: string; type: string };
-  value: { value: string; type: string };
-  args: any[];
-}
+import { addTxn } from "@/redux/transactionData/action";
 
 const TransactionForm = ({
   txn,
   txnIndex,
   chatIndex,
-  onFormValuesChange,
-  isExecuting
+  isExecuting,
 }: {
   txn: ToolOutput;
   txnIndex?: number;
   chatIndex: number;
-  onFormValuesChange?: (txnId: string, values: FormValues) => void;
   isExecuting?: boolean;
 }) => {
   const { address } = useAccount();
   const dispatch = useAppDispatch();
-  const [txData, setTxData] = useState("");
   const { writeContract } = useWriteContract({
     mutation: {
       onError: () => {
         console.log(`Transaction ${txnIndex} writeContract error`);
         // Update status in Redux store
         if (txnIndex !== undefined) {
-          dispatch(updateTransactionStatus({
-            chatIndex,
-            toolOutputIndex: txnIndex,
-            status: StatusEnum.ERROR
-          }));
+          dispatch(
+            updateTransactionStatus({
+              chatIndex,
+              toolOutputIndex: txnIndex,
+              status: StatusEnum.ERROR,
+            })
+          );
+          dispatch(abortTool({ toolId: String(txn.id) }));
         }
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
+        if (data) {
+          dispatch(addTxn(data as string));
+          dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
+        }
         console.log(`Transaction ${txnIndex} writeContract success`);
         // dispatch(eraseLatestToolOutput());
       },
       onSettled(data) {
         console.log(`Transaction ${txnIndex} writeContract settled:`, data);
         if (data) {
-          setTxData(data as string);
           // Update status in Redux store
           if (txnIndex !== undefined) {
-            dispatch(updateTransactionStatus({
-              chatIndex,
-              toolOutputIndex: txnIndex,
-              status: StatusEnum.SUCCESS,
-              txHash: data as string
-            }));
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.SUCCESS,
+                txHash: data as string,
+              })
+            );
           }
         } else {
           // Update status in Redux store
           if (txnIndex !== undefined) {
-            dispatch(updateTransactionStatus({
-              chatIndex,
-              toolOutputIndex: txnIndex,
-              status: StatusEnum.ERROR
-            }));
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.ERROR,
+              })
+            );
           }
         }
       },
@@ -88,151 +93,167 @@ const TransactionForm = ({
         console.log(`Transaction ${txnIndex} sendTransaction error`);
         // Update status in Redux store
         if (txnIndex !== undefined) {
-          dispatch(updateTransactionStatus({
-            chatIndex,
-            toolOutputIndex: txnIndex,
-            status: StatusEnum.ERROR
-          }));
+          dispatch(
+            updateTransactionStatus({
+              chatIndex,
+              toolOutputIndex: txnIndex,
+              status: StatusEnum.ERROR,
+            })
+          );
+          dispatch(abortTool({ toolId: String(txn.id) }));
         }
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
+        if (data) {
+          dispatch(addTxn(data as string));
+          dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
+        }
         console.log(`Transaction ${txnIndex} sendTransaction success`);
         // dispatch(eraseLatestToolOutput());
       },
       onSettled(data) {
         console.log(`Transaction ${txnIndex} sendTransaction settled:`, data);
         if (data) {
-          setTxData(data as string);
           // Update status in Redux store
           if (txnIndex !== undefined) {
-            dispatch(updateTransactionStatus({
-              chatIndex,
-              toolOutputIndex: txnIndex,
-              status: StatusEnum.SUCCESS,
-              txHash: data as string
-            }));
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.SUCCESS,
+                txHash: data as string,
+              })
+            );
           }
         } else {
           // Update status in Redux store
           if (txnIndex !== undefined) {
-            dispatch(updateTransactionStatus({
-              chatIndex,
-              toolOutputIndex: txnIndex,
-              status: StatusEnum.ERROR
-            }));
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.ERROR,
+              })
+            );
           }
         }
       },
     },
   });
 
-  // Create state to track form values
-  const [formValues, setFormValues] = useState({
-    to: {
-      value: txn?.transaction?.to || "",
-      type: txn?.metadata?.types?.to || "address",
-    },
-    address: {
-      value: txn?.transaction?.address || "",
-      type: txn?.metadata?.types?.address || "address",
-    },
-    functionName: {
-      value: txn?.transaction?.functionName || "",
-      type: "string",
-    },
-    value: { value: txn?.transaction?.value || "", type: "uint256" },
-    args: txn?.transaction?.args || [],
-  });
-
   // Debug logging for status changes
   useEffect(() => {
-    console.log(`Transaction ${txnIndex} status changed:`, txn?.status, `isExecuting:`, isExecuting, `txData:`, txData);
-  }, [txn?.status, isExecuting, txData, txnIndex]);
-  useEffect(() => {
-    const newFormValues = {
-      to: {
-        value: txn?.transaction?.to || "",
-        type: txn?.metadata?.types?.to || "address",
-      },
-      address: {
-        value: txn?.transaction?.address || "",
-        type: txn?.metadata?.types?.address || "address",
-      },
-      functionName: {
-        value: txn?.transaction?.functionName || "",
-        type: "string",
-      },
-      value: { value: txn?.transaction?.value || "", type: "uint256" },
-      args: txn?.transaction?.args || [],
-    };
-    setFormValues(newFormValues);
-    
-    // Notify parent component of form values change
-    if (onFormValuesChange && txnIndex !== undefined) {
-      onFormValuesChange(txnIndex.toString(), newFormValues);
-    }
-  }, [txn, txnIndex, onFormValuesChange]);
-
-  // Notify parent when form values change due to user interaction
-  useEffect(() => {
-    if (onFormValuesChange && txnIndex !== undefined) {
-      onFormValuesChange(txnIndex.toString(), formValues);
-    }
-  }, [formValues, txnIndex, onFormValuesChange]);
+    console.log(
+      `Transaction ${txnIndex} status changed:`,
+      txn?.status,
+      `isExecuting:`,
+      isExecuting,
+      `txHash:`,
+      txn?.txHash
+    );
+  }, [txn?.status, isExecuting, txn?.txHash, txnIndex]);
 
   // Handler functions for each field
   const handleToChange = (value: string) => {
-    setFormValues((prev) => ({ ...prev, to: { ...prev.to, value } }));
+    if (txnIndex !== undefined) {
+      dispatch(
+        updateTransactionData({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          field: "to",
+          value,
+        })
+      );
+    }
   };
 
   const handleAddressChange = (value: string) => {
-    setFormValues((prev) => ({ ...prev, address: { ...prev.address, value } }));
+    if (txnIndex !== undefined) {
+      dispatch(
+        updateTransactionData({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          field: "address",
+          value,
+        })
+      );
+    }
   };
 
-  const handleFunctionNameChange = (value: string) => {
-    setFormValues((prev) => ({
-      ...prev,
-      functionName: { ...prev.functionName, value },
-    }));
+  const handleFunctionNameChange = (e: any) => {
+    console.log("final state", e.target.value);
+    if (txnIndex !== undefined) {
+      dispatch(
+        updateTransactionData({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          field: "functionName",
+          value: String(e.target.value),
+        })
+      );
+    }
   };
 
   const handleValueChange = (value: string) => {
-    setFormValues((prev) => ({ ...prev, value: { ...prev.value, value } }));
+    if (txnIndex !== undefined) {
+      dispatch(
+        updateTransactionData({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          field: "value",
+          value,
+        })
+      );
+    }
   };
 
   // Handle argument changes
   const handleArgChange = (index: number, value: string) => {
-    setFormValues((prev) => {
-      const newArgs = [...prev.args];
+    if (txnIndex !== undefined) {
+      const currentArgs = txn?.transaction?.args || [];
+      const newArgs = [...currentArgs];
 
       // Check if args is an array of arrays (for complex arguments)
-      if (Array.isArray(newArgs[0]?.value)) {
-        const firstArgArray = [...newArgs[0].value];
+      if (Array.isArray(newArgs[0])) {
+        const firstArgArray = [...newArgs[0]];
         firstArgArray[index] = value;
-        newArgs[0] = { ...newArgs[0], value: firstArgArray };
+        newArgs[0] = firstArgArray;
       } else {
-        // Simple args array
-        newArgs[index] = { ...newArgs[index], value };
+        // Simple args array - check if it's an object or direct value
+        if (typeof newArgs[index] === "object" && newArgs[index] !== null) {
+          // It's an object, update the value property
+          newArgs[index] = { ...newArgs[index], value };
+        } else {
+          // It's a direct value, set it directly
+          newArgs[index] = value;
+        }
       }
 
-      console.log("Updated args:", newArgs);
-      return { ...prev, args: newArgs };
-    });
+      console.log("final state,", newArgs);
+
+      dispatch(
+        updateTransactionData({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          field: "args",
+          value: newArgs,
+        })
+      );
+    }
   };
 
   const handleSubmission = () => {
-
     if (txn?.transaction?.abi) {
       writeContract({
         abi: txn?.transaction?.abi!,
-        address: formValues.address.value as Address,
-        functionName: formValues.functionName.value,
-        args: formValues.args,
+        address: txn?.transaction?.address as Address,
+        functionName: txn?.transaction?.functionName,
+        args: txn?.transaction?.args || [],
       });
     } else {
       sendTransaction({
-        to: formValues.to.value as Address,
-        value: BigInt(formValues.value.value),
+        to: txn?.transaction?.to as Address,
+        value: BigInt(txn?.transaction?.value || "0"),
       });
     }
   };
@@ -247,7 +268,9 @@ const TransactionForm = ({
 
   const totalFields = visibleFields.length;
 
-  console.log(`Transaction ${txnIndex}: status=${txn?.status}, isExecuting=${isExecuting}, txData=${txData}`);
+  console.log(
+    `Transaction ${txnIndex}: status=${txn?.status}, isExecuting=${isExecuting}, txHash=${txn?.txHash}`
+  );
 
   return (
     <div>
@@ -265,35 +288,37 @@ const TransactionForm = ({
         />
         {txn?.transaction?.to && (
           <GetInputComponent
-            type={formValues.to.type}
+            type={txn?.metadata?.types?.to || "address"}
             title="To"
-            val={formValues.to.value}
+            val={txn?.transaction?.to || ""}
             onChange={handleToChange}
           />
         )}
         {txn?.transaction?.address && (
           <GetInputComponent
-            type={formValues.address.type}
+            disabled={true}
+            type={txn?.metadata?.types?.address || "address"}
             title="Contract"
-            val={formValues.address.value}
+            val={txn?.transaction?.address || ""}
             onChange={handleAddressChange}
             className="w-full md:w-[calc(50%-0.5rem)]"
           />
         )}
         {txn?.transaction?.functionName && (
           <GetInputComponent
-            type={formValues.functionName.type}
+            disabled={true}
+            type="string"
             title="Function"
-            val={formValues.functionName.value}
+            val={txn?.transaction?.functionName || ""}
             onChange={handleFunctionNameChange}
             className="w-full md:w-[calc(50%-0.5rem)]"
           />
         )}
         {txn?.transaction?.value && (
           <GetInputComponent
-            type={formValues.value.type}
+            type="uint256"
             title="Value"
-            val={formValues.value.value}
+            val={txn?.transaction?.value || ""}
             onChange={handleValueChange}
             className="w-full md:w-[calc(50%-0.5rem)]"
           />
@@ -323,9 +348,10 @@ const TransactionForm = ({
                         key={`complex-arg-${index}`}
                       >
                         <GetInputComponent
+                          disabled={false}
                           type={argType}
                           title={argName}
-                          val={formValues.args[0]?.[index] || ""}
+                          val={txn?.transaction?.args?.[0]?.[index] || ""}
                           onChange={(value: string) =>
                             handleArgChange(index, value)
                           }
@@ -345,11 +371,15 @@ const TransactionForm = ({
                       txn?.transaction?.functionName
                     )[index];
                     return (
-                      <div className="w-full md:w-[calc(50%-0.5rem)]" key={`arg-${index}`}>
+                      <div
+                        className="w-full md:w-[calc(50%-0.5rem)]"
+                        key={`arg-${index}`}
+                      >
                         <GetInputComponent
+                          disabled={false}
                           type={argType}
                           title={argName}
-                          val={formValues.args[index] || ""}
+                          val={txn?.transaction?.args?.[index] || ""}
                           onChange={(value: string) =>
                             handleArgChange(index, value)
                           }
@@ -365,14 +395,15 @@ const TransactionForm = ({
         )}
       </div>
       <div className="flex justify-end">
-        {(txn?.status === StatusEnum.PENDING || !txn?.status) && !isExecuting && (
-          <button
-            onClick={handleSubmission}
-            className="px-3 py-2 bg-purple-500 rounded-lg"
-          >
-            Execute Transaction
-          </button>
-        )}
+        {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+          !isExecuting && (
+            <button
+              onClick={handleSubmission}
+              className="px-3 py-2 bg-purple-500 rounded-lg"
+            >
+              Execute Transaction
+            </button>
+          )}
         {isExecuting && (
           <div className="px-3 py-2 text-white bg-blue-500 rounded-lg">
             Executing in queue...
@@ -385,11 +416,11 @@ const TransactionForm = ({
               <h1 className="text-green-700">Transaction Successfull</h1>
             </div>
             <a
-              href={`https://seitrace.com/tx/${txData || txn?.txHash}`}
+              href={`https://seitrace.com/tx/${txn?.txHash}`}
               target="_blank"
               className="flex items-center gap-2 cursor-pointer text-green-200/70"
             >
-              {headerWalletAddressShrinker(txData || txn?.txHash || "")}
+              {headerWalletAddressShrinker(txn?.txHash || "")}
               <ExternalIcon />
             </a>
           </div>
@@ -401,11 +432,11 @@ const TransactionForm = ({
               <h1 className="text-red-700">Transaction Failed</h1>
             </div>
             <a
-              href={`https://seitrace.com/tx/${txData?.toString()}`}
+              href={`https://seitrace.com/tx/${txn?.txHash?.toString()}`}
               target="_blank"
               className="flex items-center gap-2 cursor-pointer text-red-200/70"
             >
-              {headerWalletAddressShrinker(txData)}
+              {headerWalletAddressShrinker(txn?.txHash || "")}
               <ExternalIcon />
             </a>
           </div>

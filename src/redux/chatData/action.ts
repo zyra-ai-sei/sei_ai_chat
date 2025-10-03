@@ -14,6 +14,7 @@ export const {
   updateResponse,
   updateTransactionStatus,
   reorderTransactions,
+  updateTransactionData,
 } = chatDataSlice.actions;
 // Thunk to call chat API with txdata as prompt and append response to latest chat
 export const appendTxChatResponseToLatestChat = createAsyncThunk<
@@ -139,19 +140,45 @@ export const getChatHistory = createAsyncThunk<
       const data = apiData?.data?.items;
       console.log("chatHistory", data);
       if (data && data.length > 0) {
+        // Clear existing chats first
+        dispatch(resetChat());
+        
+        let currentChatIndex = -1;
         for (let i = 0; i < data.length; i++) {
-          if (data[i]["type"] == "HumanMessage") {
-            console.log("content", data[i]["content"]);
-            dispatch(addPrompt(data[i]["content"]));
-          } else {
-            dispatch(
-              setResponse({
-                index: getState().chatData.chats.length - 1,
-                response: {
-                  chat: data[i]["content"],
-                },
-              })
-            );
+          const message = data[i];
+          console.log("processing message", message["type"], message["content"]);
+          
+          if (message["type"] === "HumanMessage") {
+            // Create a new chat item for each human message
+            dispatch(addPrompt(message["content"]));
+            currentChatIndex = getState().chatData.chats.length - 1;
+            console.log("created new chat item at index", currentChatIndex);
+          } else if (message["type"] === "ToolMessage" || message["type"] === "AIMessage") {
+            // Add to the current chat item's response
+            if (currentChatIndex >= 0) {
+              const currentChat = getState().chatData.chats[currentChatIndex];
+              const existingResponse = currentChat?.response || { chat: "", tool_outputs: [] };
+              
+              let updatedResponse = { ...existingResponse };
+              
+              if (message["type"] === "AIMessage") {
+                // Append AI message content
+                updatedResponse.chat = (updatedResponse.chat || "") + (message["content"] || "");
+              } else if (message["type"] === "ToolMessage" && message["tool_output"]) {
+                // Add tool_output to the array
+                const existingToolOutputs = updatedResponse.tool_outputs || [];
+                updatedResponse.tool_outputs = [...existingToolOutputs, message["tool_output"]];
+              }
+              
+              console.log("updating chat item", currentChatIndex, "with", message["type"], "response:", updatedResponse);
+              
+              dispatch(
+                setResponse({
+                  index: currentChatIndex,
+                  response: updatedResponse,
+                })
+              );
+            }
           }
         }
       }
@@ -177,5 +204,46 @@ export const initializePrompt = createAsyncThunk<
     }
   } catch (err) {
     dispatch(resetChat());
+  }
+});
+
+export const completeTool = createAsyncThunk<
+  void,
+  { toolId: string; hash: string },
+  { state: IRootState }
+>("chatData/completeTool", async ({ toolId, hash }) => {
+  try {
+    const response = await axiosInstance.post("/llm/completeTool", {
+      toolId,
+      hash
+    });
+    const apiData = response?.data;
+    if (apiData?.success) {
+      console.log(`Tool ${toolId} marked as completed`);
+    } else {
+      console.error(`Failed to mark tool ${toolId} as completed`);
+    }
+  } catch (err) {
+    console.error(`Error completing tool ${toolId}:`, err);
+  }
+});
+
+export const abortTool = createAsyncThunk<
+  void,
+  { toolId: string },
+  { state: IRootState }
+>("chatData/abortTool", async ({ toolId }) => {
+  try {
+    const response = await axiosInstance.post("/llm/abortTool", {
+      toolId
+    });
+    const apiData = response?.data;
+    if (apiData?.success) {
+      console.log(`Tool ${toolId} marked as aborted`);
+    } else {
+      console.error(`Failed to mark tool ${toolId} as aborted`);
+    }
+  } catch (err) {
+    console.error(`Error aborting tool ${toolId}:`, err);
   }
 });

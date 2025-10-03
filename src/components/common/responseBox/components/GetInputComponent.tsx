@@ -4,6 +4,7 @@ import TextInput from "../../input/TextInput";
 import TokenListInput from "../../input/TokenListInput";
 
 interface InputComponentProps {
+  disabled?:boolean;
   type: string;
   title: string;
   val: string;
@@ -12,6 +13,7 @@ interface InputComponentProps {
 }
 
 const GetInputComponent: React.FC<InputComponentProps> = ({
+  disabled,
   type,
   title,
   val,
@@ -40,6 +42,7 @@ const GetInputComponent: React.FC<InputComponentProps> = ({
     default:
       return (
         <TextInput
+          disabled={disabled}
           title={title}
           val={val}
           onChange={onChange}

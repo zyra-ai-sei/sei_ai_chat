@@ -1,7 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { StatusEnum } from "@/enum/status.enum";
 
+export interface ExecutionState {
+  isExecuting: boolean;
+  currentIndex: number | null;
+  completedCount: number;
+  hasErrors: boolean;
+  isCompleted: boolean;
+}
+
 export interface ToolOutput {
+  id:number;
   metadata: any;
   transaction: {
     address?: string;
@@ -19,6 +28,7 @@ export interface ToolOutput {
 interface ChatResponse {
   chat: string;
   tool_outputs?: ToolOutput[];
+  execution_state?: ExecutionState;
 }
 
 export interface ChatItem {
@@ -59,7 +69,33 @@ const chatDataSlice = createSlice({
     ) {
       if (state.chats[action.payload.index]) {
         state.chats[action.payload.index].response = action.payload.response;
+        if (
+          action.payload.response?.tool_outputs &&
+          action.payload.response?.tool_outputs.length > 0
+        ) {
+          state.chats[action.payload.index].response.execution_state = {
+            isExecuting: false,
+            currentIndex: null,
+            completedCount: 0,
+            hasErrors: false,
+            isCompleted: false,
+          };
+        }
         state.chats[action.payload.index].loading = false;
+      }
+    },
+    updateExecutionState(state,
+      action: PayloadAction<{index: number; response: Partial<ExecutionState>}>
+    ){
+      if(state.chats[action.payload.index] && state.chats[action.payload.index].response.execution_state){
+        const currentState = state.chats[action.payload.index].response.execution_state
+        state.chats[action.payload.index].response.execution_state = {
+          isExecuting: action.payload.response?.isExecuting ?? currentState?.isExecuting ?? false,
+          currentIndex: action.payload.response?.currentIndex ?? currentState?.currentIndex ?? null,
+          completedCount: action.payload.response?.completedCount ?? currentState?.completedCount ?? 0,
+          hasErrors: action.payload.response?.hasErrors ?? currentState?.hasErrors ?? false,
+          isCompleted: action.payload.response?.isCompleted ?? currentState?.isCompleted ?? false,
+        }
       }
     },
     updateResponse(
@@ -108,9 +144,11 @@ const chatDataSlice = createSlice({
         state.chats[chatIndex].response.tool_outputs &&
         state.chats[chatIndex].response.tool_outputs[toolOutputIndex]
       ) {
-        state.chats[chatIndex].response.tool_outputs[toolOutputIndex].status = status;
+        state.chats[chatIndex].response.tool_outputs[toolOutputIndex].status =
+          status;
         if (txHash) {
-          state.chats[chatIndex].response.tool_outputs[toolOutputIndex].txHash = txHash;
+          state.chats[chatIndex].response.tool_outputs[toolOutputIndex].txHash =
+            txHash;
         }
       }
     },
@@ -126,6 +164,29 @@ const chatDataSlice = createSlice({
         state.chats[chatIndex].response.tool_outputs = reorderedTxns;
       }
     },
+    updateTransactionData(
+      state,
+      action: PayloadAction<{
+        chatIndex: number;
+        toolOutputIndex: number;
+        field: string;
+        value: any;
+      }>
+    ) {
+      const { chatIndex, toolOutputIndex, field, value } = action.payload;
+      if (
+        state.chats[chatIndex] &&
+        state.chats[chatIndex]?.response?.tool_outputs &&
+        state.chats[chatIndex]?.response?.tool_outputs[toolOutputIndex]
+      ) {
+        const transaction =
+          state.chats[chatIndex].response.tool_outputs[toolOutputIndex]
+            .transaction;
+        if (transaction) {
+          transaction[field] = value;
+        }
+      }
+    },
   },
 });
 
@@ -138,6 +199,9 @@ export const {
   eraseLatestToolOutput,
   setLoading,
   updateTransactionStatus,
+  reorderTransactions,
+  updateTransactionData,
+  updateExecutionState
 } = chatDataSlice.actions;
 export default chatDataSlice.reducer;
 export { chatDataSlice };
