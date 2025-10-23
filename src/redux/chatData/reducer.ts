@@ -100,11 +100,37 @@ const chatDataSlice = createSlice({
     },
     updateResponse(
       state,
-      action: PayloadAction<{ index: number; response: ChatResponse }>
+      action: PayloadAction<{
+        index: number;
+        response: Partial<ChatResponse>;
+      }>
     ) {
-      if (state.chats[action.payload.index]) {
-        state.chats[action.payload.index].response.chat +=
-          action.payload.response.chat;
+      const chatItem = state.chats[action.payload.index];
+      if (!chatItem) return;
+
+      const targetResponse = chatItem.response;
+
+      if (typeof action.payload.response.chat === "string") {
+        targetResponse.chat = `${targetResponse.chat || ""}${action.payload.response.chat}`;
+      }
+
+      if (action.payload.response.tool_outputs?.length) {
+        const existingToolOutputs = targetResponse.tool_outputs || [];
+        targetResponse.tool_outputs = [
+          ...existingToolOutputs,
+          ...action.payload.response.tool_outputs,
+        ];
+        
+        // Initialize execution_state if it doesn't exist
+        if (!targetResponse.execution_state) {
+          targetResponse.execution_state = {
+            isExecuting: false,
+            currentIndex: null,
+            completedCount: 0,
+            hasErrors: false,
+            isCompleted: false,
+          };
+        }
       }
     },
     setLoading(

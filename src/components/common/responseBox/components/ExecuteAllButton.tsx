@@ -18,10 +18,14 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
   orderedTxns,
   onExecuteAll,
 }) => {
+  const totalTxns = orderedTxns.length;
+  const completedCount = executionState.completedCount || 0;
+  const currentIndex = executionState.currentIndex !== null ? executionState.currentIndex + 1 : completedCount;
+  
   return (
     <button
       onClick={onExecuteAll}
-      disabled={executionState.isExecuting || orderedTxns.length === 0}
+      disabled={executionState.isExecuting || orderedTxns.length === 0 || executionState.isCompleted}
       className={`px-4 py-2 rounded-lg font-medium transition-colors ${
         executionState.isExecuting
           ? "bg-gray-600 text-gray-400 cursor-not-allowed"
@@ -35,11 +39,11 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
       }`}
     >
       {executionState.isExecuting
-        ? `Executing ${executionState.currentIndex !== null ? executionState.currentIndex + 1 : 0}/${orderedTxns.length}`
+        ? `Executing ${currentIndex}/${totalTxns} (${completedCount} completed)`
         : executionState.isCompleted
         ? executionState.hasErrors
-          ? "Aborted"
-          : "Completed"
+          ? `Aborted (${completedCount}/${totalTxns} completed)`
+          : `Completed (${completedCount}/${totalTxns})`
         : "Execute All"
       }
     </button>

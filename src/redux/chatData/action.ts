@@ -3,6 +3,14 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "@/services/axios";
 import { IRootState } from "../store";
 import { getTransactions } from "../transactionData/action";
+import {
+  fetchEventSource,
+  EventSourceMessage,
+} from "@microsoft/fetch-event-source";
+import { formatLLMResponse } from "@/utility/formatLLMResponse";
+import { LLMResponseEnum } from "@/enum/llm.enum";
+// Use the native AbortController instead of the package
+// import {AbortController} from 'abort-controller'
 
 export const {
   addPrompt,
@@ -11,68 +19,96 @@ export const {
   resetChat,
   addSessionId,
   eraseLatestToolOutput,
+  setLoading,
   updateResponse,
   updateTransactionStatus,
   reorderTransactions,
   updateTransactionData,
 } = chatDataSlice.actions;
-// Thunk to call chat API with txdata as prompt and append response to latest chat
-export const appendTxChatResponseToLatestChat = createAsyncThunk<
+
+export const streamChatPrompt = createAsyncThunk<
   void,
-  { txdata: string },
+  {
+    prompt: string;
+    abortSignal?: AbortSignal;
+  },
   { state: IRootState }
 >(
-  "chatData/appendTxChatResponseToLatestChat",
-  async ({ txdata }, { dispatch, getState }) => {
+  "chatData/streamChatPrompt",
+  async ({ prompt, abortSignal }, { dispatch, getState }) => {
     const state = getState();
-    const index = state.chatData.chats.length - 1;
-    if (index < 0) return;
-    try {
+    const token = state.globalData?.data?.token;
 
-      // check if tx is successful
-      
-      const response = await axiosInstance.post("/llm/addtxn", {
-        prompt: txdata,
-      });
-      const apiData = response?.data;
-      if (apiData?.status === 200 && apiData?.data) {
-        const chat = apiData.data.chat || "";
-        const tools = apiData.data.tools;
-        console.log("these are the tools", tools);
-        let tool_outputs = [];
-        if (tools) {
-          for (let i = 0; i < tools.length; i++) {   
-            if (tools[i]!=null && (tools[i].tool_output != undefined || tools[i].tool_output != null))
-              tool_outputs.push(tools[i].tool_output);
+    if (!token) throw new Error("Missing auth token");
+
+    dispatch(addPrompt(prompt));
+
+    const chatIndex = getState().chatData.chats.length - 1;
+    dispatch(setLoading({ index: chatIndex, loading: true }));
+
+    const controller = new AbortController();
+    abortSignal?.addEventListener("abort", () => controller.abort(), {
+      once: true,
+    });
+
+    const params = new URLSearchParams({ prompt });
+
+    try {
+      await fetchEventSource(`/api/v1/llm/stream?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "text/event-stream",
+        },
+        signal: controller.signal,
+        onmessage: (event: EventSourceMessage) => {
+          if (!event.data) return;
+          try {
+            const payload = JSON.parse(event.data);
+            console.log("tension", payload);
+            if (payload.type === "token") {
+              dispatch(
+                updateResponse({
+                  index: chatIndex,
+                  response: { chat: payload.text ?? "" },
+                })
+              );
+            } else if (
+              payload.type === "tool" &&
+              payload.tool_output != undefined &&
+              payload.tool_output.transaction != undefined
+            ) {
+              console.log("riri", payload?.tool_output);
+              const sanitizedToolOutput = JSON.parse(
+                JSON.stringify(payload?.tool_output, (key, value) =>
+                  typeof value === "bigint" ? value.toString() : value
+                )
+              );
+              dispatch(
+                updateResponse({
+                  index: chatIndex,
+                  response: { tool_outputs: [sanitizedToolOutput] },
+                })
+              );
+            }
+          } catch (err) {
+            console.error("Failed to parse SSE payload", err);
           }
-        }
-        console.log("tool output", tool_outputs)
-        dispatch(
-          setResponse({
-            index,
-            response: {
-              chat,
-              ...(tool_outputs ? { tool_outputs } : {}),
-            },
-          })
-        );
-        dispatch(getTransactions());
-      } else {
-        // Optionally, you can append an error message
-        dispatch(
-          updateResponse({
-            index,
-            response: { chat: "\nOops, error after transaction." },
-          })
-        );
+        },
+        onerror: (err) => {
+          controller.abort();
+          console.error("SSE error:", err);
+          dispatch(setError({ index: chatIndex }));
+        },
+        onclose: () => {
+          controller.abort();
+        },
+      });
+    } finally {
+      dispatch(setLoading({ index: chatIndex, loading: false }));
+      if (!controller.signal.aborted) {
+        controller.abort();
       }
-    } catch (err) {
-      dispatch(
-        updateResponse({
-          index,
-          response: { chat: "\nOops, error after transaction." },
-        })
-      );
     }
   }
 );
@@ -104,12 +140,15 @@ export const sendChatPrompt = createAsyncThunk<
       console.log("these are the tools", tools);
       let tool_outputs = [];
       if (tools) {
-        for (let i = 0; i < tools.length; i++) {   
-          if (tools[i]!=null && (tools[i].tool_output != undefined || tools[i].tool_output != null))
+        for (let i = 0; i < tools.length; i++) {
+          if (
+            tools[i] != null &&
+            (tools[i].tool_output != undefined || tools[i].tool_output != null)
+          )
             tool_outputs.push(tools[i].tool_output);
         }
       }
-      console.log("tool output sendchat", tool_outputs)
+      console.log("tool output sendchat", tool_outputs);
 
       dispatch(
         setResponse({
@@ -142,36 +181,37 @@ export const getChatHistory = createAsyncThunk<
       if (data && data.length > 0) {
         // Clear existing chats first
         dispatch(resetChat());
-        
+
         let currentChatIndex = -1;
         for (let i = 0; i < data.length; i++) {
           const message = data[i];
-          console.log("processing message", message["type"], message["content"]);
-          
-          if (message["type"] === "HumanMessage") {
-            // Create a new chat item for each human message
-            dispatch(addPrompt(message["content"]));
+          console.log(JSON.stringify(message, null, 2));
+          console.log(
+            "processing message",
+            message["type"],
+            message["content"]
+          );
+          const formattedMessage = formatLLMResponse(message);
+          if (formattedMessage?.type == LLMResponseEnum.HUMANMESSAGE) {
+            dispatch(addPrompt(formattedMessage.content));
             currentChatIndex = getState().chatData.chats.length - 1;
-            console.log("created new chat item at index", currentChatIndex);
-          } else if (message["type"] === "ToolMessage" || message["type"] === "AIMessage") {
-            // Add to the current chat item's response
+          } else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE) {
             if (currentChatIndex >= 0) {
               const currentChat = getState().chatData.chats[currentChatIndex];
-              const existingResponse = currentChat?.response || { chat: "", tool_outputs: [] };
-              
+              const existingResponse = currentChat?.response || {
+                chat: "",
+                tool_outputs: [],
+              };
               let updatedResponse = { ...existingResponse };
-              
-              if (message["type"] === "AIMessage") {
-                // Append AI message content
-                updatedResponse.chat = (updatedResponse.chat || "") + (message["content"] || "");
-              } else if (message["type"] === "ToolMessage" && message["tool_output"]) {
-                // Add tool_output to the array
-                const existingToolOutputs = updatedResponse.tool_outputs || [];
-                updatedResponse.tool_outputs = [...existingToolOutputs, message["tool_output"]];
-              }
-              
-              console.log("updating chat item", currentChatIndex, "with", message["type"], "response:", updatedResponse);
-              
+
+              const existingToolOutputs = updatedResponse.tool_outputs || [];
+              updatedResponse.tool_outputs = [
+                ...existingToolOutputs,
+                formattedMessage.tool_output,
+              ];
+              updatedResponse.chat =
+                (updatedResponse.chat || " ") + formattedMessage.content;
+
               dispatch(
                 setResponse({
                   index: currentChatIndex,
@@ -179,7 +219,81 @@ export const getChatHistory = createAsyncThunk<
                 })
               );
             }
+          } else if (
+            formattedMessage?.type == LLMResponseEnum.AIMESSAGE ||
+            formattedMessage?.type == LLMResponseEnum.AIMESSAGECHUNK
+          ) {
+            const currentChat = getState().chatData.chats[currentChatIndex];
+            const existingResponse = currentChat?.response || {
+              chat: "",
+              tool_outputs: [],
+            };
+            let updatedResponse = { ...existingResponse };
+            updatedResponse.chat =
+               formattedMessage.content;
+
+            dispatch(
+              setResponse({
+                index: currentChatIndex,
+                response: updatedResponse,
+              })
+            );
           }
+          // if (message["type"] === "HumanMessage") {
+          //   // Create a new chat item for each human message
+          //   dispatch(addPrompt(message["content"]));
+          //   currentChatIndex = getState().chatData.chats.length - 1;
+          //   console.log("created new chat item at index", currentChatIndex);
+          // } else if (
+          //   message["type"] === "ToolMessage" ||
+          //   message["type"] === "AIMessage" ||
+          //   message["type"] === "AIMessageChunk"
+          // ) {
+          //   // Add to the current chat item's response
+          //   if (currentChatIndex >= 0) {
+          //     const currentChat = getState().chatData.chats[currentChatIndex];
+          //     const existingResponse = currentChat?.response || {
+          //       chat: "",
+          //       tool_outputs: [],
+          //     };
+
+          //     let updatedResponse = { ...existingResponse };
+
+          //     if (message["type"] === "AIMessage" || "AIMessageChunk") {
+          //       // Append AI message content
+          //       updatedResponse.chat =
+          //         (updatedResponse.chat || "") + (message["content"] || "");
+          //     } else if (
+          //       message["type"] === "ToolMessage" &&
+          //       message["tool_output"]
+          //     ) {
+          //       // Add tool_output to the array
+          //       const existingToolOutputs = updatedResponse.tool_outputs || [];
+          //       updatedResponse.tool_outputs = [
+          //         ...existingToolOutputs,
+          //         message["tool_output"],
+          //       ];
+          //       updatedResponse.chat =
+          //         (updatedResponse.chat || " ") + message["content"];
+          //     }
+
+          //     console.log(
+          //       "updating chat item",
+          //       currentChatIndex,
+          //       "with",
+          //       message["type"],
+          //       "response:",
+          //       updatedResponse
+          //     );
+
+          //     dispatch(
+          //       setResponse({
+          //         index: currentChatIndex,
+          //         response: updatedResponse,
+          //       })
+          //     );
+          //   }
+          // }
         }
       }
     }
@@ -215,7 +329,7 @@ export const completeTool = createAsyncThunk<
   try {
     const response = await axiosInstance.post("/llm/completeTool", {
       toolId,
-      hash
+      hash,
     });
     const apiData = response?.data;
     if (apiData?.success) {
@@ -235,7 +349,7 @@ export const abortTool = createAsyncThunk<
 >("chatData/abortTool", async ({ toolId }) => {
   try {
     const response = await axiosInstance.post("/llm/abortTool", {
-      toolId
+      toolId,
     });
     const apiData = response?.data;
     if (apiData?.success) {

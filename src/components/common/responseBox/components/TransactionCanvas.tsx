@@ -34,6 +34,7 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
     if (toolOutputs && toolOutputs.length > 0) {
       const hasErrors = toolOutputs.some(txn => txn.status === StatusEnum.ERROR);
       const hasPending = toolOutputs.some(txn => txn.status === StatusEnum.PENDING);
+      const successCount = toolOutputs.filter(txn => txn.status === StatusEnum.SUCCESS).length;
       const allCompleted = toolOutputs.every(txn =>
         txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR
       );
@@ -45,11 +46,12 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
           response: {
             hasErrors,
             isCompleted: !hasErrors,
+            completedCount: successCount,
           }
         }));
       }
     }
-  }, [chats[chatIndex]?.response?.tool_outputs, chatIndex, dispatch]);
+  }, [chats[chatIndex]?.response?.tool_outputs, chatIndex, dispatch, executionState.isExecuting]);
 
   const { writeContract } = useWriteContract();
 
@@ -71,7 +73,9 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
 
   // Execute all transactions sequentially
   const executeAllTransactions = async () => {
-    if (orderedTxns.length === 0) return;
+        const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
+        console.log('this is important', currentTxns)
+    if (currentTxns.length === 0) return;
 
     dispatch(updateExecutionState({
       index: chatIndex,
@@ -84,19 +88,29 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
       }
     }));
 
-    for (let i = 0; i < orderedTxns.length; i++) {
-      const txn = orderedTxns[i];
+    // Use local counter instead of reading from closure
+    let completedCount = 0;
+
+    for (let i = 0; i < currentTxns.length; i++) {
+      const txn = currentTxns[i];
       
       // Skip if transaction is already successful
       if (txn.status === StatusEnum.SUCCESS) {
         console.log(`Skipping transaction ${i} - already successful`);
-        const currentCount = executionState.completedCount;
+        completedCount++;
         dispatch(updateExecutionState({
           index: chatIndex,
-          response: { completedCount: currentCount + 1 }
+          response: { completedCount }
         }));
         continue;
       }
+
+      // Mark as pending before execution
+      dispatch(updateTransactionStatus({
+        chatIndex,
+        toolOutputIndex: i,
+        status: StatusEnum.PENDING
+      }));
 
       dispatch(updateExecutionState({
         index: chatIndex,
@@ -120,10 +134,10 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
               onSuccess: (data) => {
                 clearTimeout(timeout);
                 console.log(`Transaction ${i} success:`, data);
-                const currentCount = executionState.completedCount;
+                completedCount++;
                 dispatch(updateExecutionState({
                   index: chatIndex,
-                  response: { completedCount: currentCount + 1 }
+                  response: { completedCount }
                 }));
                 // Update status in Redux store
                 dispatch(updateTransactionStatus({
@@ -167,10 +181,10 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
               onSuccess: (data) => {
                 clearTimeout(timeout);
                 console.log(`Transaction ${i} success:`, data);
-                const currentCount = executionState.completedCount;
+                completedCount++;
                 dispatch(updateExecutionState({
                   index: chatIndex,
-                  response: { completedCount: currentCount + 1 }
+                  response: { completedCount }
                 }));
                 // Update status in Redux store
                 dispatch(updateTransactionStatus({
@@ -221,9 +235,10 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
             isExecuting: false,
             currentIndex: null,
             hasErrors: true,
+            completedCount,
           }
         }));
-        break; // Stop executing subsequent transactions
+        return; // Stop executing subsequent transactions
       }
     }
 
@@ -233,6 +248,7 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
         isExecuting: false,
         currentIndex: null,
         isCompleted: true,
+        completedCount,
       }
     }));
   };

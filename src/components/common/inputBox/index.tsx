@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@/hooks/useRedux";
-import { sendChatPrompt } from "@/redux/chatData/action";
+import { sendChatPrompt, streamChatPrompt } from "@/redux/chatData/action";
 import React, { useRef, useState } from "react";
 
 const InputBox = () => {
@@ -16,7 +16,7 @@ const InputBox = () => {
 
   const handleSendPromt = async () => {
     if (prompt.trim() === "") return;
-    dispatch(sendChatPrompt({ prompt }));
+    dispatch(streamChatPrompt({ prompt, abortSignal: new AbortController().signal }));
     setPrompt("");
     if (textareaRef.current) {
       textareaRef.current.value = "";
