@@ -3,8 +3,7 @@ import { LLMResponseEnum } from "@/enum/llm.enum";
 export const formatLLMResponse = (
   message: any,
   handleHumanMessage?: any,
-  handleAIMessage?: any,
-  handleToolMessage?: any
+
 ) => {
   const type = message["type"];
   const content = message["content"];

@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@/hooks/useRedux";
-import { sendChatPrompt, streamChatPrompt } from "@/redux/chatData/action";
+import { streamChatPrompt } from "@/redux/chatData/action";
 import React, { useRef, useState } from "react";
 
 const InputBox = () => {

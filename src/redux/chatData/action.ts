@@ -2,7 +2,6 @@ import { chatDataSlice } from "./reducer";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "@/services/axios";
 import { IRootState } from "../store";
-import { getTransactions } from "../transactionData/action";
 import {
   fetchEventSource,
   EventSourceMessage,
@@ -80,7 +79,7 @@ export const streamChatPrompt = createAsyncThunk<
             ) {
               console.log("riri", payload?.tool_output);
               const sanitizedToolOutput = JSON.parse(
-                JSON.stringify(payload?.tool_output, (key, value) =>
+                JSON.stringify(payload?.tool_output, (_, value) =>
                   typeof value === "bigint" ? value.toString() : value
                 )
               );
