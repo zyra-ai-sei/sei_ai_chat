@@ -11,7 +11,12 @@ export const FlipLink = ({ children, href }: {children: any, href:string}) => {
       href={href}
       className="relative block overflow-hidden leading-[min(4vw,40px)] "
       style={{
-        lineHeight: 0.80,
+        lineHeight: 1.20,
+          fontFamily: 'Figtree, sans-serif',
+                background: 'linear-gradient(92.36deg, #A5C6FB 6.44%, #FFFFFF 42.9%, #A5C6FB 88.01%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
       }}
     >
       <div>
