@@ -1,6 +1,7 @@
 import { useAppDispatch } from "@/hooks/useRedux";
 import { streamChatPrompt } from "@/redux/chatData/action";
 import React, { useRef, useState } from "react";
+import SendIcon from "@/assets/chat/sendIcon.svg?react"
 
 const InputBox = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -32,8 +33,8 @@ const InputBox = () => {
   };
 
   return (
-    <div className="w-full p-[2px] flex flex-col max-w-[1280px] mx-auto max-h-[400px] rounded-xl z-30">
-      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0f172a8c] ">
+    <div className="w-full flex flex-col max-h-[400px] rounded-xl z-30">
+      <div className="flex flex-col items-end w-full p-2 mx-auto rounded-xl bg-[#0F0E11] border border-[#2f2f31] ">
         <textarea
           ref={textareaRef}
           className="flex-grow w-full rounded-2xl min-h-[40px] max-h-[200px] resize-none bg-transparent scrollbar-none border-none outline-none text-white placeholder-white/50 p-3"
@@ -45,9 +46,9 @@ const InputBox = () => {
         />
         <button
           onClick={handleSendPromt}
-          className="w-[40px] h-[40px]  bg-[#7441f493] rounded-full"
+          className="w-[32px] h-[32px] flex justify-center items-center  bg-[#3B82F6] rounded-[8px]"
         >
-          <span className="text-[24px] text-white/70">↑</span>
+          <SendIcon className="text-[14px] text-white/70"/>
         </button>
       </div>
     </div>

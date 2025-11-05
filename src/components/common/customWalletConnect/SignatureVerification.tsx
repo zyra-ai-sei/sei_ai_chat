@@ -19,7 +19,6 @@ const SignatureVerificationPopup = () => {
       const nonceResponse = await axiosInstance.get("/auth/login");
 
       const nonce = nonceResponse.data.data.message;
-      console.log('nonce',nonce)
 
       const signedMessage = await signMessageAsync({ message: nonce });
 
@@ -29,7 +28,6 @@ const SignatureVerificationPopup = () => {
         address: address,
         message: nonce,
       });
-      console.log('login response',response.data.data)
       if (response?.data?.data?.token) {
         dispatch(
           setGlobalData({

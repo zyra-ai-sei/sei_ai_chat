@@ -11,6 +11,9 @@ import useScreenWidth from "./hooks/useScreenWidth";
 import { setGlobalData } from "./redux/globalData/action";
 
 import Home from "./pages/home";
+import DefaultAppLayout from "./layouts/defaultAppLayout";
+import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -66,7 +69,15 @@ function RouterConfig() {
         />
         <Route
           path="/chat"
-          element={<DefaultLayout MainContentComponent={Chat} />}
+          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Chat}/>} />}
+        />
+        <Route
+          path="/dashboard"
+          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Dashboard}/>} />}
+        />
+        <Route
+          path="/transactions"
+          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Transactions}/>} />}
         />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

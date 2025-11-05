@@ -67,14 +67,14 @@ const TransactionHistory = () => {
           }`}
         />
       </div>
-      <button onClick={handleClearChat} className="flex items-center justify-center gap-4 p-2 rounded-md cursor-pointer bg-gradient-to-r from-purple-200/10 to-purple-500/10">
+      <button onClick={handleClearChat} className="flex items-center justify-center gap-4 p-2 border-2 rounded-full cursor-pointer border-primary-border">
         <img src={newChatIcon} className="size-[20px]" />
-        <p className="text-[16px] text-white">New Chat</p>
+        <p className="text-[16px] text-white">New chat</p>
       </button>
       <div className="relative flex flex-col flex-grow gap-3 overflow-x-hidden overflow-y-scroll scrollbar-none ">
         {transactions?.map((transaction, index) => (
-          <div key={index} className="p-2 rounded-md bg-purple-200/10">
-            <div className="flex justify-between w-full px-2">
+          <div key={index} className="p-2 rounded-md bg-background-secondary">
+            <div className="flex items-center justify-between w-full px-2">
               <div className="">
                 <h1 className="flex items-center gap-2 text-white">
                   {headerWalletAddressShrinker(transaction.hash)}
@@ -86,12 +86,7 @@ const TransactionHistory = () => {
                     }
                     position="top"
                   >
-                    <CopyToClipboardComponent
-                      text={transaction.hash}
-                      onCopy={handleCopy}
-                    >
-                      <CopyIcon className="h-[14px] w-[14px]" />
-                    </CopyToClipboardComponent>
+                  
                   </TooltipCustom>
                 </h1>
                 {transaction.timestamp && (

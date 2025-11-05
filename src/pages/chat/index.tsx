@@ -1,9 +1,9 @@
 import InputBox from "@/components/common/inputBox";
-import ResponseBox from "@/components/common/responseBox";
+import ResponseBox from "@/components/common/responseBox/ChatInterfaceBox";
 import "./index.scss";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { useAccount, useChainId, useDisconnect } from "wagmi";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchUserData,
   resetGlobalData,
@@ -11,9 +11,11 @@ import {
   validateToken,
 } from "@/redux/globalData/action";
 import WalletConnectPopup from "@/components/common/customWalletConnect";
-import TransactionHistory from "@/components/Components/TransactionHistory";
-import Assets from "@/components/Components/Assets";
+import Assets from "@/components/chat/Assets";
 import WrongNetworkPopup from "@/components/common/wrongNetworkPopup";
+import TransactionHistory from "@/components/chat/TransactionHistory";
+import ChatBox from "@/components/chat/chatBox";
+import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 
 function Chat() {
   const globalData = useAppSelector((state) => state?.globalData?.data);
@@ -21,11 +23,53 @@ function Chat() {
   const dispatch = useAppDispatch();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+  const chainId = useChainId();
 
   const [isWrongNetworkPopupOpened, setIswrongNetworkpopupOpened] =
     useState<boolean>(false);
+  const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
+  const chatBoxRef = useRef(null);
 
-  const chainId = useChainId();
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+
+      e.preventDefault();
+      const container: any = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const newWidth =
+        ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+      // Constrain between 20% and 80%
+      const clampedWidth = Math.min(Math.max(newWidth, 20), 80);
+      setChatBoxWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+
+    if (isDragging) {
+      // Disable text selection globally during drag
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "col-resize";
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [isDragging]);
 
   useEffect(() => {
     if (!token || !isConnected) {
@@ -69,21 +113,26 @@ function Chat() {
   }, [chainId]);
 
   return (
-    <div className="flex flex-col h-screen w-screen p-4 bg-gradient-to-tr from-[#0c04214d] via-[#12053454] to-[#4d02a838]">
-      <div className="relative flex flex-col border rounded-[16px] border-zinc-800 justify-end h-full w-full">
-        <div
-          style={{ boxShadow: " -10vw 20vh 200px 17vw rgba(60,0,160,0.12)" }}
-          className="absolute rounded-full top-[15vh] shadow-3xl size-4 right-[20vw] shadow-purple-200"
-        ></div>
-        <div className="flex justify-end w-full h-full">
+    <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
+      <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
+        <div ref={containerRef} className="flex justify-end w-full h-full">
           <TransactionHistory />
 
-          <div className="relative z-30 flex flex-col justify-end flex-grow h-full p-4 mx-auto overflow-auto border-x border-zinc-800">
-            <ResponseBox />
-            <InputBox />
+          <div
+            style={{ width: `${chatBoxWidth}%` }}
+            className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"
+          >
+            <TransactionResponseBox />
           </div>
-
-          <Assets />
+          <div
+            onMouseDown={() => setIsDragging(true)}
+            className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group ${
+              isDragging ? "bg-blue-500" : ""
+            }`}
+          >
+            <div className="absolute inset-y-0 w-4 -left-2" />
+          </div>
+          <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
         </div>
         <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
         <WrongNetworkPopup

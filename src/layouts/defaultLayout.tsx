@@ -3,14 +3,16 @@ import WebThreeProvider from "@/hooks/useWeb3Context";
 import TransactionContextProvider from "@/components/common/Transaction/TransactionContextProvider";
 import AlertProvider from "@/hooks/useAlert";
 import Toast from "@/components/common/toast";
+import Navbar from '@/components/navbar';
 
 import { useAppSelector } from "@/hooks/useRedux";
 
 function DefaultLayout({
   MainContentComponent,
+  showNavbar = false,
 }: {
   MainContentComponent: React.FC;
-  isBackNavigation?: boolean;
+  showNavbar?: boolean;
 }) {
 
   const isMobile = useAppSelector((state) => state?.globalData?.isMobile);
@@ -20,10 +22,11 @@ function DefaultLayout({
       <AlertProvider>
         <Toast />
         <TransactionContextProvider>
-          <div className="bg-[#000000] min-h-screen h-full font-sans">
+          <div className="font-sans ">
             <div
               className={`${isMobile ? "" : " mx-auto"} flex flex-col overflow-hidden mx-auto relative`}
             >
+              {showNavbar && <Navbar />}
               <div className="flex-1 overflow-hidden">
                 <MainContentComponent />
               </div>

@@ -36,7 +36,6 @@ const TransactionForm = ({
   const { writeContract } = useWriteContract({
     mutation: {
       onError: () => {
-        console.log(`Transaction ${txnIndex} writeContract error`);
         // Update status in Redux store
         if (txnIndex !== undefined) {
           dispatch(
@@ -54,11 +53,9 @@ const TransactionForm = ({
           dispatch(addTxn(data as string));
           dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
         }
-        console.log(`Transaction ${txnIndex} writeContract success`);
         // dispatch(eraseLatestToolOutput());
       },
       onSettled(data) {
-        console.log(`Transaction ${txnIndex} writeContract settled:`, data);
         if (data) {
           // Update status in Redux store
           if (txnIndex !== undefined) {
@@ -90,7 +87,6 @@ const TransactionForm = ({
   const { sendTransaction } = useSendTransaction({
     mutation: {
       onError: () => {
-        console.log(`Transaction ${txnIndex} sendTransaction error`);
         // Update status in Redux store
         if (txnIndex !== undefined) {
           dispatch(
@@ -108,11 +104,9 @@ const TransactionForm = ({
           dispatch(addTxn(data as string));
           dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
         }
-        console.log(`Transaction ${txnIndex} sendTransaction success`);
         // dispatch(eraseLatestToolOutput());
       },
       onSettled(data) {
-        console.log(`Transaction ${txnIndex} sendTransaction settled:`, data);
         if (data) {
           // Update status in Redux store
           if (txnIndex !== undefined) {
@@ -140,18 +134,6 @@ const TransactionForm = ({
       },
     },
   });
-
-  // Debug logging for status changes
-  useEffect(() => {
-    console.log(
-      `Transaction ${txnIndex} status changed:`,
-      txn?.status,
-      `isExecuting:`,
-      isExecuting,
-      `txHash:`,
-      txn?.txHash
-    );
-  }, [txn?.status, isExecuting, txn?.txHash, txnIndex]);
 
   // Handler functions for each field
   const handleToChange = (value: string) => {
@@ -181,7 +163,6 @@ const TransactionForm = ({
   };
 
   const handleFunctionNameChange = (e: any) => {
-    console.log("final state", e.target.value);
     if (txnIndex !== undefined) {
       dispatch(
         updateTransactionData({
@@ -228,8 +209,6 @@ const TransactionForm = ({
           newArgs[index] = value;
         }
       }
-
-      console.log("final state,", newArgs);
 
       dispatch(
         updateTransactionData({

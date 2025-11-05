@@ -67,7 +67,12 @@ export default {
   				'550': 'var(--system-warning-550)',
   				'950': 'var(--system-warning-950)'
   			},
-  			background: 'hsl(var(--background))',
+  			background: '#0D0C11',
+			'background-secondary':'#201F24',
+			'background-2':'#121117',
+			'primary-border': '#242528',
+			'text-primary':'#FFFFFF',
+			'text-secondary':'#FFFFFF99',
   			foreground: 'hsl(var(--foreground))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',

@@ -74,7 +74,6 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
   // Execute all transactions sequentially
   const executeAllTransactions = async () => {
         const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
-        console.log('this is important', currentTxns)
     if (currentTxns.length === 0) return;
 
     dispatch(updateExecutionState({
@@ -96,7 +95,6 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
       
       // Skip if transaction is already successful
       if (txn.status === StatusEnum.SUCCESS) {
-        console.log(`Skipping transaction ${i} - already successful`);
         completedCount++;
         dispatch(updateExecutionState({
           index: chatIndex,
@@ -133,7 +131,6 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
             }, {
               onSuccess: (data) => {
                 clearTimeout(timeout);
-                console.log(`Transaction ${i} success:`, data);
                 completedCount++;
                 dispatch(updateExecutionState({
                   index: chatIndex,
@@ -180,7 +177,6 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
             }, {
               onSuccess: (data) => {
                 clearTimeout(timeout);
-                console.log(`Transaction ${i} success:`, data);
                 completedCount++;
                 dispatch(updateExecutionState({
                   index: chatIndex,
@@ -253,9 +249,9 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
     }));
   };
   return (
-    <div className="w-full max-w-[1280px]">
+    <div className="w-full ">
       {/* Execute All Button */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 ">
         <h2 className="text-lg font-semibold text-white">
           Transaction Queue ({orderedTxns.length})
         </h2>

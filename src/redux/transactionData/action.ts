@@ -14,7 +14,6 @@ export const addTxn = createAsyncThunk<
   try {
     const result = await axiosInstance.get(`transactions/details?txHash=${txHash}`);
     const apiData = result?.data;
-    console.log('apiData from addtxn',apiData)
     if (apiData?.status === 200 && apiData?.data) {
       const cleanedData = {
         user: apiData?.data?.data?.user || "",
