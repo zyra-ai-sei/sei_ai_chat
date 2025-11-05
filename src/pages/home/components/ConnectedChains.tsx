@@ -1,0 +1,68 @@
+import transactionBg from "@/assets/home/transaction-interface.png";
+import avatar from "@/assets/home/avatar.png";
+import metamaskIcon from "@/assets/home/metamask-icon.svg";
+import coinbaseIcon from "@/assets/home/coinbase-wallet.png";
+
+const ConnectedChains = () => {
+  return (
+    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
+      <div className="flex gap-[154px] items-center justify-center px-[135px] w-full">
+        {/* Left Side - Text Content */}
+        <div className="flex flex-col gap-[48px] items-start justify-center max-w-[520px]">
+          <div className="flex flex-col gap-[16px] items-start leading-[0] w-full">
+            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] whitespace-pre-line">
+              Connected chains<br />
+              & protocols
+            </p>
+            <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white">
+              Zyra works seamlessly with the wallets, DEXs, and protocols you already trust, bringing them all together in one interface.
+            </p>
+          </div>
+          <button
+            className="bg-gradient-to-l border border-solid border-white from-[#204887] to-[#3B82F6] flex gap-[8px] items-center justify-center px-[32px] py-[12px] rounded-[99px]"
+            style={{
+              boxShadow: 'inset 0px 0px 6px rgba(255, 255, 255, 0.4), inset 0px 0px 18px rgba(255, 255, 255, 0.16)',
+            }}
+          >
+            <p className="font-['Figtree',sans-serif] font-semibold text-[16px] leading-[24px] text-center text-white whitespace-pre">
+              Try our SDK
+            </p>
+          </button>
+        </div>
+
+        {/* Right Side - Transaction Interface Visual */}
+        <div className="h-[510px] relative w-[351px]">
+          {/* Background ellipses */}
+          <div className="absolute left-[112px] top-[-14px] w-[244px] h-[46px] opacity-30 blur-[100px] bg-[#204887]"></div>
+          <div className="absolute left-[-26px] top-[424px] w-[377px] h-[50px] opacity-30 blur-[100px] bg-[#204887]"></div>
+
+          {/* Transaction Interface Background */}
+          <div className="absolute border-2 border-[#EBF3FE] border-solid h-[510px] left-0 rounded-[15px] top-0 w-[351px] overflow-hidden">
+            <img
+              src={transactionBg}
+              alt="Transaction Interface"
+              className="absolute inset-0 w-full h-full object-cover rounded-[15px]"
+            />
+          </div>
+
+          {/* Zyra Avatar - Left side with rotation */}
+          <div className="absolute left-[-154px] top-[230px] w-[90px] h-[90px] animate-pulse" style={{ transform: 'rotate(342.239deg)' }}>
+            <img src={avatar} alt="Zyra Avatar" className="w-full h-full object-contain" />
+          </div>
+
+          {/* MetaMask Wallet Icon - Upper Left */}
+          <div className="absolute left-[-80px] top-[147px] w-[51px] h-[51px] rounded-full overflow-hidden bg-white" style={{ transform: 'rotate(349.578deg)' }}>
+            <img src={metamaskIcon} alt="MetaMask" className="w-full h-full p-2 object-contain" />
+          </div>
+
+          {/* Coinbase Wallet Icon - Lower Left */}
+          <div className="absolute left-[-72px] top-[370px] w-[51px] h-[51px] rounded-full overflow-hidden flex items-center justify-center" style={{ transform: 'rotate(18.444deg)' }}>
+            <img src={coinbaseIcon} alt="Coinbase" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ConnectedChains;

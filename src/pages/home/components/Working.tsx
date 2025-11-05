@@ -1,53 +1,107 @@
-import PrimaryCard from "@/components/home/cards/PrimaryCard";
 import { Parallax } from "react-scroll-parallax";
+import { MessageSquare, Cpu, Link2 } from "lucide-react";
+import avatar from "@/assets/home/avatar.png";
+import ellipseOuter from "@/assets/home/ellipse-outer.png";
+import ellipseInner from "@/assets/home/ellipse-inner.png";
 
 const Working = () => {
   const worksData = [
     {
       index: "1",
-      title: "Speak Naturally",
+      title: "Type Your Intent",
       content:
-        'Tell Zyra what you want to do in plain English. "Send 10 SEI to Alice" or "Swap my USDC for BTC"',
+        'Tell Zyra what you want to do in plain English like "Send 10 SEI to 0x..", "Swap $100 USDC for SEI when SEI is up 10%"',
+      icon: MessageSquare,
     },
     {
       index: "2",
       title: "AI Processing",
       content: "Our advanced AI understands your intent and converts it into precise blockchain transactions",
+      icon: Cpu,
     },
     {
       index: "3",
       title: "Execute On-Chain",
       content:
-        "Review and confirm the transaction. Zyro executes it securely on the blockchain in real-time",
+        "Review and confirm the transaction. Zyra executes it securely on the blockchain in real-time",
+      icon: Link2,
     },
   ];
 
-
   return (
-    <Parallax speed={2}>
-      <div id="#about" className="flex flex-col gap-[min(6vw,80px)] bg-[#13161a80] py-[20px] justify-start max-w-[1440px] mx-auto">
-        <div className="font-bold  text-[min(4vw,40px)] flex flex-col justify-center items-center">
-          <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text">
-            HOW ZYRA WORKS
-          </h1>
-          <h2 className="font-thin font-sans text-[#98999A] text-[min(2vw,16px)]">
-          Three simple steps to transform your words into blockchain actions
-          </h2>
-        </div>
-        <div className="flex justify-center flex-col md:flex-row items-center  w-full gap-[min(2vw,30px)]">
-          {worksData.map((work) => (
-            <div>
+    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
+      <div className="flex gap-[64px] items-start justify-center px-[135px] w-full">
+        {/* Left Side - Avatar Animation */}
+        <div className="basis-0 flex flex-col gap-[64px] grow items-start min-h-px min-w-px">
+          <div className="flex flex-col gap-[16px] items-start justify-center w-full whitespace-pre">
+            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
+              See how <span className="text-[#3B82F6]">Zyra</span> works
+            </p>
+            <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white">
+              Three simple steps to transform your words into blockchain actions
+            </p>
+          </div>
 
-            <PrimaryCard
-              index={work.index}
-              title={work.title}
-              content={work.content}
-            />
+          {/* Avatar Placeholder - Ellipse Arcs */}
+          <div className="flex flex-col gap-[8px] h-[552px] items-center justify-center w-full">
+            <div className="relative flex items-center justify-center w-[350px] h-[350px]">
+              {/* Outer ellipse */}
+              <img src={ellipseOuter} alt="" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-auto" />
+
+              {/* Inner ellipse */}
+              <img src={ellipseInner} alt="" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[262px] w-auto" />
+
+              {/* Avatar image with pulse effect */}
+              <div className="relative w-[160px] h-[160px] flex items-center justify-center animate-pulse z-10">
+                <img src={avatar} alt="Zyra Avatar" className="w-[160px] h-[160px] object-contain" />
+              </div>
             </div>
-          ))}
+          </div>
+        </div>
+
+        {/* Right Side - Steps */}
+        <div className="flex flex-col gap-[64px] items-start w-[520px]">
+          {/* Vertical dotted lines between circles */}
+          <div className="relative w-full">
+            {/* Dotted line between circle 1 and 2 */}
+            <div className="absolute left-[22px] top-[54px] w-[1px] h-[215px] border-l border-dashed border-[rgba(255,255,255,0.12)]" style={{ borderWidth: '1px' }}></div>
+
+            {/* Dotted line between circle 2 and 3 */}
+            <div className="absolute left-[22px] top-[315px] w-[1px] h-[215px] border-l border-dashed border-[rgba(255,255,255,0.12)]" style={{ borderWidth: '1px' }}></div>
+
+            {worksData.map((work, index) => (
+              <div key={index} className={`flex gap-[24px] items-center w-full ${index > 0 ? 'mt-[64px]' : ''}`}>
+                {/* Step number */}
+                <div className="flex flex-row items-center self-stretch">
+                  <div className="flex gap-[8px] h-full items-start justify-center pt-[10px]">
+                    <div className="bg-[#201F24] border border-solid border-white flex flex-col gap-[8px] items-center justify-center p-[8px] rounded-[99px] w-[44px]">
+                      <p className="font-['Figtree',sans-serif] font-semibold text-[18px] leading-[28px] text-center text-white">
+                        {work.index}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col gap-[8px] items-start justify-center">
+                  <div className="border border-[rgba(255,255,255,0.24)] border-solid flex flex-col gap-[8px] items-center justify-center p-[8px] rounded-[99px] w-[64px]">
+                    <work.icon className="w-[48px] h-[48px] text-white" />
+                  </div>
+                  <div className="flex flex-col gap-[12px] items-start w-[330px]">
+                    <p className="font-['Figtree',sans-serif] font-semibold text-[32px] leading-[38px] text-center text-white tracking-[-0.64px] whitespace-pre">
+                      {work.title}
+                    </p>
+                    <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[rgba(255,255,255,0.6)]">
+                      {work.content}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </Parallax>
+    </section>
   );
 };
 

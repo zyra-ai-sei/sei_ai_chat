@@ -3,19 +3,29 @@ import Features from "./components/Features";
 import Hero from "./components/Hero";
 import Milestones from "./components/Milestones";
 import Working from "./components/Working";
+import Trusted from "./components/Trusted";
+import ChatDemo from "./components/ChatDemo";
+import TradeLanguage from "./components/TradeLanguage";
+import ConnectedChains from "./components/ConnectedChains";
+import FAQ from "./components/FAQ";
+import CTA from "./components/CTA";
 import Footer from "@/components/common/footer";
-import { Calendar24 } from "@/components/common/calendar";
 
 const Home = () => {
   return (
-    <div className="flex flex-col gap-[100px]  mx-auto relative">
-      <Header/>
-      <Hero/>
-      <Working/>
-      <Features/>
-      <Milestones/>
-      <Calendar24/>
-      <Footer/>
+    <div className="flex flex-col gap-[50px] w-full min-h-screen relative bg-[#0D0C11]">
+      <Header />
+      <Hero />
+      {/* <Trusted /> */}
+      <Working />
+      <Features />
+      {/* <ChatDemo /> */}
+      <TradeLanguage />
+      <ConnectedChains />
+      <Milestones />
+      <FAQ />
+      <CTA />
+      <Footer />
     </div>
   );
 };

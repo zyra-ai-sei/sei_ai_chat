@@ -142,5 +142,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #0D0C11;
+  }
+  #root {
+    background-color: #0D0C11;
   }
 }
