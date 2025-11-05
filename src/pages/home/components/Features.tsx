@@ -63,19 +63,19 @@ const Features = () => {
     },
   ];
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
+    <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
       {/* Header */}
-      <div className="flex flex-col gap-[16px] items-start text-center w-full">
-        <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
+      <div className="flex flex-col gap-[16px] items-start text-center w-full px-4">
+        <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[32px] md:text-[48px] leading-[40px] md:leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
           Our key <span className="text-[#3B82F6]">features</span>
         </p>
-        <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white w-full">
+        <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white w-full">
           See various way zyra helps you out. Get the information you need about the Zyra
         </p>
       </div>
 
       {/* Features Content */}
-      <div className="flex flex-col gap-[64px] items-start px-[135px] w-full">
+      <div className="flex flex-col gap-[48px] md:gap-[64px] items-start px-4 sm:px-8 md:px-16 lg:px-[135px] w-full max-w-[1440px] mx-auto">
         {/* Tabs */}
         <div className="flex items-start w-full overflow-x-auto scrollbar-hide py-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {featuresList.map((feature, index) => (
@@ -101,7 +101,7 @@ const Features = () => {
         <div className="flex flex-col gap-[48px] items-start justify-center w-full">
           <div className="flex flex-col gap-[32px] items-start w-full">
             {/* Feature Image/Demo */}
-            <div className="h-[900px] overflow-clip w-full relative rounded-[24px] bg-gradient-to-br from-[#204887]/20 to-[#3B82F6]/10 border border-[#3B82F6]/30">
+            <div className="h-[400px] md:h-[600px] lg:h-[900px] overflow-clip w-full relative rounded-[24px] bg-gradient-to-br from-[#204887]/20 to-[#3B82F6]/10 border border-[#3B82F6]/30">
               <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src={featuresList[activeTab].image}

@@ -5,32 +5,32 @@ const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative w-full max-w-[1440px] h-[780px] bg-[#0D0C11] overflow-hidden mx-auto">
+    <div className="relative w-full min-h-[600px] md:min-h-[780px] bg-[#0D0C11] overflow-hidden">
       {/* Ellipse Blur Effects */}
-      <div className="absolute w-[139px] h-[139px] left-[795px] top-[155px] bg-[#204887] blur-[64px] rounded-full"></div>
-      <div className="absolute w-[115px] h-[115px] left-[1208px] top-[596px] bg-[#204887] blur-[64px] rounded-full"></div>
+      <div className="absolute w-[139px] h-[139px] right-[10%] md:left-[795px] top-[155px] bg-[#204887] blur-[64px] rounded-full"></div>
+      <div className="absolute w-[115px] h-[115px] right-[5%] md:left-[1208px] top-[400px] md:top-[596px] bg-[#204887] blur-[64px] rounded-full"></div>
       <div className="absolute w-[184px] h-[184px] -left-[33px] top-[119px] bg-[#2A5CAF] blur-[124px] rounded-full"></div>
 
-      <Curve className="absolute w-full h-[750px] opacity-100 text-blue-200"/>
+      <Curve className="absolute w-full h-[600px] md:h-[750px] opacity-100 text-blue-200"/>
 
       {/* Main Content - Left Side */}
-      <div className="absolute left-0 top-[289px] w-[742px] h-[296px] flex flex-col justify-center items-start px-[135px] gap-12">
+      <div className="relative md:absolute left-0 top-0 md:top-[289px] w-full md:w-[742px] flex flex-col justify-center items-start px-4 sm:px-8 md:px-16 lg:px-[135px] pt-[120px] md:pt-0 gap-8 md:gap-12">
         {/* Header Text Container */}
-        <div className="flex flex-col justify-center items-start gap-4 w-[551px]">
+        <div className="flex flex-col justify-center items-start gap-4 w-full max-w-[551px]">
           {/* Main Heading */}
-          <h1 className="bg-clip-text font-['Figtree',sans-serif] font-bold text-[56px] leading-[68px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
+          <h1 className="bg-clip-text font-['Figtree',sans-serif] font-bold text-[36px] md:text-[48px] lg:text-[56px] leading-[44px] md:leading-[58px] lg:leading-[68px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
             YOUR AI-POWERED<br />
             CRYPTO ASSISTANT
           </h1>
 
           {/* Subtext */}
-          <p className="w-[551px] font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[rgba(255,255,255,0.7)]">
+          <p className="w-full font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-[rgba(255,255,255,0.7)]">
             Jumpstart your crypto journey with Zyra. Zyra turns natural language into real transactions on Sei. Market orders, DCA, limit trades, all via chat.
           </p>
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-row items-start gap-6">
+        <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 w-full sm:w-auto">
           {/* Primary Button */}
           <button
             onClick={() => navigate('/chat')}

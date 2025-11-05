@@ -5,17 +5,17 @@ import coinbaseIcon from "@/assets/home/coinbase-wallet.png";
 
 const ConnectedChains = () => {
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
-      <div className="flex gap-[154px] items-center justify-center px-[135px] w-full">
+    <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
+      <div className="flex flex-col lg:flex-row gap-[48px] lg:gap-[100px] xl:gap-[154px] items-center justify-center px-4 sm:px-8 md:px-16 lg:px-[135px] w-full max-w-[1440px] mx-auto">
         {/* Left Side - Text Content */}
-        <div className="flex flex-col gap-[48px] items-start justify-center max-w-[520px]">
-          <div className="flex flex-col gap-[16px] items-start leading-[0] w-full">
-            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] whitespace-pre-line">
-              Connected chains<br />
-              & protocols
+        <div className="flex flex-col gap-[32px] md:gap-[48px] items-start justify-center w-full lg:max-w-[520px]">
+          <div className="flex flex-col gap-[16px] items-start w-full">
+            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[32px] md:text-[48px] leading-[40px] md:leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
+              One SDK<br />
+              Infinite Possibilities
             </p>
-            <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white">
-              Zyra works seamlessly with the wallets, DEXs, and protocols you already trust, bringing them all together in one interface.
+            <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white">
+              Built for developers, the SDK connects seamlessly with DEXs, lending platforms, and wallets on Sei, enabling users to trade, lend, stake, or bridge through simple chat commands.
             </p>
           </div>
           <button
@@ -31,7 +31,7 @@ const ConnectedChains = () => {
         </div>
 
         {/* Right Side - Transaction Interface Visual */}
-        <div className="h-[510px] relative w-[351px]">
+        <div className="hidden lg:block h-[400px] xl:h-[510px] relative w-[280px] xl:w-[351px] flex-shrink-0">
           {/* Background ellipses */}
           <div className="absolute left-[112px] top-[-14px] w-[244px] h-[46px] opacity-30 blur-[100px] bg-[#204887]"></div>
           <div className="absolute left-[-26px] top-[424px] w-[377px] h-[50px] opacity-30 blur-[100px] bg-[#204887]"></div>

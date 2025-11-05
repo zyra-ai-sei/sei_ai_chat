@@ -3,45 +3,48 @@ import { CheckCircle2 } from "lucide-react";
 const Milestones = () => {
   const timelineData = [
     {
-      quarter: "Q1",
-      year: "2025",
-      title: "Basic Blockchain\nIntegration",
-      status: "completed",
-      description: [
-        "Forked and customized SEI's MCP repository to create our core infrastructure",
-        "Built foundational chat application with real-time SEI blockchain data integration",
-        "Developed transaction creation tools that generate unsigned transactions for secure user signing",
-      ],
-    },
-    {
-      quarter: "Q2",
-      year: "2025",
-      title: "Strategies\nIntegration",
-      status: "in-progress",
-      description: [
-        "Successfully integrated Orbs Network",
-        "Layer 3 solution for sophisticated limit orders",
-        "Launch comprehensive strategy selection system (DCA, limit orders, and custom strategies)",
-      ],
-    },
-    {
       quarter: "Q3",
       year: "2025",
-      title: "Advanced Bots Integration",
-      status: "upcoming",
+      title: "Core Sei\nIntegration",
+      status: "completed",
       description: [
-        "Implement strategy performance analytics and backtesting capabilities",
-        "Launch automated trading bot infrastructure",
+        "Connected base Sei swaps and transfers through natural language",
+        "Live unsigned transaction preview with full edit controls",
+        "Foundational chat UX improvements and reliable execution pipeline",
       ],
     },
     {
       quarter: "Q4",
+      year: "2025",
+      title: "Strategies\nIntegration",
+      status: "in-progress",
+      description: [
+        "Add DCA, limit orders, and scheduled orders through NL prompts",
+        "Build strategy templates users can reuse and modify easily",
+        "Launch SDK beta with 1 partner dApp on Sei",
+      ],
+    },
+    {
+      quarter: "Q1",
       year: "2026",
-      title: "Grow tools\nand support",
+      title: "Automated Agents & Trading Intelligence",
       status: "upcoming",
       description: [
-        "Launch advanced market analysis tools integrated with chat functionality",
-        "Deploy cross-chain trading capabilities (expanding beyond SEI)",
+        "Introduce agent-based execution and monitoring for user-defined strategies",
+        "Portfolio analytics & execution suggestions inside chat",
+        "Support copy trading (single wallets & curated list based groups)",
+        "Launch SDK v1 with 3+ partner dApps on Sei"
+      ],
+    },
+    {
+      quarter: "Q2",
+      year: "2026",
+      title: "Growth, Scaling & Developer Ecosystem",
+      status: "upcoming",
+      description: [
+        "Launch partner SDK program for Sei dApps",
+        "Support a User Generated Content Marketplace for AI agent templates",
+        "Expand to multi-app distribution on Sei via integrated developer tooling",
         "Launch API access for advanced users and developers",
       ],
     },

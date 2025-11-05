@@ -29,21 +29,21 @@ const Working = () => {
   ];
 
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
-      <div className="flex gap-[64px] items-start justify-center px-[135px] w-full">
+    <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
+      <div className="flex flex-col lg:flex-row gap-[48px] lg:gap-[64px] items-start lg:items-start justify-center px-4 sm:px-8 md:px-16 lg:px-[135px] w-full max-w-[1440px] mx-auto">
         {/* Left Side - Avatar Animation */}
-        <div className="basis-0 flex flex-col gap-[64px] grow items-start min-h-px min-w-px">
-          <div className="flex flex-col gap-[16px] items-start justify-center w-full whitespace-pre">
-            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
+        <div className="flex flex-col gap-[48px] md:gap-[64px] w-full lg:flex-1 items-center lg:items-start">
+          <div className="flex flex-col gap-[16px] items-start justify-center w-full">
+            <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[32px] md:text-[48px] leading-[40px] md:leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
               See how <span className="text-[#3B82F6]">Zyra</span> works
             </p>
-            <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white">
+            <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white">
               Three simple steps to transform your words into blockchain actions
             </p>
           </div>
 
           {/* Avatar Placeholder - Ellipse Arcs */}
-          <div className="flex flex-col gap-[8px] h-[552px] items-center justify-center w-full">
+          <div className="flex flex-col gap-[8px] h-[300px] md:h-[450px] lg:h-[552px] items-center justify-center w-full">
             <div className="relative flex items-center justify-center w-[350px] h-[350px]">
               {/* Outer ellipse */}
               <img src={ellipseOuter} alt="" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-auto" />
@@ -60,7 +60,7 @@ const Working = () => {
         </div>
 
         {/* Right Side - Steps */}
-        <div className="flex flex-col gap-[64px] items-start w-[520px]">
+        <div className="flex flex-col gap-[48px] md:gap-[64px] items-start w-full lg:w-[520px]">
           {/* Vertical dotted lines between circles */}
           <div className="relative w-full">
             {/* Dotted line between circle 1 and 2 */}
