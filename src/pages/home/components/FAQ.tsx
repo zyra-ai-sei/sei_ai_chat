@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -18,12 +19,12 @@ const FAQ = () => {
     {
       question: "What is the Zyra SDK, and who can use it?",
       answer:
-        "The Zyra SDK lets other Sei dApps integrate Zyra’s natural language trading directly into their own platforms. That means a DEX, lending protocol, or portfolio app can add a “Chat to Trade” interface instantly — giving their users Zyra’s AI features without leaving their app.",
+        "The Zyra SDK lets other Sei dApps integrate Zyra's natural language trading directly into their own platforms. That means a DEX, lending protocol, or portfolio app can add a \"Chat to Trade\" interface instantly — giving their users Zyra's AI features without leaving their app.",
     },
     {
       question: "Will Zyra have a token or community launch?",
       answer:
-        "Yes! We’re planning a closed token launch and NFT-based airdrop to early users and partner dApp communities on Sei. Joining early or being part of our Discord and partner dApps will give you access to these exclusive events.",
+        "Yes! We're planning a closed token launch and NFT-based airdrop to early users and partner dApp communities on Sei. Joining early or being part of our Discord and partner dApps will give you access to these exclusive events.",
     },
   ];
 
@@ -34,20 +35,30 @@ const FAQ = () => {
   return (
     <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-[16px] items-start text-center w-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col gap-[16px] items-start text-center w-full"
+      >
         <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
           We got your <span className="text-[#3B82F6]">answer</span>
         </p>
         <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white w-full">
           Everything you might want to know before we work together answered clearly and simply
         </p>
-      </div>
+      </motion.div>
 
       {/* FAQ Items */}
       <div className="flex flex-col gap-[24px] items-start justify-center px-[135px] w-full">
         {faqs.map((faq, index) => (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
             className="border-b border-[rgba(255,255,255,0.08)] border-solid flex flex-col gap-[16px] items-start py-[24px] w-full"
           >
             <button
@@ -76,7 +87,7 @@ const FAQ = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

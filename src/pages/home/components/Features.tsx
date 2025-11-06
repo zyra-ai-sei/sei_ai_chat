@@ -2,6 +2,7 @@ import { useState } from "react";
 import feature1 from "@/assets/features/nlp.svg";
 import natlanImg from "@/assets/features/natlan2.png";
 import dashboardImg from "@/assets/features/dashboard.png";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Features = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -65,22 +66,39 @@ const Features = () => {
   return (
     <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
       {/* Header */}
-      <div className="flex flex-col gap-[16px] items-start text-center w-full px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col gap-[16px] items-start text-center w-full px-4"
+      >
         <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[32px] md:text-[48px] leading-[40px] md:leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
           Our key <span className="text-[#3B82F6]">features</span>
         </p>
         <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white w-full">
-          See various way zyra helps you out. Get the information you need about the Zyra
+          See various ways Zyra helps you out. Get the information you need about Zyra
         </p>
-      </div>
+      </motion.div>
 
       {/* Features Content */}
       <div className="flex flex-col gap-[48px] md:gap-[64px] items-start px-4 sm:px-8 md:px-16 lg:px-[135px] w-full max-w-[1440px] mx-auto">
         {/* Tabs */}
-        <div className="flex items-start w-full overflow-x-auto scrollbar-hide py-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-start w-full overflow-x-auto scrollbar-hide py-2 px-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {featuresList.map((feature, index) => (
-            <button
+            <motion.button
               key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
               onClick={() => setActiveTab(index)}
               className={`flex gap-[8px] h-[64px] items-center px-[32px] py-[16px] relative flex-shrink-0 ${
                 activeTab === index
@@ -93,34 +111,43 @@ const Features = () => {
               } text-[20px] leading-[30px] whitespace-nowrap`}>
                 {feature.tab}
               </p>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Feature Content */}
         <div className="flex flex-col gap-[48px] items-start justify-center w-full">
-          <div className="flex flex-col gap-[32px] items-start w-full">
-            {/* Feature Image/Demo */}
-            <div className="h-[400px] md:h-[600px] lg:h-[900px] overflow-clip w-full relative rounded-[24px] bg-gradient-to-br from-[#204887]/20 to-[#3B82F6]/10 border border-[#3B82F6]/30">
-              <div className="absolute inset-0 flex items-start justify-center">
-                <img
-                  src={featuresList[activeTab].image}
-                  alt={featuresList[activeTab].title}
-                  className={activeTab === 0 || activeTab === 3 ? "w-full h-full object-cover object-top rounded-[24px]" : "w-[200px] h-[200px] opacity-50"}
-                />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col gap-[32px] items-start w-full"
+            >
+              {/* Feature Image/Demo */}
+              <div className="h-[400px] md:h-[600px] lg:h-[900px] overflow-clip w-full relative rounded-[24px] bg-gradient-to-br from-[#204887]/20 to-[#3B82F6]/10 border border-[#3B82F6]/30">
+                <div className="absolute inset-0 flex items-start justify-center">
+                  <img
+                    src={featuresList[activeTab].image}
+                    alt={featuresList[activeTab].title}
+                    className={activeTab === 0 || activeTab === 3 ? "w-full h-full object-cover object-top rounded-[24px]" : "w-[200px] h-[200px] opacity-50"}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Feature Description */}
-            <div className="flex flex-col gap-[16px] items-start w-full">
-              <p className="font-['Figtree',sans-serif] font-medium text-[32px] leading-[38px] text-white tracking-[-0.64px] w-full">
-                {featuresList[activeTab].content}
-              </p>
-              <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[#98A2B3] w-full">
-                {featuresList[activeTab].description}
-              </p>
-            </div>
-          </div>
+              {/* Feature Description */}
+              <div className="flex flex-col gap-[16px] items-start w-full">
+                <p className="font-['Figtree',sans-serif] font-medium text-[32px] leading-[38px] text-white tracking-[-0.64px] w-full">
+                  {featuresList[activeTab].content}
+                </p>
+                <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[#98A2B3] w-full">
+                  {featuresList[activeTab].description}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </section>

@@ -3,8 +3,6 @@ import Features from "./components/Features";
 import Hero from "./components/Hero";
 import Milestones from "./components/Milestones";
 import Working from "./components/Working";
-import Trusted from "./components/Trusted";
-import ChatDemo from "./components/ChatDemo";
 import TradeLanguage from "./components/TradeLanguage";
 import ConnectedChains from "./components/ConnectedChains";
 import FAQ from "./components/FAQ";

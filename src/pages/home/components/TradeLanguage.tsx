@@ -3,7 +3,7 @@ const TradeLanguage = () => {
     <section className="bg-[#0D0C11] w-full max-w-[1440px] mx-auto py-[84px] px-[135px]">
       <div className="text-center max-w-4xl mx-auto flex flex-col gap-6">
         <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
-          The Future <span className="text-[#3B82F6]">of DeFi</span>,<br />
+          The Future <span className="text-[#3B82F6]">of DeFi</span><br />
           Is Converstaional
         </p>
         <p className="font-['Figtree',sans-serif] font-normal text-[18px] leading-[28px] text-[rgba(255,255,255,0.6)] max-w-3xl mx-auto">

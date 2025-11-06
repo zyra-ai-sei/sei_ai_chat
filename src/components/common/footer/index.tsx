@@ -1,7 +1,6 @@
 import Icon from "@/assets/common/icon.svg";
 import Github from "@/assets/footer/github.svg?react";
 import Twitter from "@/assets/footer/twitter.svg?react";
-import Telegram from "@/assets/footer/telegram.svg?react";
 import Discord from "@/assets/footer/discord.svg?react";
 
 const Footer = () => {
@@ -36,7 +35,7 @@ const Footer = () => {
               <Github className="w-full h-full text-[#98A2B3] hover:text-white transition-colors" />
             </a>
             <a
-              href="#"
+              href="https://x.com/Zyra_ai_"
               target="_blank"
               rel="noopener noreferrer"
               className="w-[24px] h-[24px]"
@@ -44,16 +43,13 @@ const Footer = () => {
               <Twitter className="w-full h-full text-[#98A2B3] hover:text-white transition-colors" />
             </a>
             <a
-              href="#"
+              href="https://discord.gg/pGu7pfh8r"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-[24px] h-[24px]"
+              className="bg-[#98A2B3] hover:bg-white flex gap-[8px] items-center justify-center p-[10px] rounded-[99px] w-[24px] h-[24px] transition-colors"
             >
-              <Telegram className="w-full h-full text-[#98A2B3] hover:text-white transition-colors" />
-            </a>
-            <div className="bg-[#98A2B3] flex gap-[8px] items-center justify-center p-[10px] rounded-[99px] w-[24px] h-[24px]">
               <Discord className="w-[16px] h-[16px] text-[#0D0C11]" />
-            </div>
+            </a>
           </div>
         </div>
       </div>
