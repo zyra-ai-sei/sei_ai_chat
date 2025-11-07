@@ -2,7 +2,7 @@ import Curve from "@/assets/home/curve.svg?react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import avatarImg from "c:/Users/rajad/Downloads/Avater.png";
+import avatarImg from "@/assets/home/avatar.png";
 
 // Loading Dots Component
 const LoadingDots = () => {
