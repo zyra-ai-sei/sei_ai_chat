@@ -36,6 +36,7 @@ export interface ChatItem {
   prompt: string;
   response: ChatResponse;
   loading?: boolean;
+  toolOutputsLoading?: boolean;
 }
 
 export interface ChatDataState {
@@ -61,6 +62,7 @@ const chatDataSlice = createSlice({
         prompt: action.payload,
         response: { chat: "" },
         loading: true,
+        toolOutputsLoading: true,
       });
     },
     setResponse(
@@ -82,6 +84,7 @@ const chatDataSlice = createSlice({
           };
         }
         state.chats[action.payload.index].loading = false;
+        state.chats[action.payload.index].toolOutputsLoading = false;
       }
     },
     updateExecutionState(state,
@@ -121,6 +124,9 @@ const chatDataSlice = createSlice({
           ...action.payload.response.tool_outputs,
         ];
         
+        // Turn off toolOutputsLoading when first tool_output arrives
+        chatItem.toolOutputsLoading = false;
+        
         // Initialize execution_state if it doesn't exist
         if (!targetResponse.execution_state) {
           targetResponse.execution_state = {
@@ -139,6 +145,10 @@ const chatDataSlice = createSlice({
     ) {
       if (state.chats[action.payload.index]) {
         state.chats[action.payload.index].loading = action.payload.loading;
+        // Also turn off toolOutputsLoading when stream completes
+        if (!action.payload.loading) {
+          state.chats[action.payload.index].toolOutputsLoading = false;
+        }
       }
     },
     setError(state, action: PayloadAction<{ index: number }>) {

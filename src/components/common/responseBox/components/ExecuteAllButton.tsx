@@ -25,7 +25,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
   return (
     <button
       onClick={onExecuteAll}
-      disabled={executionState.isExecuting || orderedTxns.length === 0 || executionState.isCompleted}
+      disabled={executionState.isExecuting || orderedTxns.length === 0 || executionState.isCompleted }
       className={`px-4 py-2 rounded-lg font-medium transition-colors ${
         executionState.isExecuting
           ? "bg-gray-600 text-gray-400 cursor-not-allowed"

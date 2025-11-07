@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { useSendTransaction, useWriteContract } from "wagmi";
+import { useSendTransaction, useWriteContract, useChainId } from "wagmi";
 import TransactionForm from "./TransactionForm";
 import ExecuteAllButton from "./ExecuteAllButton";
 import { Address } from "viem";
@@ -9,10 +9,16 @@ import { StatusEnum } from "@/enum/status.enum";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import { updateTransactionStatus, reorderTransactions, completeTool, abortTool } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
+import { setGlobalData } from "@/redux/globalData/action";
 
 const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefined; chatIndex: number }) => {
   const dispatch = useAppDispatch();
   const chats = useAppSelector((state) => state.chatData.chats);
+  const globalData = useAppSelector((state) => state?.globalData?.data);
+  const { token,  } = globalData || {};
+  const chainId = useChainId();
+  const correctChainId = Number(import.meta.env?.VITE_BASE_CHAIN_ID);
+  const isWrongNetwork = Boolean(token && chainId !== correctChainId);
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
@@ -73,7 +79,16 @@ const TransactionCanvas = ({ txns, chatIndex }: { txns?: ToolOutput[] | undefine
 
   // Execute all transactions sequentially
   const executeAllTransactions = async () => {
-        const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
+    // Check if user is on wrong network
+    if (isWrongNetwork) {
+      dispatch(setGlobalData({
+        ...globalData,
+        isNetworkSwitchWarningTriggered: true,
+      }));
+      return;
+    }
+
+    const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
     if (currentTxns.length === 0) return;
 
     dispatch(updateExecutionState({

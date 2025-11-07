@@ -1,32 +1,23 @@
-import InputBox from "@/components/common/inputBox";
-import ResponseBox from "@/components/common/responseBox/ChatInterfaceBox";
 import "./index.scss";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { useAccount, useChainId, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import { useEffect, useRef, useState } from "react";
 import {
   fetchUserData,
   resetGlobalData,
-  setGlobalData,
   validateToken,
 } from "@/redux/globalData/action";
-import WalletConnectPopup from "@/components/common/customWalletConnect";
-import Assets from "@/components/chat/Assets";
-import WrongNetworkPopup from "@/components/common/wrongNetworkPopup";
 import TransactionHistory from "@/components/chat/TransactionHistory";
 import ChatBox from "@/components/chat/chatBox";
 import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 
 function Chat() {
-  const globalData = useAppSelector((state) => state?.globalData?.data);
-  const { token } = globalData || {};
+  // Select only token to avoid re-renders when other globalData properties change
+  const token = useAppSelector((state) => state?.globalData?.data?.token);
   const dispatch = useAppDispatch();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const chainId = useChainId();
 
-  const [isWrongNetworkPopupOpened, setIswrongNetworkpopupOpened] =
-    useState<boolean>(false);
   const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
@@ -78,13 +69,7 @@ function Chat() {
 
     dispatch(
       fetchUserData({
-        setUserData: () => {
-          dispatch(
-            setGlobalData({
-              ...globalData,
-            })
-          );
-        },
+        setUserData: () => {},
       })
     );
     dispatch(
@@ -100,17 +85,6 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  useEffect(() => {
-    if (
-      chainId &&
-      chainId !== Number(import.meta.env?.VITE_BASE_CHAIN_ID) &&
-      chainId !== Number(import.meta.env?.VITE_ALTERNATE_CHAIN_ID)
-    ) {
-      setIswrongNetworkpopupOpened(true);
-    } else {
-      setIswrongNetworkpopupOpened(false);
-    }
-  }, [chainId]);
 
   return (
     <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
@@ -134,12 +108,6 @@ function Chat() {
           </div>
           <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
         </div>
-        <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
-        <WrongNetworkPopup
-          isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
-          setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
-          isNonClosable
-        />
       </div>
     </div>
   );

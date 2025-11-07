@@ -64,7 +64,6 @@ export const streamChatPrompt = createAsyncThunk<
           if (!event.data) return;
           try {
             const payload = JSON.parse(event.data);
-            console.log("tension", payload);
             if (payload.type === "token") {
               dispatch(
                 updateResponse({
@@ -298,6 +297,7 @@ export const getChatHistory = createAsyncThunk<
     }
   } catch (err) {
     console.log("err", err);
+    dispatch(resetChat())
   }
 });
 

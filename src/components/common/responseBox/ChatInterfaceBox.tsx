@@ -1,28 +1,41 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import React, { useEffect } from "react";
+import { useAppSelector } from "@/hooks/useRedux";
+import React, { useEffect, useRef, useMemo } from "react";
 import PromptSuggestion from "../PromptSuggestion/PromptSuggestion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
-import { getChatHistory } from "@/redux/chatData/action";
 import { markdownComponents } from "./helpers/markdownComponents";
 import { cryptoHighlightStyles } from "./helpers/cryptoHighlighter";
 import "highlight.js/styles/github-dark.css";
 
 const ChatInterfaceBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
-  const dispatch = useAppDispatch();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevChatsCountRef = useRef(0);
 
+  // Memoize chat count to avoid unnecessary re-renders
+  const chatsCount = useMemo(() => chats.length, [chats.length]);
+
+  // Auto-scroll to bottom only when new chat is added
   useEffect(() => {
-    dispatch(getChatHistory());
-  }, []);
+    if (scrollContainerRef.current && chatsCount > prevChatsCountRef.current && chatsCount > 0) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "instant",
+      });
+    }
+    prevChatsCountRef.current = chatsCount;
+  }, [chatsCount]);
 
   return (
     <>
       <style>{cryptoHighlightStyles}</style>
 
-      <div className="relative z-30 flex flex-col justify-start flex-grow w-full gap-6 py-2 pr-4 mx-auto overflow-y-scroll">
+      <div 
+        ref={scrollContainerRef}
+        className="relative z-30 flex flex-col justify-start w-full h-full gap-6 py-2 pr-4 mx-auto overflow-y-auto"
+      >
         {chats.length > 0 ? (
           chats.map((chat, idx) => (
             <React.Fragment key={idx}>
