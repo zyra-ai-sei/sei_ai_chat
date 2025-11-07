@@ -8,7 +8,7 @@ const suggestions = [
 
 const PromptSuggestion = () => {
   return (
-    <div className="flex flex-col justify-center h-full gap-3">
+    <div className="flex flex-col justify-center h-full gap-3 p-3">
       <div className="w-[60px] h-[60px] rounded-full bg-[#1E293B] flex items-center justify-center">
         <ChatIcon className="w-[28px] h-[28px] " />
       </div>{" "}

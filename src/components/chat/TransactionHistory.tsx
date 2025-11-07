@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import Arrow from "@/assets/home/downArrow.svg?react";
 import { headerWalletAddressShrinker } from "@/utility/walletAddressShrinker";
-import CopyIcon from "@/assets/common/copy.svg?react";
-import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
 import { useAccount } from "wagmi";
 import RefreshIcon from "@/assets/common/refresh.svg?react";
@@ -21,21 +19,9 @@ const TransactionHistory = () => {
   );
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | string | null>(null);
-  const [isAddressCopied, setIsAddressCopied] = useState<boolean>(false);
   const { address } = useAccount();
   const globalData = useAppSelector((state) => state.globalData.data);
 
-  const CopyToClipboardComponent =
-    CopyToClipboard as unknown as React.ComponentType<any>;
-
-  const handleCopy = () => {
-    setIsAddressCopied(true);
-    const timeoutId = setTimeout(() => {
-      setIsAddressCopied(false);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  };
 
   const handleClearChat = async () => {
     try{
@@ -78,16 +64,7 @@ const TransactionHistory = () => {
               <div className="">
                 <h1 className="flex items-center gap-2 text-white">
                   {headerWalletAddressShrinker(transaction.hash)}
-                  <TooltipCustom
-                    title={
-                      <p className="text-center text-neutral-greys-950 typo-c1-regular w-">
-                        {isAddressCopied ? "Copied" : "Copy"}
-                      </p>
-                    }
-                    position="top"
-                  >
-                  
-                  </TooltipCustom>
+                 
                 </h1>
                 {transaction.timestamp && (
                   <span className="ml-2 text-xs text-gray-400">

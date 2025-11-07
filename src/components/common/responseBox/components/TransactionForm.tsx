@@ -1,9 +1,8 @@
 import { ToolOutput } from "@/redux/chatData/reducer";
 import { getArgNames } from "@/utility/getArgNames";
-import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
+import { useAccount, useSendTransaction, useWriteContract, useChainId } from "wagmi";
 import TextInput from "../../input/TextInput";
-import { useEffect } from "react";
-import { useAppDispatch } from "@/hooks/useRedux";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import {
   updateTransactionStatus,
   updateTransactionData,
@@ -19,6 +18,7 @@ import ErrorIcon from "@/assets/popup/failed.svg?react";
 import ExternalIcon from "@/assets/button/external.svg?react";
 import GetInputComponent from "./GetInputComponent";
 import { addTxn } from "@/redux/transactionData/action";
+import { setGlobalData } from "@/redux/globalData/action";
 
 const TransactionForm = ({
   txn,
@@ -33,6 +33,11 @@ const TransactionForm = ({
 }) => {
   const { address } = useAccount();
   const dispatch = useAppDispatch();
+  const globalData = useAppSelector((state) => state?.globalData?.data);
+  const { token } = globalData || {};
+  const chainId = useChainId();
+  const correctChainId = Number(import.meta.env?.VITE_BASE_CHAIN_ID);
+  const isWrongNetwork = Boolean(token && chainId !== correctChainId);
   const { writeContract } = useWriteContract({
     mutation: {
       onError: () => {
@@ -222,6 +227,15 @@ const TransactionForm = ({
   };
 
   const handleSubmission = () => {
+    // Check if user is on wrong network
+    if (isWrongNetwork) {
+      dispatch(setGlobalData({
+        ...globalData,
+        isNetworkSwitchWarningTriggered: true,
+      }));
+      return;
+    }
+
     if (txn?.transaction?.abi) {
       writeContract({
         abi: txn?.transaction?.abi!,

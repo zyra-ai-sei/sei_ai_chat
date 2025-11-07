@@ -1,6 +1,32 @@
 import { highlightCryptoPatterns } from "./cryptoHighlighter";
 
 /**
+ * Check if children contains only plain text (no complex React elements)
+ */
+const isPlainText = (children: any): boolean => {
+  if (typeof children === 'string') {
+    return true;
+  }
+  if (Array.isArray(children)) {
+    return children.every(child => typeof child === 'string');
+  }
+  return false;
+};
+
+/**
+ * Highlight crypto patterns in text content, but only if it's plain text
+ */
+const highlightIfPlainText = (children: any) => {
+  if (isPlainText(children)) {
+    const content = Array.isArray(children) ? children.join('') : String(children);
+    const highlighted = highlightCryptoPatterns(content);
+    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+  }
+  // If it contains complex elements (like inline code), just render as-is
+  return children;
+};
+
+/**
  * Custom components configuration for ReactMarkdown
  * Handles rendering of various markdown elements with custom styling
  */
@@ -15,16 +41,13 @@ export const markdownComponents = {
     <h3 className="mb-2 text-xl font-bold text-white" {...props} />
   ),
   p: ({ node, children, ...props }: any) => {
-    // Apply highlighting to paragraph content
-    const content = String(children);
-    const highlighted = highlightCryptoPatterns(content);
-    
     return (
       <p 
         className="mb-4 leading-relaxed text-gray-200" 
-        dangerouslySetInnerHTML={{ __html: highlighted }}
         {...props}
-      />
+      >
+        {highlightIfPlainText(children)}
+      </p>
     );
   },
   a: ({ node, ...props }: any) => (
@@ -67,16 +90,13 @@ export const markdownComponents = {
     <ol className="mb-4 space-y-2 list-decimal list-inside" {...props} />
   ),
   li: ({ node, children, ...props }: any) => {
-    // Apply highlighting to list items
-    const content = String(children);
-    const highlighted = highlightCryptoPatterns(content);
-    
     return (
       <li 
         className="text-gray-200"
-        dangerouslySetInnerHTML={{ __html: highlighted }}
         {...props}
-      />
+      >
+        {highlightIfPlainText(children)}
+      </li>
     );
   },
   blockquote: ({ node, ...props }: any) => (
@@ -94,16 +114,13 @@ export const markdownComponents = {
     <th className="px-4 py-2 bg-gray-800 border border-gray-700" {...props} />
   ),
   td: ({ node, children, ...props }: any) => {
-    // Apply highlighting to table cells
-    const content = String(children);
-    const highlighted = highlightCryptoPatterns(content);
-    
     return (
       <td 
         className="px-4 py-2 border border-gray-700"
-        dangerouslySetInnerHTML={{ __html: highlighted }}
         {...props}
-      />
+      >
+        {highlightIfPlainText(children)}
+      </td>
     );
   },
 };
