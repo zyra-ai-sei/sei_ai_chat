@@ -27,7 +27,7 @@ const Navbar = () => {
     },
   ];
   return (
-    <div className="h-[64px] border-b-2 border-primary-border px-[24px] pt-[12px] gap-[100px] flex items-center justify-between relative">
+    <div className="h-[64px] font-['Satoshi',sans-serif] border-b-2 border-primary-border px-[24px] pt-[12px] gap-[100px] flex items-center justify-between relative">
       <h1 className="flex items-center gap-2 pb-[12px] shadow-">
         <Logo className="h-[40px] w-[40px]" />
         <h1 className="font-bold text-[34px] text-white">Zyra</h1>
