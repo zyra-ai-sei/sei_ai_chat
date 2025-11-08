@@ -1,4 +1,4 @@
-import Icon from "@/assets/common/icon.svg";
+import Icon from "@/assets/home/avatar.png";
 import Github from "@/assets/footer/github.svg?react";
 import Twitter from "@/assets/footer/twitter.svg?react";
 import Discord from "@/assets/footer/discord.svg?react";
@@ -12,8 +12,8 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="flex flex-col gap-[12px] items-start justify-end w-full">
             <div className="flex gap-[8px] items-center">
-              <div className="relative rounded-[8px] w-[32px] h-[32px]">
-                <img src={Icon} className="absolute left-[7px] top-[6px] w-[22px] h-[20px]" />
+              <div className="w-[32px] h-[32px] flex items-center justify-center">
+                <img src={Icon} alt="Zyra Logo" className="w-full h-full object-contain" />
               </div>
               <p className="font-['Satoshi',sans-serif] font-black text-[27px] leading-normal text-white text-center whitespace-pre">
                 Zyra
@@ -67,23 +67,8 @@ const Footer = () => {
               <a href="#features" className="hover:text-white transition-colors w-full">
                 Features
               </a>
-              <a href="#timeline" className="hover:text-white transition-colors w-full">
+              <a href="#milestones" className="hover:text-white transition-colors w-full">
                 Timeline
-              </a>
-            </div>
-          </div>
-
-          {/* Company Column */}
-          <div className="flex flex-col gap-[20px] items-start w-[148px]">
-            <p className="font-['Figtree',sans-serif] font-semibold text-[16px] leading-[24px] text-white w-full">
-              Company
-            </p>
-            <div className="flex flex-col font-['Figtree',sans-serif] font-normal gap-[8px] items-start text-[16px] leading-[24px] text-[#98A2B3] w-full">
-              <a href="#about" className="hover:text-white transition-colors w-full">
-                About
-              </a>
-              <a href="#" className="hover:text-white transition-colors w-full">
-                Blog
               </a>
             </div>
           </div>

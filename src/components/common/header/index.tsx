@@ -1,5 +1,5 @@
 import "./index.scss";
-import Icon from "@/assets/common/zyra_icon.png";
+import Icon from "@/assets/home/avatar.png";
 import { LaunchButton } from "../customWalletConnect/LaunchButton";
 import ConnectedDisplay from "../customWalletConnect/ConnectedDisplay";
 import { useAccount } from "wagmi";
