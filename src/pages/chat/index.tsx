@@ -1,5 +1,3 @@
-import InputBox from "@/components/common/inputBox";
-import ResponseBox from "@/components/common/responseBox";
 import "./index.scss";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { useAccount, useChainId, useDisconnect } from "wagmi";
@@ -10,10 +8,17 @@ import {
   setGlobalData,
   validateToken,
 } from "@/redux/globalData/action";
-import WalletConnectPopup from "@/components/common/customWalletConnect";
-import TransactionHistory from "@/components/Components/TransactionHistory";
-import Assets from "@/components/Components/Assets";
 import WrongNetworkPopup from "@/components/common/wrongNetworkPopup";
+import LeftSidebar from "@/components/chat/LeftSidebar";
+import MainChatArea from "@/components/chat/MainChatArea";
+import RightSidebar from "@/components/chat/RightSidebar";
+import ChatHeader from "@/components/chat/ChatHeader";
+import SignatureVerification from "@/components/common/customWalletConnect/SignatureVerification";
+
+interface Message {
+  type: "user" | "bot";
+  content: string;
+}
 
 function Chat() {
   const globalData = useAppSelector((state) => state?.globalData?.data);
@@ -24,6 +29,9 @@ function Chat() {
 
   const [isWrongNetworkPopupOpened, setIswrongNetworkpopupOpened] =
     useState<boolean>(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isSignatureVerificationOpen, setIsSignatureVerificationOpen] = useState(false);
+  const [isWalletPanelOpen, setIsWalletPanelOpen] = useState(false);
 
   const chainId = useChainId();
 
@@ -68,30 +76,81 @@ function Chat() {
     }
   }, [chainId]);
 
+  useEffect(() => {
+    if (isConnected) {
+      setIsSignatureVerificationOpen(true);
+      setIsWalletPanelOpen(false); // Close wallet panel when connected
+    } else {
+      setIsSignatureVerificationOpen(false);
+    }
+  }, [isConnected]);
+
+  const handleSendMessage = (message: string) => {
+    // Add user message
+    const newUserMessage: Message = {
+      type: "user",
+      content: message,
+    };
+    setMessages((prev) => [...prev, newUserMessage]);
+
+    // Check if wallet is connected
+    if (!token || !isConnected) {
+      // Add bot response prompting to connect wallet
+      setTimeout(() => {
+        const botResponse: Message = {
+          type: "bot",
+          content:
+            "Oh looks like you are not logged in yet! please connect to a wallet to get started",
+        };
+        setMessages((prev) => [...prev, botResponse]);
+      }, 500);
+    } else {
+      // Handle actual message processing when connected
+      // TODO: Integrate with existing chat logic
+    }
+  };
+
+  const toggleWalletPanel = () => {
+    setIsWalletPanelOpen((prev) => !prev);
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen p-4 bg-gradient-to-tr from-[#0c04214d] via-[#12053454] to-[#4d02a838]">
-      <div className="relative flex flex-col border rounded-[16px] border-zinc-800 justify-end h-full w-full">
-        <div
-          style={{ boxShadow: " -10vw 20vh 200px 17vw rgba(60,0,160,0.12)" }}
-          className="absolute rounded-full top-[15vh] shadow-3xl size-4 right-[20vw] shadow-purple-200"
-        ></div>
-        <div className="flex justify-end w-full h-full">
-          <TransactionHistory />
+    <div className="flex flex-col h-screen w-screen bg-[#0D0C11] overflow-hidden">
+      {/* Top Header */}
+      <ChatHeader onToggleWalletPanel={toggleWalletPanel} isWalletConnected={isConnected && !!token} />
 
-          <div className="relative z-30 flex flex-col justify-end flex-grow h-full p-4 mx-auto overflow-auto border-x border-zinc-800">
-            <ResponseBox />
-            <InputBox />
-          </div>
+      {/* Main Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar */}
+        <LeftSidebar />
 
-          <Assets />
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <MainChatArea messages={[]} />
         </div>
-        <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
-        <WrongNetworkPopup
-          isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
-          setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
-          isNonClosable
+
+        {/* Right Sidebar with Chat Input and Messages */}
+        <RightSidebar
+          isWalletConnected={isConnected && !!token}
+          onSendMessage={handleSendMessage}
+          messages={messages}
+          isWalletPanelOpen={isWalletPanelOpen}
+          onCloseWalletPanel={() => setIsWalletPanelOpen(false)}
         />
       </div>
+
+      {/* Signature Verification Modal */}
+      <SignatureVerification
+        isCenterAlignPopupOpen={isSignatureVerificationOpen}
+        setIsCenterAlignPopupOpen={setIsSignatureVerificationOpen}
+      />
+
+      {/* Wrong Network Popup */}
+      <WrongNetworkPopup
+        isCenterAlignPopupOpen={isWrongNetworkPopupOpened}
+        setIsCenterAlignPopupOpen={setIswrongNetworkpopupOpened}
+        isNonClosable
+      />
     </div>
   );
 }
