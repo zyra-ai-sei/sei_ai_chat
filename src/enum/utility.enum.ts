@@ -8,6 +8,7 @@ export enum LocalStorageIdEnum {
   IS_FEEDBACK_GIVEN = "IS_FEEDBACK_GIVEN",
   COOKIE_DATA = "COOKIE_DATA",
   RELEASE_NOTES_VERSION = "RELEASE_NOTES_VERSION",
+  CUSTOM_TOKENS_LIST = "CUSTOM_TOKENS_LIST",
 }
 
 export enum SessionStorageIdEnum {

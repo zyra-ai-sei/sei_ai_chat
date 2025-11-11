@@ -1,4 +1,3 @@
-import { ChaquenPointsToken, UsdcToken } from "@/constants/token";
 import { FixTypeLater } from "@/interface/common.interface";
 import { hexlify } from "@ethersproject/bytes";
 
@@ -92,14 +91,3 @@ export const calculateContestFeeIndex = (
   }
 };
 
-export const calculateContestFee = (
-  isPaid: boolean,
-  contestFeeUnformatted: number
-) => {
-  if (isPaid) {
-    return contestFeeUnformatted / 10 ** UsdcToken.decimals;
-  } else {
-    const feeBigInt = BigInt(contestFeeUnformatted);
-    return Number(feeBigInt / ChaquenPointsToken.divisor);
-  }
-};

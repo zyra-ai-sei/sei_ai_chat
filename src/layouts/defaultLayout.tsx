@@ -10,9 +10,7 @@ function DefaultLayout({
   MainContentComponent,
 }: {
   MainContentComponent: React.FC;
-  isBackNavigation?: boolean;
 }) {
-
   const isMobile = useAppSelector((state) => state?.globalData?.isMobile);
 
   return (
@@ -20,7 +18,7 @@ function DefaultLayout({
       <AlertProvider>
         <Toast />
         <TransactionContextProvider>
-          <div className="bg-[#010207] min-h-screen h-full font-sans">
+          <div className="font-sans ">
             <div
               className={`${isMobile ? "" : " mx-auto"} flex flex-col overflow-hidden mx-auto relative`}
             >

@@ -1,86 +1,156 @@
-import SecondaryCard from "@/components/home/cards/SecondaryCard";
-import feature1 from "@/assets/features/natural.png";
-import feature2 from "@/assets/features/twap.svg";
-import feature3 from "@/assets/features/self-custody.svg";
-import feature4 from "@/assets/features/multiDex.svg";
-import feature5 from "@/assets/features/sei_2.svg"
-import { Parallax } from "react-scroll-parallax";
+import { useState } from "react";
+import feature1 from "@/assets/features/nlp.svg";
+import natlanImg from "@/assets/features/natlan2.png";
+import dashboardImg from "@/assets/features/dashboard.png";
+import { motion, AnimatePresence } from "framer-motion";
+
 const Features = () => {
+  const [activeTab, setActiveTab] = useState(0);
+
   const featuresList = [
     {
-      image: feature1,
+      image: natlanImg,
       title: "Natural Language Trading",
+      tab: "Natural Language Trading",
       content:
-        "No need to learn commands—just type in plain English. Zyra understands and turns your intent into blockchain trades seamlessly.",
+        "Trade Using Everyday Language, No Commands to Memorize",
+      description:
+        "Our cutting-edge artificial intelligence is designed to deeply comprehend your intentions, seamlessly translating them into accurate and efficient blockchain transactions. This technology not only enhances the speed of processing but also ensures that every transaction aligns perfectly with your specific needs.",
     },
     {
-      image: feature2,
+      image: feature1,
       title: "TWAP & DCA",
+      tab: "TWAP & DCA",
       content:
-        "Automate trades with TWAP and DCA to reduce slippage and market risk—no constant monitoring needed.",
+        "Automate Your Trading Strategy",
+      description:
+        "Automate trades with TWAP and DCA to reduce slippage and market risk—no constant monitoring needed. Execute sophisticated trading strategies with ease.",
     },
     {
-      image: feature3,
-      title: "Self-Custody",
-      content:
-        "Your wallet, your control. Zyra never holds your keys or tokens, ensuring full self-custody at all times.",
-    },
-    {
-      image: feature4,
+      image: feature1,
       title: "Multi-DEX Support",
+      tab: "Multi-DEX Support",
       content:
-        "Currently routes trades through DragonSwap, with support for more Sei-native DEXs coming soon.",
+        "Access Multiple Exchanges",
+      description:
+        "Currently routes trades through DragonSwap, with support for more Sei-native DEXs coming soon. Get the best prices across multiple exchanges.",
+    },
+    // {
+    //   image: feature1,
+    //   title: "Natural Language Trading",
+    //   tab: "Natural Language Trading",
+    //   content:
+    //     "Advanced AI Processing",
+    //   description:
+    //     "Our AI understands context and intent, making blockchain interactions as simple as having a conversation.",
+    // },
+    {
+      image: dashboardImg,
+      title: "Transaction Analytics",
+      tab: "Transaction Analytics",
+      content:
+        "Real-Time Portfolio Tracking",
+      description:
+        "Track all your tokens and transaction history in real-time with a comprehensive dashboard—monitor performance, analyze activity, and maintain complete visibility of your portfolio.",
     },
     {
-      image: feature5,
+      image: feature1,
       title: "Built on Sei",
+      tab: "Built on Sei",
       content:
-        "Runs on Sei’s fast, low-fee, parallelized chain—perfect for real-time DeFi actions.",
+        "Powered by Sei Network",
+      description:
+        "Runs on Sei's fast, low-fee, parallelized chain—perfect for real-time DeFi actions.",
     },
   ];
   return (
-    <Parallax speed={-5}>
-      <div className="flex flex-col gap-[min(6vw,80px)] justify-center w-full mx-auto">
-        <div className="font-bold  text-[min(4vw,40px)] flex flex-col justify-center items-center">
-          <h1 className="text-transparent bg-gradient-to-br from-[#E0E0E0] to-[#E0E0E099] bg-clip-text">
-            Key Features
-          </h1>
-          <h2 className="font-thin font-sans text-[#98999A] text-[min(2vw,16px)]">
-            Get the information you need about the Zyra
-          </h2>
-        </div>
-        <div className="flex justify-around md:flex-wrap flex-col md:flex-row items-center w-full gap-8 md:gap-[min(2vw,30px)]">
-          {featuresList.map((feature, idx) => {
-            // Calculate translateX for each card
-            let translateX = 0;
-            if (idx === 0) translateX = -60;
-            else if (idx === featuresList.length - 1) translateX = 60;
-            else if (idx === 1) translateX = -30;
-            else if (idx === featuresList.length - 2) translateX = 30;
+    <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col gap-[16px] items-start text-center w-full px-4"
+      >
+        <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[32px] md:text-[48px] leading-[40px] md:leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
+          Our key <span className="text-[#3B82F6]">features</span>
+        </p>
+        <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white w-full">
+          See various ways Zyra helps you out. Get the information you need about Zyra
+        </p>
+      </motion.div>
 
-            const isDesktop =
-              typeof window !== "undefined" && window.innerWidth >= 1080;
+      {/* Features Content */}
+      <div className="flex flex-col gap-[48px] md:gap-[64px] items-start px-4 sm:px-8 md:px-16 lg:px-[135px] w-full max-w-[1440px] mx-auto">
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-start w-full overflow-x-auto scrollbar-hide py-2 px-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {featuresList.map((feature, index) => (
+            <motion.button
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              onClick={() => setActiveTab(index)}
+              className={`flex gap-[8px] h-[64px] items-center px-[32px] py-[16px] relative flex-shrink-0 ${
+                activeTab === index
+                  ? 'bg-[rgba(255,255,255,0.01)] rounded-[99px] shadow-[0px_0px_8px_0px_#629BF8]'
+                  : ''
+              }`}
+            >
+              <p className={`font-['Figtree',sans-serif] ${
+                activeTab === index ? 'font-semibold text-white' : 'font-medium text-[rgba(255,255,255,0.3)]'
+              } text-[20px] leading-[30px] whitespace-nowrap`}>
+                {feature.tab}
+              </p>
+            </motion.button>
+          ))}
+        </motion.div>
 
-            return isDesktop ? (
-              <Parallax key={feature.title} speed={10} translateX={[translateX, 0, 'easeOutExpo']} opacity={[0,1,'easeOutExpo']}>
-                <SecondaryCard
-                  image={feature.image}
-                  title={feature.title}
-                  content={feature.content}
-                />
-              </Parallax>
-            ) : (
-              <SecondaryCard
-                key={feature.title}
-                image={feature.image}
-                title={feature.title}
-                content={feature.content}
-              />
-            );
-          })}
+        {/* Feature Content */}
+        <div className="flex flex-col gap-[48px] items-start justify-center w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col gap-[32px] items-start w-full"
+            >
+              {/* Feature Image/Demo */}
+              <div className="h-[400px] md:h-[600px] lg:h-[900px] overflow-clip w-full relative rounded-[24px] bg-gradient-to-br from-[#204887]/20 to-[#3B82F6]/10 border border-[#3B82F6]/30">
+                <div className="absolute inset-0 flex items-start justify-center">
+                  <img
+                    src={featuresList[activeTab].image}
+                    alt={featuresList[activeTab].title}
+                    className={activeTab === 0 || activeTab === 3 ? "w-full h-full object-cover object-top rounded-[24px]" : "w-[200px] h-[200px] opacity-50"}
+                  />
+                </div>
+              </div>
+
+              {/* Feature Description */}
+              <div className="flex flex-col gap-[16px] items-start w-full">
+                <p className="font-['Figtree',sans-serif] font-medium text-[32px] leading-[38px] text-white tracking-[-0.64px] w-full">
+                  {featuresList[activeTab].content}
+                </p>
+                <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[#98A2B3] w-full">
+                  {featuresList[activeTab].description}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
-    </Parallax>
+    </section>
   );
 };
 

@@ -2,7 +2,24 @@
 
 Chaquen Frontend.
 
-## Table of Contents
+## T## Development
+
+This project uses TypeScript. All .ts and .tsx files are compiled into JavaScript using Vite's built-in TypeScript support.
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```
+VITE_BASE_CHAIN_ID = 1329
+VITE_ALTERNATE_CHAIN_ID = 1329
+
+VITE_BASE_ALCHEMY_KEY = ""
+```
+
+These environment variables are required for the application to connect to the Sei blockchain and use the Alchemy API.
+
+## Project-structureof Contents
 
 - [Installation](#installation)
 - [Usage](#usage)

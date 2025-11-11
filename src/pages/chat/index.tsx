@@ -1,27 +1,66 @@
-import InputBox from "@/components/common/inputBox";
-import ResponseBox from "@/components/common/responseBox";
 import "./index.scss";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { useAccount, useDisconnect } from "wagmi";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchUserData,
   resetGlobalData,
-  setGlobalData,
   validateToken,
 } from "@/redux/globalData/action";
-import WalletConnectPopup from "@/components/common/customWalletConnect";
-import BackgroundImage from "@/assets/common/HeroBg.jpg";
-import ChatHeader from "@/components/common/header/ChatHeader";
-import TransactionHistory from "@/components/Components/TransactionHistory";
-import Suggestions from "@/components/Components/Suggestions";
+import TransactionHistory from "@/components/chat/TransactionHistory";
+import ChatBox from "@/components/chat/chatBox";
+import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 
 function Chat() {
-  const globalData = useAppSelector((state) => state?.globalData?.data);
-  const { token } = globalData || {};
+  // Select only token to avoid re-renders when other globalData properties change
+  const token = useAppSelector((state) => state?.globalData?.data?.token);
   const dispatch = useAppDispatch();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+
+  const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
+  const chatBoxRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+
+      e.preventDefault();
+      const container: any = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const newWidth =
+        ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+      // Constrain between 20% and 80%
+      const clampedWidth = Math.min(Math.max(newWidth, 20), 80);
+      setChatBoxWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+
+    if (isDragging) {
+      // Disable text selection globally during drag
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "col-resize";
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [isDragging]);
 
   useEffect(() => {
     if (!token || !isConnected) {
@@ -30,13 +69,7 @@ function Chat() {
 
     dispatch(
       fetchUserData({
-        setUserData: () => {
-          dispatch(
-            setGlobalData({
-              ...globalData,
-            })
-          );
-        },
+        setUserData: () => {},
       })
     );
     dispatch(
@@ -52,24 +85,30 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+
   return (
-    <div className="relative flex flex-col justify-end w-full h-screen overflow-scroll ">
-      <div className="flex justify-end h-full overflow-scroll">
-        <div className="h-full w-[310px] min-w-[250px] border-r border-gray-500/50 flex flex-col p-2">
-          <Suggestions />
+    <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
+      <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
+        <div ref={containerRef} className="flex justify-end w-full h-full">
           <TransactionHistory />
-        </div>
-        <div className="relative z-30 flex flex-col justify-end w-full h-screen gap-0 mx-auto overflow-scroll">
-          <ChatHeader />
-          <div className="z-30 p-4 h-[calc(100%-80px)] w-full overflow-auto relative flex flex-col justify-end max-w-[1440px] mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent via-10% via-90% to-black/50 pointer-events-none z-20"></div>
-            <img src={BackgroundImage} className="absolute bottom-0 left-0 " />
-            <ResponseBox />
-            <InputBox />
+
+          <div
+            style={{ width: `${chatBoxWidth}%` }}
+            className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"
+          >
+            <TransactionResponseBox />
           </div>
+          <div
+            onMouseDown={() => setIsDragging(true)}
+            className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group ${
+              isDragging ? "bg-blue-500" : ""
+            }`}
+          >
+            <div className="absolute inset-y-0 w-4 -left-2" />
+          </div>
+          <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
         </div>
       </div>
-      <WalletConnectPopup isCenterAlignPopupOpen={!token || !isConnected} />
     </div>
   );
 }

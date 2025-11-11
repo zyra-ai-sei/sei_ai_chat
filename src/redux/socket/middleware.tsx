@@ -40,7 +40,6 @@ const socketMiddleware: Middleware = store => {
     }
 
     if (socketActions.disconnectLiveScore.match(action)) {
-      console.log('disconnected');
       if (liveScoreSocket) {
         liveScoreSocket.disconnect();
         liveScoreSocket = null; // Set to null after disconnecting
