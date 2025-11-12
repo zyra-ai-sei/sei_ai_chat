@@ -25,6 +25,10 @@ const Navbar = () => {
       name: "Transactions",
       url: "/transactions",
     },
+    {
+      name:"SDK-Dashboard",
+      url:'/sdk-dashboard'
+    }
   ];
   return (
     <div className="h-[64px] font-['Satoshi',sans-serif] border-b-2 border-primary-border px-[24px] pt-[12px] gap-[100px] flex items-center justify-between relative">
