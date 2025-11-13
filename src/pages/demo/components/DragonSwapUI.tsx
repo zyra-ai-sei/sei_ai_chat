@@ -9,6 +9,8 @@ interface DragonSwapUIProps {
   swapParams: SwapParams;
   stakeParams: StakeParams;
   liquidityParams: LiquidityParams;
+  onClearParams: () => void;
+  onNavigate: (screen: UIScreen) => void;
 }
 
 const DragonSwapUI = ({
@@ -16,6 +18,8 @@ const DragonSwapUI = ({
   swapParams,
   stakeParams,
   liquidityParams,
+  onClearParams,
+  onNavigate,
 }: DragonSwapUIProps) => {
   return (
     <div className="w-full h-screen bg-[#0a1628] overflow-auto">
@@ -25,19 +29,34 @@ const DragonSwapUI = ({
           <h1 className="text-2xl font-bold text-white">DragonSwap</h1>
 
           <nav className="flex items-center gap-1">
-            <button className="px-4 py-2 text-white hover:bg-[#1a3a5c]/30 rounded-lg transition-colors flex items-center gap-1">
+            <button 
+              onClick={() => onNavigate('swap')}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+                currentScreen === 'swap' ? 'text-white bg-[#1a3a5c]/30' : 'text-[#8b9cb5] hover:text-white hover:bg-[#1a3a5c]/30'
+              }`}
+            >
               <span>Trade</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <button className="px-4 py-2 text-[#8b9cb5] hover:text-white hover:bg-[#1a3a5c]/30 rounded-lg transition-colors flex items-center gap-1">
+            <button 
+              onClick={() => onNavigate('liquidity')}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+                currentScreen === 'liquidity' ? 'text-white bg-[#1a3a5c]/30' : 'text-[#8b9cb5] hover:text-white hover:bg-[#1a3a5c]/30'
+              }`}
+            >
               <span>Explore</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <button className="px-4 py-2 text-[#8b9cb5] hover:text-white hover:bg-[#1a3a5c]/30 rounded-lg transition-colors flex items-center gap-1">
+            <button 
+              onClick={() => onNavigate('stake')}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+                currentScreen === 'stake' ? 'text-white bg-[#1a3a5c]/30' : 'text-[#8b9cb5] hover:text-white hover:bg-[#1a3a5c]/30'
+              }`}
+            >
               <span>Earn</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -69,9 +88,16 @@ const DragonSwapUI = ({
 
       {/* Breadcrumbs */}
       <div className="px-8 py-4 flex items-center gap-2 text-sm">
-        <span className="text-[#8b9cb5] hover:text-white transition-colors cursor-pointer">Home</span>
+        <span 
+          className="text-[#8b9cb5] hover:text-white transition-colors cursor-pointer"
+          onClick={() => onNavigate('home')}
+        >
+          Home
+        </span>
         <span className="text-[#8b9cb5]">/</span>
-        <span className="text-white capitalize">{currentScreen === 'home' ? 'Swap' : currentScreen === 'liquidity' ? 'Pools' : currentScreen}</span>
+        <span className="text-white capitalize">
+          {currentScreen === 'home' ? 'Trade' : currentScreen === 'swap' ? 'Trade' : currentScreen === 'liquidity' ? 'Explore' : currentScreen === 'stake' ? 'Earn' : currentScreen}
+        </span>
       </div>
 
       {/* Main Content */}

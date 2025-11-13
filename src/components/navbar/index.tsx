@@ -25,6 +25,14 @@ const Navbar = () => {
       name: "Transactions",
       url: "/transactions",
     },
+    {
+      name:"SDK-Dashboard",
+      url:'/sdk-dashboard'
+    },
+    {
+      name:"DragonSwapDemo",
+      url:'/demo'
+    }
   ];
   return (
     <div className="h-[64px] font-['Satoshi',sans-serif] border-b-2 border-primary-border px-[24px] pt-[12px] gap-[100px] flex items-center justify-between relative">
@@ -32,7 +40,7 @@ const Navbar = () => {
         <Logo className="h-[40px] w-[40px]" />
         <h1 className="font-bold text-[34px] text-white">Zyra</h1>
       </h1>
-      <ul className="flex items-end h-full gap-4 text-[20px] w-full ">
+      <ul className="flex items-end h-full gap-4 text-[16px] w-full ">
         {routes.map((route, index) => (
           <Link
             key={index}

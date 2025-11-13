@@ -28,6 +28,13 @@ const DragonSwapDemo = () => {
   const [stakeParams, setStakeParams] = useState<StakeParams>({});
   const [liquidityParams, setLiquidityParams] = useState<LiquidityParams>({});
 
+  const handleClearParams = () => {
+    setSwapParams({});
+    setStakeParams({});
+    setLiquidityParams({});
+    setCurrentScreen('home');
+  };
+
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* DragonSwap UI */}
@@ -36,15 +43,12 @@ const DragonSwapDemo = () => {
         swapParams={swapParams}
         stakeParams={stakeParams}
         liquidityParams={liquidityParams}
+        onClearParams={handleClearParams}
+        onNavigate={setCurrentScreen}
       />
 
       {/* Zyra Chat Widget */}
-      <ZyraChatWidget
-        onScreenChange={setCurrentScreen}
-        onSwapParamsChange={setSwapParams}
-        onStakeParamsChange={setStakeParams}
-        onLiquidityParamsChange={setLiquidityParams}
-      />
+      <ZyraChatWidget />
     </div>
   );
 };

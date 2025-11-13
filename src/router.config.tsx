@@ -14,7 +14,8 @@ import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
-import DragonSwapDemo from "./demo/DragonSwapDemo";
+import SDKDashboard from "./pages/SDKDashboard";
+import DragonSwapDemo from "./pages/demo/DragonSwapDemo";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -79,6 +80,10 @@ function RouterConfig() {
         <Route
           path="/transactions"
           element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Transactions}/>} />}
+        />
+        <Route
+          path="/sdk-dashboard"
+          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={SDKDashboard}/>} />}
         />
         <Route
           path="/demo"

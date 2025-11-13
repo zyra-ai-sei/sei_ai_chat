@@ -1,26 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { UIScreen, SwapParams, StakeParams, LiquidityParams } from '../DragonSwapDemo';
 import avatarImg from '@/assets/home/avatar.png';
-
-interface ZyraChatWidgetProps {
-  onScreenChange: (screen: UIScreen) => void;
-  onSwapParamsChange: (params: SwapParams) => void;
-  onStakeParamsChange: (params: StakeParams) => void;
-  onLiquidityParamsChange: (params: LiquidityParams) => void;
-}
 
 interface Message {
   type: 'user' | 'ai';
   content: string;
 }
 
-const ZyraChatWidget = ({
-  onScreenChange,
-  onSwapParamsChange,
-  onStakeParamsChange,
-  onLiquidityParamsChange,
-}: ZyraChatWidgetProps) => {
+const ZyraChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -32,7 +19,7 @@ const ZyraChatWidget = ({
     // Swap command - handles multiple patterns:
     // "Swap 50 SEI for USDC", "Swap SEI with USDC", "Swap 100 USDC to DAI", "Swap DRG"
     if (lowerMessage.includes('swap')) {
-      const params: SwapParams = {};
+      const params: any = {};
 
       // Pattern 1: "Swap X with Y" or "Swap X for Y" or "Swap X to Y" (with optional amount)
       const swapPattern1 = message.match(/swap\s+(\d+(?:\.\d+)?)?\s*(\w+)\s+(?:with|for|to)\s+(\w+)/i);
@@ -57,9 +44,6 @@ const ZyraChatWidget = ({
         params.fromToken = swapPattern3[1].toUpperCase();
       }
 
-      onSwapParamsChange(params);
-      onScreenChange('swap');
-
       return `Opening Swap interface${params.amount ? ` to swap ${params.amount}` : ''}${params.fromToken ? ` ${params.fromToken}` : ''}${params.toToken ? ` for ${params.toToken}` : ''}. Please review and confirm the transaction.`;
     }
 
@@ -67,16 +51,13 @@ const ZyraChatWidget = ({
     if (lowerMessage.includes('stake')) {
       const amountMatch = message.match(/(\d+(?:\.\d+)?)\s*(\w+)/i);
 
-      const params: StakeParams = {};
+      const params: any = {};
       if (amountMatch) {
         params.amount = amountMatch[1];
         params.token = amountMatch[2].toUpperCase();
       } else if (lowerMessage.includes('drg')) {
         params.token = 'DRG';
       }
-
-      onStakeParamsChange(params);
-      onScreenChange('stake');
 
       return `Opening Staking interface${params.token ? ` for ${params.token}` : ''}. You can stake your tokens to earn rewards.`;
     }
@@ -85,14 +66,11 @@ const ZyraChatWidget = ({
     if (lowerMessage.includes('liquidity') || lowerMessage.includes('add liquidity')) {
       const poolMatch = message.match(/(\w+)[\/-](\w+)/i);
 
-      const params: LiquidityParams = {};
+      const params: any = {};
       if (poolMatch) {
         params.tokenA = poolMatch[1].toUpperCase();
         params.tokenB = poolMatch[2].toUpperCase();
       }
-
-      onLiquidityParamsChange(params);
-      onScreenChange('liquidity');
 
       return `Opening Add Liquidity interface${params.tokenA && params.tokenB ? ` for ${params.tokenA}/${params.tokenB} pool` : ''}. You can add liquidity to earn trading fees.`;
     }
