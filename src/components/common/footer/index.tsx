@@ -1,4 +1,4 @@
-import Icon from "@/assets/common/icon.svg";
+import Icon from "@/assets/icon.svg";
 import Github from "@/assets/footer/github.svg?react";
 import Twitter from "@/assets/footer/twitter.svg?react";
 import Discord from "@/assets/footer/discord.svg?react";
@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="flex flex-col gap-[12px] items-start justify-end w-full">
             <div className="flex gap-[8px] items-center">
               <div className="relative rounded-[8px] w-[32px] h-[32px]">
-                <img src={Icon} className="absolute left-[7px] top-[6px] w-[22px] h-[20px]" />
+                <img src={Icon} className="absolute left-[3px] top-[0px] w-[32px] h-[32px]" />
               </div>
               <p className="font-['Satoshi',sans-serif] font-black text-[27px] leading-normal text-white text-center whitespace-pre">
                 Zyra
@@ -64,10 +64,10 @@ const Footer = () => {
               Product
             </p>
             <div className="flex flex-col font-['Figtree',sans-serif] font-normal gap-[8px] items-start text-[16px] leading-[24px] text-[#98A2B3] w-full">
-              <a href="#features" className="hover:text-white transition-colors w-full">
+              <a href="#features" className="w-full transition-colors hover:text-white">
                 Features
               </a>
-              <a href="#timeline" className="hover:text-white transition-colors w-full">
+              <a href="#timeline" className="w-full transition-colors hover:text-white">
                 Timeline
               </a>
             </div>
@@ -79,10 +79,10 @@ const Footer = () => {
               Company
             </p>
             <div className="flex flex-col font-['Figtree',sans-serif] font-normal gap-[8px] items-start text-[16px] leading-[24px] text-[#98A2B3] w-full">
-              <a href="#about" className="hover:text-white transition-colors w-full">
+              <a href="#about" className="w-full transition-colors hover:text-white">
                 About
               </a>
-              <a href="#" className="hover:text-white transition-colors w-full">
+              <a href="#" className="w-full transition-colors hover:text-white">
                 Blog
               </a>
             </div>

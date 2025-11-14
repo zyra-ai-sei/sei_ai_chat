@@ -1,4 +1,4 @@
-import ChatIcon from "@/assets/common/icon.svg?react";
+import ChatIcon from "@/assets/icon.svg?react";
 const suggestions = [
   "gm, how can I help you?",
   "Send 15 SEI to 0x0000000000000000000",
@@ -9,8 +9,8 @@ const suggestions = [
 const PromptSuggestion = () => {
   return (
     <div className="flex flex-col justify-center h-full gap-3 p-3">
-      <div className="w-[60px] h-[60px] rounded-full bg-[#1E293B] flex items-center justify-center">
-        <ChatIcon className="w-[28px] h-[28px] " />
+      <div className="w-[60px] h-[60px] rounded-full flex items-center justify-center">
+        <ChatIcon className="w-full h-full" />
       </div>{" "}
       <div className="flex flex-col gap-3">
         {suggestions.map((suggestion, index) => (

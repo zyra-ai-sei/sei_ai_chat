@@ -1,4 +1,4 @@
-import Logo from "@/assets/header/logo.svg?react";
+import Logo from "@/assets/icon.svg?react";
 import Settings from "@/assets/header/settings.svg?react";
 import Wallet from "@/assets/header/wallet.svg?react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
