@@ -11,7 +11,6 @@ import {
 } from "@/redux/chatData/action";
 import { Address } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
-import TransactionStatus from "../../status/TransactionStatus";
 import { headerWalletAddressShrinker } from "@/utility/walletAddressShrinker";
 import TickIcon from "@/assets/popup/Tick.svg?react";
 import ErrorIcon from "@/assets/popup/failed.svg?react";
@@ -25,11 +24,13 @@ const TransactionForm = ({
   txnIndex,
   chatIndex,
   isExecuting,
+  hideExecuteButton = false,
 }: {
   txn: ToolOutput;
   txnIndex?: number;
   chatIndex: number;
   isExecuting?: boolean;
+  hideExecuteButton?: boolean;
 }) => {
   const { address } = useAccount();
   const dispatch = useAppDispatch();
@@ -267,11 +268,8 @@ const TransactionForm = ({
 
   return (
     <div>
-      <div className="flex items-center justify-between ">
-        <h1 className="font-semibold">Unsigned Transaction</h1>
-        <TransactionStatus status={txn?.status || StatusEnum.PENDING} />
-      </div>
-      <div className="flex flex-wrap ">
+      {/* Remove duplicate header and status - now handled by parent TransactionCard */}
+      <div className="flex flex-wrap">
         <TextInput
           disabled={true}
           title="From"
@@ -317,8 +315,8 @@ const TransactionForm = ({
           />
         )}
         {txn?.transaction?.args && txn.transaction?.args.length > 0 && (
-          <div className="w-full p-2 bg-black/30">
-            <h1 className="font-semibold text-gray-300">Arguments</h1>
+          <div className="w-full p-3 border rounded-lg bg-black/20 border-white/10">
+            <h1 className="mb-2 text-sm font-semibold text-white/80">Arguments</h1>
             <div className="flex flex-wrap w-full">
               {txn?.transaction?.abi
                 ?.find(
@@ -388,7 +386,7 @@ const TransactionForm = ({
         )}
       </div>
       <div className="flex justify-end">
-        {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+        {!hideExecuteButton && (txn?.status === StatusEnum.PENDING || !txn?.status) &&
           !isExecuting && (
             <button
               onClick={handleSubmission}
@@ -397,40 +395,40 @@ const TransactionForm = ({
               Execute Transaction
             </button>
           )}
-        {isExecuting && (
+        {!hideExecuteButton && isExecuting && (
           <div className="px-3 py-2 text-white bg-blue-500 rounded-lg">
             Executing in queue...
           </div>
         )}
         {txn?.status === StatusEnum.SUCCESS && (
-          <div className="flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md bg-gradient-to-r from-lime-500/20 to-green-400/20">
+          <div className="flex items-center justify-between w-full gap-3 px-4 py-3 border rounded-lg border-green-500/30 bg-green-500/10">
             <div className="flex items-center gap-2">
-              <TickIcon className="p-1 bg-green-800 rounded-full text-[24px]" />
-              <h1 className="text-green-700">Transaction Successfull</h1>
+              <TickIcon className="p-1 bg-green-600 rounded-full text-[20px]" />
+              <h1 className="text-sm font-medium text-green-400">Transaction Successful</h1>
             </div>
             <a
               href={`https://seitrace.com/tx/${txn?.txHash}`}
               target="_blank"
-              className="flex items-center gap-2 cursor-pointer text-green-200/70"
+              className="flex items-center gap-2 transition-colors cursor-pointer text-green-300/80 hover:text-green-300"
             >
-              {headerWalletAddressShrinker(txn?.txHash || "")}
-              <ExternalIcon />
+              <span className="text-xs">{headerWalletAddressShrinker(txn?.txHash || "")}</span>
+              <ExternalIcon className="w-4 h-4" />
             </a>
           </div>
         )}
         {txn?.status === StatusEnum.ERROR && (
-          <div className="flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md bg-gradient-to-r from-red-500/20 to-red-400/20">
+          <div className="flex items-center justify-between w-full gap-3 px-4 py-3 border rounded-lg border-red-500/30 bg-red-500/10">
             <div className="flex items-center gap-2">
-              <ErrorIcon className="p-1 bg-red-800 rounded-full text-[24px]" />
-              <h1 className="text-red-700">Transaction Failed</h1>
+              <ErrorIcon className="p-1 bg-red-600 rounded-full text-[20px]" />
+              <h1 className="text-sm font-medium text-red-400">Transaction Failed</h1>
             </div>
             <a
               href={`https://seitrace.com/tx/${txn?.txHash?.toString()}`}
               target="_blank"
-              className="flex items-center gap-2 cursor-pointer text-red-200/70"
+              className="flex items-center gap-2 transition-colors cursor-pointer text-red-300/80 hover:text-red-300"
             >
-              {headerWalletAddressShrinker(txn?.txHash || "")}
-              <ExternalIcon />
+              <span className="text-xs">{headerWalletAddressShrinker(txn?.txHash || "")}</span>
+              <ExternalIcon className="w-4 h-4" />
             </a>
           </div>
         )}
