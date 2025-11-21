@@ -1,18 +1,36 @@
 import { StatusEnum } from "@/enum/status.enum";
 
 const TransactionStatus = ({ status }: { status: StatusEnum }) => {
-  const statusProps = {
-    pending: {
+  const statusProps: Record<StatusEnum, { bgColor: string; textColor: string; label?: string }> = {
+    [StatusEnum.PENDING]: {
       bgColor: "rgba(250, 201, 7, 0.1)",
       textColor: "#FAC907",
+      label: "Pending",
     },
-    success: {
+    [StatusEnum.SUCCESS]: {
       bgColor: "rgba(35, 196, 59, 0.1)",
       textColor: "#23C43B",
+      label: "Success",
     },
-    error: {
+    [StatusEnum.ERROR]: {
       bgColor: "rgba(245, 73, 39, 0.1)",
       textColor: "#F54927",
+      label: "Failed",
+    },
+    [StatusEnum.SIMULATING]: {
+      bgColor: "rgba(236, 201, 92, 0.2)",
+      textColor: "#EAC33D",
+      label: "Simulating",
+    },
+    [StatusEnum.SIMULATION_SUCCESS]: {
+      bgColor: "rgba(66, 153, 225, 0.2)",
+      textColor: "#7CABF9",
+      label: "Simulation Passed",
+    },
+    [StatusEnum.SIMULATION_FAILED]: {
+      bgColor: "rgba(253, 186, 116, 0.2)",
+      textColor: "#F97316",
+      label: "Simulation Failed",
     },
   };
   return (
@@ -23,7 +41,7 @@ const TransactionStatus = ({ status }: { status: StatusEnum }) => {
         color: statusProps[status].textColor,
       }}
     >
-      {status.toLocaleUpperCase()}
+      {statusProps[status].label || status.toLocaleUpperCase()}
     </h1>
   );
 };

@@ -3,6 +3,7 @@ import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSendTransaction, useWriteContract, useChainId } from "wagmi";
 import ExecuteAllButton from "./ExecuteAllButton";
+import SimulateAllButton from "./SimulateAllButton";
 import TransactionCard from "./TransactionCard";
 import { Address } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
@@ -38,6 +39,16 @@ const TransactionCanvas = ({
     hasErrors: false,
     isCompleted: false,
   };
+  
+  // Simulation state
+  const [simulationState, setSimulationState] = useState({
+    isSimulating: false,
+    currentIndex: null as number | null,
+    completedCount: 0,
+    hasErrors: false,
+    isCompleted: false,
+  });
+  
   const [orderedTxns, setOrderedTxns] = useState<ToolOutput[]>(txns || []);
   const [expandedTxns, setExpandedTxns] = useState<Set<number>>(new Set());
 
@@ -366,6 +377,207 @@ const TransactionCanvas = ({
     }
   };
 
+  // Simulate all transactions sequentially
+  const simulateAllTransactions = async () => {
+    // Check if user is on wrong network
+    if (isWrongNetwork) {
+      dispatch(
+        setGlobalData({
+          ...globalData,
+          isNetworkSwitchWarningTriggered: true,
+        })
+      );
+      return;
+    }
+
+    const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
+    if (currentTxns.length === 0) return;
+
+    setSimulationState({
+      isSimulating: true,
+      currentIndex: 0,
+      completedCount: 0,
+      hasErrors: false,
+      isCompleted: false,
+    });
+
+    let completedCount = 0;
+
+    for (let i = 0; i < currentTxns.length; i++) {
+      const txn = currentTxns[i];
+
+      // Mark as simulating
+      dispatch(
+        updateTransactionStatus({
+          chatIndex,
+          toolOutputIndex: i,
+          status: StatusEnum.SIMULATING,
+        })
+      );
+
+      setSimulationState((prev) => ({
+        ...prev,
+        currentIndex: i,
+      }));
+
+      try {
+        // Simulate the transaction
+        const simulationResult = await simulateTransaction(txn);
+
+        if (simulationResult.success) {
+          completedCount++;
+          dispatch(
+            updateTransactionStatus({
+              chatIndex,
+              toolOutputIndex: i,
+              status: StatusEnum.SIMULATION_SUCCESS,
+            })
+          );
+        } else {
+          dispatch(
+            updateTransactionStatus({
+              chatIndex,
+              toolOutputIndex: i,
+              status: StatusEnum.SIMULATION_FAILED,
+            })
+          );
+          // Stop on first failure
+          setSimulationState({
+            isSimulating: false,
+            currentIndex: null,
+            completedCount,
+            hasErrors: true,
+            isCompleted: true,
+          });
+          return;
+        }
+
+        // Wait a bit between simulations
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Failed to simulate transaction ${i}:`, error);
+        dispatch(
+          updateTransactionStatus({
+            chatIndex,
+            toolOutputIndex: i,
+            status: StatusEnum.SIMULATION_FAILED,
+          })
+        );
+        setSimulationState({
+          isSimulating: false,
+          currentIndex: null,
+          completedCount,
+          hasErrors: true,
+          isCompleted: true,
+        });
+        return;
+      }
+    }
+
+    setSimulationState({
+      isSimulating: false,
+      currentIndex: null,
+      completedCount,
+      hasErrors: false,
+      isCompleted: true,
+    });
+  };
+
+  // Simulate individual transaction
+  const simulateTransaction = async (txn: ToolOutput): Promise<{ success: boolean; error?: string }> => {
+    return new Promise((resolve) => {
+      try {
+        if (txn?.transaction?.abi) {
+          // Use wagmi's simulateContract internally
+          fetch("/api/simulate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              abi: txn.transaction.abi,
+              address: txn.transaction.address,
+              functionName: txn.transaction.functionName,
+              args: txn.transaction.args || [],
+              chainId,
+            }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                resolve({ success: true });
+              } else {
+                resolve({ success: false, error: data.error });
+              }
+            })
+            .catch((error) => {
+              resolve({ success: false, error: error.message });
+            });
+        } else {
+          // For simple transfers, just validate the transaction structure
+          if (txn.transaction?.to && txn.transaction?.value) {
+            resolve({ success: true });
+          } else {
+            resolve({ success: false, error: "Invalid transaction structure" });
+          }
+        }
+      } catch (error: any) {
+        resolve({ success: false, error: error.message });
+      }
+    });
+  };
+
+  const handleSimulateTransaction = async (txn: ToolOutput, txnIndex: number) => {
+    // Check if user is on wrong network
+    if (isWrongNetwork) {
+      dispatch(
+        setGlobalData({
+          ...globalData,
+          isNetworkSwitchWarningTriggered: true,
+        })
+      );
+      return;
+    }
+
+    // Mark as simulating
+    dispatch(
+      updateTransactionStatus({
+        chatIndex,
+        toolOutputIndex: txnIndex,
+        status: StatusEnum.SIMULATING,
+      })
+    );
+
+    try {
+      const result = await simulateTransaction(txn);
+      
+      if (result.success) {
+        dispatch(
+          updateTransactionStatus({
+            chatIndex,
+            toolOutputIndex: txnIndex,
+            status: StatusEnum.SIMULATION_SUCCESS,
+          })
+        );
+      } else {
+        dispatch(
+          updateTransactionStatus({
+            chatIndex,
+            toolOutputIndex: txnIndex,
+            status: StatusEnum.SIMULATION_FAILED,
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Simulation failed:", error);
+      dispatch(
+        updateTransactionStatus({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          status: StatusEnum.SIMULATION_FAILED,
+        })
+      );
+    }
+  };
+
   return (
     <GradientBorder
       borderWidth={0}
@@ -377,16 +589,23 @@ const TransactionCanvas = ({
       innerClassName="p-3 flex flex-col gap-3 w-full bg-[#17161B] p-[20px] rounded-[16px]"
     >
       <div className="">
-        {/* Execute All Button */}
+        {/* Action Buttons */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">
             Transaction Queue ({orderedTxns.length})
           </h2>
-          <ExecuteAllButton
-            executionState={executionState}
-            orderedTxns={orderedTxns}
-            onExecuteAll={executeAllTransactions}
-          />
+          <div className="flex gap-3">
+            <SimulateAllButton
+              simulationState={simulationState}
+              orderedTxns={orderedTxns}
+              onSimulateAll={simulateAllTransactions}
+            />
+            <ExecuteAllButton
+              executionState={executionState}
+              orderedTxns={orderedTxns}
+              onExecuteAll={executeAllTransactions}
+            />
+          </div>
         </div>
 
         <DragDropContext onDragEnd={onDragEnd}>
@@ -402,6 +621,9 @@ const TransactionCanvas = ({
                   const isCurrentlyExecuting =
                     executionState.isExecuting &&
                     executionState.currentIndex === index;
+                  const isCurrentlySimulating =
+                    simulationState.isSimulating &&
+                    simulationState.currentIndex === index;
 
                   return (
                     <Draggable
@@ -421,9 +643,13 @@ const TransactionCanvas = ({
                             chatIndex={chatIndex}
                             isExpanded={isExpanded}
                             isCurrentlyExecuting={isCurrentlyExecuting}
+                            isCurrentlySimulating={isCurrentlySimulating}
                             onToggleExpanded={() => toggleExpanded(index)}
                             onExecuteTransaction={() =>
                               handleExecuteTransaction(txn)
+                            }
+                            onSimulateTransaction={() =>
+                              handleSimulateTransaction(txn, index)
                             }
                           />
                         </div>

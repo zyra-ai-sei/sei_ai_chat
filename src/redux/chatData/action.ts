@@ -64,6 +64,7 @@ export const streamChatPrompt = createAsyncThunk<
           if (!event.data) return;
           try {
             const payload = JSON.parse(event.data);
+            console.log('ultimate',payload)
             if (payload.type === "token") {
               dispatch(
                 updateResponse({
@@ -73,21 +74,22 @@ export const streamChatPrompt = createAsyncThunk<
               );
             } else if (
               payload.type === "tool" &&
-              payload.tool_output != undefined &&
-              payload.tool_output.transaction != undefined
+              payload.tool_output != undefined 
             ) {
-              console.log("riri", payload?.tool_output);
-              const sanitizedToolOutput = JSON.parse(
-                JSON.stringify(payload?.tool_output, (_, value) =>
-                  typeof value === "bigint" ? value.toString() : value
-                )
-              );
-              dispatch(
-                updateResponse({
-                  index: chatIndex,
-                  response: { tool_outputs: [sanitizedToolOutput] },
-                })
-              );
+              payload.tool_output.map((tool:any)=>{
+                
+                const sanitizedToolOutput = JSON.parse(
+                  JSON.stringify(tool, (_, value) =>
+                    typeof value === "bigint" ? value.toString() : value
+                  )
+                );
+                dispatch(
+                  updateResponse({
+                    index: chatIndex,
+                    response: { tool_outputs: [sanitizedToolOutput] },
+                  })
+                );
+              })
             }
           } catch (err) {
             console.error("Failed to parse SSE payload", err);
@@ -205,7 +207,7 @@ export const getChatHistory = createAsyncThunk<
               const existingToolOutputs = updatedResponse.tool_outputs || [];
               updatedResponse.tool_outputs = [
                 ...existingToolOutputs,
-                formattedMessage.tool_output,
+                ...formattedMessage.tool_output,
               ];
               updatedResponse.chat =
                 (updatedResponse.chat || " ") + formattedMessage.content;

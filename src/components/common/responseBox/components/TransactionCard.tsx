@@ -1,7 +1,7 @@
 import React from "react";
 import { ToolOutput } from "@/redux/chatData/reducer";
 import { StatusEnum } from "@/enum/status.enum";
-import { ChevronDown, ChevronUp, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Play, Zap } from "lucide-react";
 import TransactionForm from "./TransactionForm";
 import { useAppDispatch } from "@/hooks/useRedux";
 import { updateTransactionData } from "@/redux/chatData/action";
@@ -12,8 +12,10 @@ interface TransactionCardProps {
   chatIndex: number;
   isExpanded: boolean;
   isCurrentlyExecuting: boolean;
+  isCurrentlySimulating: boolean;
   onToggleExpanded: () => void;
   onExecuteTransaction: () => void;
+  onSimulateTransaction: () => void;
 }
 
 const TransactionCard: React.FC<TransactionCardProps> = ({
@@ -22,8 +24,10 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   chatIndex,
   isExpanded,
   isCurrentlyExecuting,
+  isCurrentlySimulating,
   onToggleExpanded,
   onExecuteTransaction,
+  onSimulateTransaction,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -106,6 +110,24 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           bg: "bg-yellow-500/10",
           dot: "bg-yellow-500",
         };
+      case StatusEnum.SIMULATING:
+        return {
+          border: "border-yellow-500",
+          bg: "bg-yellow-500/10",
+          dot: "bg-yellow-500 animate-pulse",
+        };
+      case StatusEnum.SIMULATION_SUCCESS:
+        return {
+          border: "border-blue-500",
+          bg: "bg-blue-500/10",
+          dot: "bg-blue-500",
+        };
+      case StatusEnum.SIMULATION_FAILED:
+        return {
+          border: "border-orange-500",
+          bg: "bg-orange-500/10",
+          dot: "bg-orange-500",
+        };
       default:
         return { border: "", bg: "", dot: "bg-purple-500" };
     }
@@ -119,6 +141,12 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         return "Failed";
       case StatusEnum.PENDING:
         return "Pending";
+      case StatusEnum.SIMULATING:
+        return "Simulating...";
+      case StatusEnum.SIMULATION_SUCCESS:
+        return "Simulation Passed";
+      case StatusEnum.SIMULATION_FAILED:
+        return "Simulation Failed";
       default:
         return "Pending";
     }
@@ -196,7 +224,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-6">
+      <div className="flex gap-3">
         {/* Expand/Collapse Settings Button */}
         <button
           onClick={onToggleExpanded}
@@ -215,17 +243,69 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           )}
         </button>
 
-        {/* Execute Transaction Button */}
-        {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+        {/* Simulate Transaction Button - Show simulation passed state */}
+        {txn?.status === StatusEnum.SIMULATION_SUCCESS &&
+          !isCurrentlySimulating &&
           !isCurrentlyExecuting && (
+            <button
+              onClick={onSimulateTransaction}
+              disabled
+              className="flex items-center justify-center flex-1 gap-2 px-6 py-3 text-sm font-semibold text-white border border-blue-500 rounded-full cursor-not-allowed bg-blue-500/20"
+            >
+              <Zap size={16} fill="white" />
+              <span>Simulation Passed</span>
+            </button>
+          )}
+
+        {/* Simulate Transaction Button - Show simulation failed state */}
+        {txn?.status === StatusEnum.SIMULATION_FAILED &&
+          !isCurrentlySimulating &&
+          !isCurrentlyExecuting && (
+            <button
+              onClick={onSimulateTransaction}
+              className="flex items-center justify-center flex-1 gap-2 px-6 py-3 text-sm font-semibold text-white transition-opacity border border-orange-500 rounded-full hover:opacity-90 bg-orange-500/20"
+            >
+              <Zap size={16} fill="white" />
+              <span>Simulation Failed</span>
+            </button>
+          )}
+
+        {/* Simulate Transaction Button - Default state */}
+        {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+          !isCurrentlySimulating &&
+          !isCurrentlyExecuting && (
+            <button
+              onClick={onSimulateTransaction}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-white rounded-full bg-gradient-to-r from-[#87872b] to-[#d4af37] text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-[0px_0px_6px_0px_inset_rgba(255,255,255,0.4),0px_0px_18px_0px_inset_rgba(255,255,255,0.16)]"
+            >
+              <Zap size={16} fill="white" />
+              <span>Simulate</span>
+            </button>
+          )}
+
+        {/* Execute Transaction Button - Always show except when executing/simulating or already completed */}
+        {(txn?.status === StatusEnum.PENDING || 
+          txn?.status === StatusEnum.SIMULATION_SUCCESS || 
+          txn?.status === StatusEnum.SIMULATION_FAILED ||
+          !txn?.status) &&
+          !isCurrentlyExecuting &&
+          !isCurrentlySimulating && (
             <button
               onClick={onExecuteTransaction}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-white rounded-full bg-gradient-to-r from-[#204887] to-[#3b82f6] text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-[0px_0px_6px_0px_inset_rgba(255,255,255,0.4),0px_0px_18px_0px_inset_rgba(255,255,255,0.16)]"
             >
               <Play size={16} fill="white" />
-              <span>Execute Transaction</span>
+              <span>Execute</span>
             </button>
           )}
+
+        {/* Show simulating state */}
+        {isCurrentlySimulating && (
+          <div className="flex items-center justify-center flex-1 gap-2 px-6 py-3 text-sm font-semibold text-yellow-300 border border-yellow-500 rounded-full bg-yellow-500/20">
+            <div className="w-4 h-4 border-2 border-yellow-300 rounded-full animate-spin border-t-transparent" />
+            <span>Simulating...</span>
+          </div>
+        )}
 
         {/* Show executing state */}
         {isCurrentlyExecuting && (
