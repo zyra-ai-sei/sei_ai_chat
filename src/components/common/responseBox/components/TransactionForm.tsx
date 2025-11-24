@@ -18,6 +18,7 @@ import ExternalIcon from "@/assets/button/external.svg?react";
 import GetInputComponent from "./GetInputComponent";
 import { addTxn } from "@/redux/transactionData/action";
 import { setGlobalData } from "@/redux/globalData/action";
+import { Play } from "lucide-react";
 
 const TransactionForm = ({
   txn,
@@ -252,187 +253,221 @@ const TransactionForm = ({
     }
   };
 
-  const visibleFields = [
-    { type: "from", visible: true },
-    { type: "to", visible: !!txn?.transaction?.to },
-    { type: "address", visible: !!txn?.transaction?.address },
-    { type: "function", visible: !!txn?.transaction?.functionName },
-    { type: "value", visible: !!txn?.transaction?.value },
-  ].filter((field) => field.visible);
-
-  const totalFields = visibleFields.length;
-
-  console.log(
-    `Transaction ${txnIndex}: status=${txn?.status}, isExecuting=${isExecuting}, txHash=${txn?.txHash}`
+  const showArgs = Boolean(txn?.transaction?.args && txn.transaction?.args.length > 0);
+  const targetAbiEntry = txn?.transaction?.abi?.find(
+    (obj: any) =>
+      obj?.name === txn?.transaction?.functionName && obj?.type === "function"
   );
+  const hasComponentArgs = Boolean(
+    targetAbiEntry?.inputs?.some((obj: any) => "components" in obj)
+  );
+  const rawArgs = Array.isArray(txn?.transaction?.args)
+    ? ([...txn.transaction.args] as any[])
+    : [];
+  const complexArgs = hasComponentArgs && Array.isArray(rawArgs[0]) ? [...rawArgs[0]] : [];
+  const argNames =
+    (txn?.transaction?.abi && txn?.transaction?.functionName
+      ? getArgNames(txn.transaction.abi, txn.transaction.functionName)
+      : []) || [];
+  const explorerUrl = txn?.txHash ? `https://seitrace.com/tx/${txn.txHash}` : undefined;
 
   return (
-    <div>
-      {/* Remove duplicate header and status - now handled by parent TransactionCard */}
-      <div className="flex flex-wrap">
-        <TextInput
-          disabled={true}
-          title="From"
-          val={address || ""}
-          onChange={() => {}}
-          className={`w-full md:${totalFields % 2 === 1 ? "w-full" : "w-[calc(50%-0.5rem)]"}`}
-        />
-        {txn?.transaction?.to && (
-          <GetInputComponent
-            type={txn?.metadata?.types?.to || "address"}
-            title="To"
-            val={txn?.transaction?.to || ""}
-            onChange={handleToChange}
-          />
-        )}
-        {txn?.transaction?.address && (
-          <GetInputComponent
-            disabled={true}
-            type={txn?.metadata?.types?.address || "address"}
-            title="Contract"
-            val={txn?.transaction?.address || ""}
-            onChange={handleAddressChange}
-            className="w-full md:w-[calc(50%-0.5rem)]"
-          />
-        )}
-        {txn?.transaction?.functionName && (
-          <GetInputComponent
-            disabled={true}
-            type="string"
-            title="Function"
-            val={txn?.transaction?.functionName || ""}
-            onChange={handleFunctionNameChange}
-            className="w-full md:w-[calc(50%-0.5rem)]"
-          />
-        )}
-        {txn?.transaction?.value && (
-          <GetInputComponent
-            type="uint256"
-            title="Value"
-            val={txn?.transaction?.value || ""}
-            onChange={handleValueChange}
-            className="w-full md:w-[calc(50%-0.5rem)]"
-          />
-        )}
-        {txn?.transaction?.args && txn.transaction?.args.length > 0 && (
-          <div className="w-full p-3 border rounded-lg bg-black/20 border-white/10">
-            <h1 className="mb-2 text-sm font-semibold text-white/80">Arguments</h1>
-            <div className="flex flex-wrap w-full">
-              {txn?.transaction?.abi
-                ?.find(
-                  (obj: any) =>
-                    obj?.name == txn?.transaction?.functionName &&
-                    obj?.type == "function"
-                )
-                .inputs.find((obj: any) => "components" in obj)?.components ? (
-                <>
-                  {txn.transaction?.args?.[0].map((_: any, index: any) => {
-                    const argType =
-                      txn?.metadata?.types?.args?.[index] || "default";
-                    const argName = getArgNames(
-                      txn?.transaction?.abi,
-                      txn?.transaction?.functionName
-                    )[index];
-                    return (
-                      <div
-                        className="w-full md:w-[calc(50%-0.5rem)]"
-                        key={`complex-arg-${index}`}
-                      >
-                        <GetInputComponent
-                          disabled={false}
-                          type={argType}
-                          title={argName}
-                          val={txn?.transaction?.args?.[0]?.[index] || ""}
-                          onChange={(value: string) =>
-                            handleArgChange(index, value)
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                    );
-                  })}
-                </>
-              ) : (
-                <>
-                  {txn.transaction?.args.map((_, index) => {
-                    const argType =
-                      txn?.metadata?.types?.args[index] || "default";
-                    const argName = getArgNames(
-                      txn?.transaction?.abi,
-                      txn?.transaction?.functionName
-                    )[index];
-                    return (
-                      <div
-                        className="w-full md:w-[calc(50%-0.5rem)]"
-                        key={`arg-${index}`}
-                      >
-                        <GetInputComponent
-                          disabled={false}
-                          type={argType}
-                          title={argName}
-                          val={txn?.transaction?.args?.[index] || ""}
-                          onChange={(value: string) =>
-                            handleArgChange(index, value)
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="p-4 border rounded-2xl border-white/10 bg-white/5 backdrop-blur">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Participants</p>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/50">
+              Identity
+            </span>
           </div>
-        )}
+          <div className="grid gap-3 mt-3 md:grid-cols-2">
+            <div className="min-w-0 col-span-full">
+              <TextInput
+                disabled={true}
+                title="From"
+                val={address || ""}
+                onChange={() => {}}
+                className="w-full min-w-0 p-0"
+              />
+            </div>
+            {txn?.transaction?.to && (
+              <div className="min-w-0">
+                <GetInputComponent
+                  type={txn?.metadata?.types?.to || "address"}
+                  title="To"
+                  val={txn?.transaction?.to || ""}
+                  onChange={handleToChange}
+                  className="w-full min-w-0 p-0"
+                />
+              </div>
+            )}
+            {txn?.transaction?.address && (
+              <div className="min-w-0 col-span-full">
+                <GetInputComponent
+                  disabled={true}
+                  type={txn?.metadata?.types?.address || "address"}
+                  title="Contract"
+                  val={txn?.transaction?.address || ""}
+                  onChange={handleAddressChange}
+                  className="w-full min-w-0 p-0"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0A0D19] via-[#0F1322] to-[#06080F] p-4 shadow-[0_20px_60px_rgba(4,6,14,0.8)]">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Call Configuration</p>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/50">
+              Parameters
+            </span>
+          </div>
+          <div className="grid gap-3 mt-3 md:grid-cols-2">
+            {txn?.transaction?.functionName && (
+              <div className="min-w-0">
+                <GetInputComponent
+                  disabled={true}
+                  type="string"
+                  title="Function"
+                  val={txn?.transaction?.functionName || ""}
+                  onChange={handleFunctionNameChange}
+                  className="w-full min-w-0 p-0"
+                />
+              </div>
+            )}
+            {txn?.transaction?.value && (
+              <div className="min-w-0">
+                <GetInputComponent
+                  type="uint256"
+                  title="Value"
+                  val={txn?.transaction?.value || ""}
+                  onChange={handleValueChange}
+                  className="w-full min-w-0 p-0"
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="flex justify-end">
-        {!hideExecuteButton && (txn?.status === StatusEnum.PENDING || !txn?.status) &&
-          !isExecuting && (
-            <button
-              onClick={handleSubmission}
-              className="px-3 py-2 bg-purple-500 rounded-lg"
+
+      {showArgs && (
+        <div className="p-4 border rounded-2xl border-white/10 bg-white/5">
+          <div className="flex flex-col gap-1">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Arguments</p>
+            <span className="text-sm text-white/70">
+              {txn?.transaction?.args?.length || 0} parameter
+              {txn?.transaction?.args?.length === 1 ? "" : "s"} detected
+            </span>
+          </div>
+          <div className="grid gap-3 mt-4 md:grid-cols-2">
+            {hasComponentArgs
+              ? complexArgs.map((_, index) => {
+                  const argType = txn?.metadata?.types?.args?.[index] || "default";
+                  const argName = argNames[index] || `Arg ${index + 1}`;
+                  const argValue = complexArgs[index] ?? "";
+                  return (
+                    <GetInputComponent
+                      key={`complex-arg-${index}`}
+                      disabled={false}
+                      type={argType}
+                      title={argName}
+                      val={argValue}
+                      onChange={(value: string) => handleArgChange(index, value)}
+                      className="w-full min-w-0 p-0"
+                    />
+                  );
+                })
+              : rawArgs.map((_, index) => {
+                  const argType = txn?.metadata?.types?.args?.[index] || "default";
+                  const argName = argNames[index] || `Arg ${index + 1}`;
+                  const argValue = rawArgs[index] ?? "";
+                  return (
+                    <GetInputComponent
+                      key={`arg-${index}`}
+                      disabled={false}
+                      type={argType}
+                      title={argName}
+                      val={argValue}
+                      onChange={(value: string) => handleArgChange(index, value)}
+                      className="w-full min-w-0 p-0"
+                    />
+                  );
+                })}
+          </div>
+        </div>
+      )}
+
+      {!hideExecuteButton && (
+        <div className="p-4 border rounded-2xl border-white/10 bg-gradient-to-r from-white/5 via-transparent to-white/5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/50">Execution</p>
+              <p className="mt-1 text-sm text-white/70">
+                {isWrongNetwork ? "Switch to the Sei base chain to continue" : "Validate the call data above before executing on-chain."}
+              </p>
+            </div>
+            {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+              !isExecuting &&
+              !isWrongNetwork && (
+              <button
+                onClick={handleSubmission}
+                className="flex items-center gap-2 rounded-2xl border border-white/10 bg-gradient-to-r from-[#1F8BFF] to-[#8859FF] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_25px_rgba(136,89,255,0.35)] transition hover:opacity-95"
+              >
+                <Play size={16} fill="white" />
+                Execute Transaction
+              </button>
+            )}
+            {(isExecuting || isWrongNetwork) && (
+              <div className="flex items-center gap-2 px-6 py-3 text-sm font-semibold border rounded-2xl border-white/10 bg-white/5 text-white/70">
+                <div className="w-4 h-4 border-2 rounded-full animate-spin border-white/40 border-t-transparent" />
+                {isWrongNetwork ? "Awaiting network switch" : "Executing in queue..."}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {txn?.status === StatusEnum.SUCCESS && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border rounded-2xl border-emerald-400/50 bg-emerald-500/5">
+          <div className="flex items-center gap-2 text-emerald-200">
+            <TickIcon className="p-1 rounded-full bg-emerald-500/30" />
+            <h1 className="text-sm font-medium">Transaction Successful</h1>
+          </div>
+          {explorerUrl && (
+            <a
+              href={explorerUrl}
+              target="_blank"
+              className="flex items-center gap-2 text-xs transition text-emerald-200/80 hover:text-emerald-100"
+              rel="noreferrer"
             >
-              Execute Transaction
-            </button>
+              <span>{headerWalletAddressShrinker(txn?.txHash || "")}</span>
+              <ExternalIcon className="w-4 h-4" />
+            </a>
           )}
-        {!hideExecuteButton && isExecuting && (
-          <div className="px-3 py-2 text-white bg-blue-500 rounded-lg">
-            Executing in queue...
+        </div>
+      )}
+
+      {txn?.status === StatusEnum.ERROR && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border rounded-2xl border-red-400/50 bg-red-500/5">
+          <div className="flex items-center gap-2 text-red-200">
+            <ErrorIcon className="p-1 rounded-full bg-red-500/30" />
+            <h1 className="text-sm font-medium">Transaction Failed</h1>
           </div>
-        )}
-        {txn?.status === StatusEnum.SUCCESS && (
-          <div className="flex items-center justify-between w-full gap-3 px-4 py-3 border rounded-lg border-green-500/30 bg-green-500/10">
-            <div className="flex items-center gap-2">
-              <TickIcon className="p-1 bg-green-600 rounded-full text-[20px]" />
-              <h1 className="text-sm font-medium text-green-400">Transaction Successful</h1>
-            </div>
+          {explorerUrl && (
             <a
-              href={`https://seitrace.com/tx/${txn?.txHash}`}
+              href={explorerUrl}
               target="_blank"
-              className="flex items-center gap-2 transition-colors cursor-pointer text-green-300/80 hover:text-green-300"
+              className="flex items-center gap-2 text-xs transition text-red-200/80 hover:text-red-100"
+              rel="noreferrer"
             >
-              <span className="text-xs">{headerWalletAddressShrinker(txn?.txHash || "")}</span>
+              <span>{headerWalletAddressShrinker(txn?.txHash || "")}</span>
               <ExternalIcon className="w-4 h-4" />
             </a>
-          </div>
-        )}
-        {txn?.status === StatusEnum.ERROR && (
-          <div className="flex items-center justify-between w-full gap-3 px-4 py-3 border rounded-lg border-red-500/30 bg-red-500/10">
-            <div className="flex items-center gap-2">
-              <ErrorIcon className="p-1 bg-red-600 rounded-full text-[20px]" />
-              <h1 className="text-sm font-medium text-red-400">Transaction Failed</h1>
-            </div>
-            <a
-              href={`https://seitrace.com/tx/${txn?.txHash?.toString()}`}
-              target="_blank"
-              className="flex items-center gap-2 transition-colors cursor-pointer text-red-300/80 hover:text-red-300"
-            >
-              <span className="text-xs">{headerWalletAddressShrinker(txn?.txHash || "")}</span>
-              <ExternalIcon className="w-4 h-4" />
-            </a>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -11,6 +11,7 @@ export interface ExecutionState {
 
 export interface ToolOutput {
   id:number;
+  label?: string;
   metadata: any;
   transaction: {
     address?: string;

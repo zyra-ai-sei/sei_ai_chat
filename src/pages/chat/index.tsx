@@ -10,6 +10,7 @@ import {
 import TransactionHistory from "@/components/chat/TransactionHistory";
 import ChatBox from "@/components/chat/chatBox";
 import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
+import { TransactionNavigationProvider } from "@/contexts/TransactionNavigationContext";
 
 function Chat() {
   // Select only token to avoid re-renders when other globalData properties change
@@ -85,31 +86,39 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-
   return (
-    <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
-      <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
-        <div ref={containerRef} className="flex justify-end w-full h-full">
-          <TransactionHistory />
-
-          <div
-            style={{ width: `${chatBoxWidth}%` }}
-            className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"
-          >
-            <TransactionResponseBox />
+    <TransactionNavigationProvider>
+      <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(56, 189, 248, 0.4) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
+          <div ref={containerRef} className="flex justify-end w-full h-full">
+            {/* <TransactionHistory /> */}
+            <div
+              style={{ width: `${chatBoxWidth}%` }}
+              className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"
+            >
+              <TransactionResponseBox />
+            </div>
+            <div
+              onMouseDown={() => setIsDragging(true)}
+              className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group z-40 ${
+                isDragging ? "bg-blue-500" : ""
+              }`}
+            >
+              <div className="absolute inset-y-0 w-4 -left-2" />
+            </div>
+            <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
           </div>
-          <div
-            onMouseDown={() => setIsDragging(true)}
-            className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group ${
-              isDragging ? "bg-blue-500" : ""
-            }`}
-          >
-            <div className="absolute inset-y-0 w-4 -left-2" />
-          </div>
-          <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
         </div>
       </div>
-    </div>
+    </TransactionNavigationProvider>
   );
 }
 

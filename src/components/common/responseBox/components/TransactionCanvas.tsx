@@ -16,7 +16,6 @@ import {
 } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
 import { setGlobalData } from "@/redux/globalData/action";
-import GradientBorder from "../../GradientBorder";
 
 const TransactionCanvas = ({
   txns,
@@ -39,8 +38,7 @@ const TransactionCanvas = ({
     hasErrors: false,
     isCompleted: false,
   };
-  
-  // Simulation state
+
   const [simulationState, setSimulationState] = useState({
     isSimulating: false,
     currentIndex: null as number | null,
@@ -48,7 +46,7 @@ const TransactionCanvas = ({
     hasErrors: false,
     isCompleted: false,
   });
-  
+
   const [orderedTxns, setOrderedTxns] = useState<ToolOutput[]>(txns || []);
   const [expandedTxns, setExpandedTxns] = useState<Set<number>>(new Set());
 
@@ -62,13 +60,11 @@ const TransactionCanvas = ({
     setExpandedTxns(newExpanded);
   };
 
-  // Update orderedTxns when txns prop changes or when Redux store updates
   React.useEffect(() => {
     const latestTxns = chats[chatIndex]?.response?.tool_outputs || txns || [];
     setOrderedTxns(latestTxns);
   }, [txns, chats[chatIndex]?.response?.tool_outputs, chatIndex]);
 
-  // Auto-update execution state based on tool_outputs status
   React.useEffect(() => {
     const toolOutputs = chats[chatIndex]?.response?.tool_outputs;
     if (toolOutputs && toolOutputs.length > 0) {
@@ -86,7 +82,6 @@ const TransactionCanvas = ({
           txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR
       );
 
-      // Only update if all transactions are completed and we're not currently executing
       if (allCompleted && !hasPending && !executionState.isExecuting) {
         dispatch(
           updateExecutionState({
@@ -579,91 +574,80 @@ const TransactionCanvas = ({
   };
 
   return (
-    <GradientBorder
-      borderWidth={0}
-      borderRadius="16px"
-      gradientFrom="#7CABF9"
-      gradientTo="#B37AE8"
-      gradientDirection="to-r"
-      className="flex items-center justify-center p-[1px]"
-      innerClassName="p-3 flex flex-col gap-3 w-full bg-[#17161B] p-[20px] rounded-[16px]"
-    >
-      <div className="">
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            Transaction Queue ({orderedTxns.length})
-          </h2>
-          <div className="flex gap-3">
-            <SimulateAllButton
-              simulationState={simulationState}
-              orderedTxns={orderedTxns}
-              onSimulateAll={simulateAllTransactions}
-            />
-            <ExecuteAllButton
-              executionState={executionState}
-              orderedTxns={orderedTxns}
-              onExecuteAll={executeAllTransactions}
-            />
-          </div>
+    <div className="rounded-3xl border border-white/10 p-5 shadow-[0_15px_35px_rgba(2,6,23,0.65)]">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xs uppercase tracking-[0.2em] font-semibold text-white/60">
+          Transaction Queue [ <span className="text-white/90">{orderedTxns.length}</span>  ]
+        </h2>
+        <div className="flex gap-3">
+          <SimulateAllButton
+            simulationState={simulationState}
+            orderedTxns={orderedTxns}
+            onSimulateAll={simulateAllTransactions}
+          />
+          <ExecuteAllButton
+            executionState={executionState}
+            orderedTxns={orderedTxns}
+            onExecuteAll={executeAllTransactions}
+          />
         </div>
-
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="droppable-1" type="PERSON">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="flex flex-col gap-3"
-              >
-                {orderedTxns.map((txn, index) => {
-                  const isExpanded = expandedTxns.has(index);
-                  const isCurrentlyExecuting =
-                    executionState.isExecuting &&
-                    executionState.currentIndex === index;
-                  const isCurrentlySimulating =
-                    simulationState.isSimulating &&
-                    simulationState.currentIndex === index;
-
-                  return (
-                    <Draggable
-                      key={`draggable-${index}`}
-                      draggableId={`draggable-${index}`}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <TransactionCard
-                            txn={txn}
-                            index={index}
-                            chatIndex={chatIndex}
-                            isExpanded={isExpanded}
-                            isCurrentlyExecuting={isCurrentlyExecuting}
-                            isCurrentlySimulating={isCurrentlySimulating}
-                            onToggleExpanded={() => toggleExpanded(index)}
-                            onExecuteTransaction={() =>
-                              handleExecuteTransaction(txn)
-                            }
-                            onSimulateTransaction={() =>
-                              handleSimulateTransaction(txn, index)
-                            }
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
       </div>
-    </GradientBorder>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="droppable-1" type="PERSON">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex flex-col gap-3"
+            >
+              {orderedTxns.map((txn, index) => {
+                const isExpanded = expandedTxns.has(index);
+                const isCurrentlyExecuting =
+                  executionState.isExecuting &&
+                  executionState.currentIndex === index;
+                const isCurrentlySimulating =
+                  simulationState.isSimulating &&
+                  simulationState.currentIndex === index;
+
+                return (
+                  <Draggable
+                    key={`draggable-${index}`}
+                    draggableId={`draggable-${index}`}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <TransactionCard
+                          txn={txn}
+                          index={index}
+                          chatIndex={chatIndex}
+                          isExpanded={isExpanded}
+                          isCurrentlyExecuting={isCurrentlyExecuting}
+                          isCurrentlySimulating={isCurrentlySimulating}
+                          onToggleExpanded={() => toggleExpanded(index)}
+                          onExecuteTransaction={() =>
+                            handleExecuteTransaction(txn)
+                          }
+                          onSimulateTransaction={() =>
+                            handleSimulateTransaction(txn, index)
+                          }
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
   );
 };
 

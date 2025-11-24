@@ -10,6 +10,7 @@ import { cryptoHighlightStyles } from "./helpers/cryptoHighlighter";
 import "highlight.js/styles/github-dark.css";
 import iconSvg from "@/assets/icon.svg";
 import GradientBorder from "../GradientBorder";
+import { useTransactionNavigation } from "@/contexts/TransactionNavigationContext";
 
 // Loading text animation states
 const loadingTexts = [
@@ -19,8 +20,17 @@ const loadingTexts = [
   "Summarizing",
 ];
 
-const LoadingIndicator = () => {
+const ChatIndicator = ({
+  hasChat,
+  toolOutputsLength,
+  chatIndex,
+}: {
+  hasChat: boolean;
+  toolOutputsLength: number;
+  chatIndex: number;
+}) => {
   const [textIndex, setTextIndex] = useState(0);
+  const { scrollToTransaction } = useTransactionNavigation();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,14 +40,46 @@ const LoadingIndicator = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleOpsClick = () => {
+    if (toolOutputsLength > 0) {
+      // Scroll to the first transaction
+      scrollToTransaction(chatIndex, 0);
+    }
+  };
+
+  // Show loading state when no chat response
+  if (!hasChat) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="animate-spin">
+          <img src={iconSvg} alt="Zyra" className="w-8 h-8" />
+        </div>
+        <span className="text-[#7CABF9] text-sm font-light animate-pulse">
+          {loadingTexts[textIndex]}...
+        </span>
+      </div>
+    );
+  }
+
+  // Show avatar and ops info when chat response exists
   return (
     <div className="flex items-center gap-3">
-      <div className="animate-spin">
-        <img src={iconSvg} alt="Zyra" className="w-8 h-8" />
+      <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5">
+        <img src={iconSvg} alt="Zyra AI" className="w-12 h-12" />
       </div>
-      <span className="text-[#7CABF9] text-sm font-light animate-pulse">
-        {loadingTexts[textIndex]}...
-      </span>
+      
+      <button
+        onClick={handleOpsClick}
+        disabled={toolOutputsLength === 0}
+        className={`ml-auto flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/50 transition-all ${
+          toolOutputsLength > 0
+            ? "cursor-pointer hover:border-blue-400/40 hover:bg-blue-500/5 hover:text-white/70"
+            : ""
+        }`}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[#7CABF9]" />
+        {toolOutputsLength} ops
+      </button>
     </div>
   );
 };
@@ -46,6 +88,7 @@ const ChatInterfaceBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevChatsCountRef = useRef(0);
+  const { scrollToTransaction } = useTransactionNavigation();
 
   // Memoize chat count to avoid unnecessary re-renders
   const chatsCount = useMemo(() => chats.length, [chats.length]);
@@ -69,43 +112,47 @@ const ChatInterfaceBox = () => {
     <>
       <style>{cryptoHighlightStyles}</style>
 
-      <div
-        ref={scrollContainerRef}
-        className="relative z-30 flex flex-col justify-start w-full h-full gap-6 px-4 py-2 mx-auto overflow-y-auto"
-      >
+      <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/5 ">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(90,126,255,0.18),_transparent_55%)] blur-[60px]" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(transparent 95%, rgba(255,255,255,0.08) 96%), linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.08) 96%)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        <div
+          ref={scrollContainerRef}
+          className="relative z-30 flex flex-col justify-start w-full h-full gap-6 px-6 py-6 overflow-y-auto"
+        >
         {chats.length > 0 ? (
           chats.map((chat, idx) => (
             <React.Fragment key={idx}>
-              <div className="self-end p-4 break-words font-light text-[14px] text-white bg-background-secondary border-[#FFFFFF14] min-w-[80px] rounded-xl w-fit max-w-[95%]">
-                {chat.prompt}
+              <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-whi shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
+                <p className="mt-3 break-words text-white/70">{chat.prompt}</p>
               </div>
 
               {/* AI Response with Figma Design - Dark Theme */}
-              <div className="self-start flex flex-col gap-3 w-fit max-w-[95%] min-w-[50%]">
+              <div className="self-start flex w-fit min-w-[55%] max-w-[95%] flex-col gap-3">
                 {/* AI Avatar and Response Container with Gradient Border */}
                 <GradientBorder
-                  borderWidth={2}
-                  borderRadius="12px"
-                  gradientFrom="#7CABF9"
-                  gradientTo="#B37AE8"
+                  borderWidth={1.5}
+                  borderRadius="18px"
+                  gradientFrom="#6EB2FF"
+                  gradientTo="#9F6BFF"
                   gradientDirection="to-r"
-                  innerClassName="p-3 flex flex-col gap-3"
+                  innerClassName="relative overflow-hidden bg-[#05060E]/90 p-5 backdrop-blur"
                 >
-                  {/* Avatar */}
-                  {chat.response.chat ? (
-                    <div className="relative w-8 h-8 shrink-0">
-                      <img
-                        src={iconSvg}
-                        alt="Zyra AI"
-                        className="object-contain w-full h-full"
-                      />
-                    </div>
-                  ) : (
-                    <LoadingIndicator />
-                  )}
+                  <ChatIndicator
+                    hasChat={!!chat.response?.chat}
+                    toolOutputsLength={chat.response?.tool_outputs?.length || 0}
+                    chatIndex={idx}
+                  />
 
                   {/* Response Content */}
-                  <div className="break-words text-wrap max-w-none">
+                  <div className="mt-4 break-words text-wrap text-[15px] leading-7 text-white/80">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight, rehypeRaw]}
@@ -116,6 +163,20 @@ const ChatInterfaceBox = () => {
                         : "response format error from model"}
                     </ReactMarkdown>
                   </div>
+
+                  {chat.response?.tool_outputs?.length ? (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {chat.response.tool_outputs.map((tool, toolIdx) => (
+                        <button
+                          key={`${tool.id}-${toolIdx}`}
+                          onClick={() => scrollToTransaction(idx, toolIdx)}
+                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/60 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white/80 cursor-pointer"
+                        >
+                          {tool?.label || `Txn #${toolIdx + 1}`}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </GradientBorder>
               </div>
             </React.Fragment>
@@ -125,6 +186,7 @@ const ChatInterfaceBox = () => {
             <PromptSuggestion />
           </>
         )}
+        </div>
       </div>
     </>
   );

@@ -31,11 +31,11 @@ const SimulateAllButton: React.FC<SimulateAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-yellow-300 border border-yellow-500 rounded-full cursor-not-allowed bg-yellow-500/20"
+        className="flex items-center gap-1.5 rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-3 py-1.5 text-xs font-medium text-yellow-300/90"
       >
-        <div className="w-4 h-4 border-2 border-yellow-300 rounded-full animate-spin border-t-transparent" />
+        <div className="w-3 h-3 border-2 border-yellow-400 rounded-full animate-spin border-t-transparent" />
         <span>
-          Simulating {currentIndex}/{totalTxns} ({completedCount} completed)
+          {currentIndex}/{totalTxns}
         </span>
       </button>
     );
@@ -46,11 +46,9 @@ const SimulateAllButton: React.FC<SimulateAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white border border-red-500 rounded-full cursor-not-allowed bg-red-500/20"
+        className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-xs font-medium text-red-300/90"
       >
-        <span>
-          Simulation Failed ({completedCount}/{totalTxns} succeeded)
-        </span>
+        <span>Failed {completedCount}/{totalTxns}</span>
       </button>
     );
   }
@@ -60,11 +58,9 @@ const SimulateAllButton: React.FC<SimulateAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white border border-green-500 rounded-full cursor-not-allowed bg-green-500/20"
+        className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-300/90"
       >
-        <span>
-          All Simulations Passed ({completedCount}/{totalTxns})
-        </span>
+        <span>✓ {completedCount}/{totalTxns}</span>
       </button>
     );
   }
@@ -74,14 +70,14 @@ const SimulateAllButton: React.FC<SimulateAllButtonProps> = ({
     <button
       onClick={onSimulateAll}
       disabled={orderedTxns.length === 0}
-      className={`flex items-center justify-center gap-2 px-6 py-3 border rounded-full text-white text-sm font-semibold transition-opacity ${
+      className={`group flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
         orderedTxns.length === 0
-          ? "border-white/30 bg-black/20 text-white/40 cursor-not-allowed"
-          : "border-white bg-gradient-to-r from-[#87872b] to-[#d4af37] hover:opacity-90 shadow-[0px_0px_6px_0px_inset_rgba(255,255,255,0.4),0px_0px_18px_0px_inset_rgba(255,255,255,0.16)]"
+          ? "cursor-not-allowed border-white/10 bg-white/[0.02] text-white/30"
+          : "border-yellow-500/20 bg-yellow-500/5 text-yellow-300/80 hover:border-yellow-500/40 hover:bg-yellow-500/10 hover:text-yellow-200"
       }`}
     >
-      <Zap size={16} fill="white" />
-      <span>Simulate All</span>
+      <Zap size={12} className={orderedTxns.length === 0 ? "" : "group-hover:scale-110 transition-transform"} />
+      <span>Simulate all</span>
     </button>
   );
 };
