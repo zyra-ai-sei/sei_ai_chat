@@ -1,28 +1,61 @@
-import { useRef, useState } from "react";
 import Logo from "@/assets/icon.svg?react";
 import Wallet from "@/assets/header/wallet.svg?react";
+import PowerIcon from "@/assets/header/power.svg?react";
+import AvatarIcon from "@/assets/header/avatar.svg?react";
+import SettingsIcon from "@/assets/header/settings.svg?react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
-import { setGlobalData } from "@/redux/globalData/action";
-import useClickOutside from "@/hooks/useOutsideClick";
+import { logoutUserRequest, resetGlobalData, setGlobalData } from "@/redux/globalData/action";
+import { getTransactions } from "@/redux/transactionData/action";
+import { clearChat } from "@/redux/chatData/action";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Address, formatUnits } from "viem";
+import { useEffect } from "react";
+
+const formatAddress = (addr: string) => {
+  if (!addr) return "";
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+};
+
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 
 const Navbar = () => {
   const location = useLocation();
-  const globalData = useAppSelector((state) => state?.globalData?.data) || {};
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { data: walletBalance, isLoading: isBalanceLoading } = useBalance({
-    address,
-    query: {
-      enabled: Boolean(address),
+  const navigate = useNavigate();
+  const globalData = useAppSelector((state) => state?.globalData?.data);
+  const transactions = useAppSelector((state) => state?.transactionData?.transactions);
+  const { isConnected, address } = useAccount();
+  const dispatch = useAppDispatch();
+
+  const { data: seiBalance } = useBalance({
+    address: address as Address,
+  });
+
+  const { disconnect } = useDisconnect({
+    mutation: {
+      onSettled() {
+        dispatch(logoutUserRequest({}));
+        dispatch(resetGlobalData());
+      },
     },
   });
-  const [isWalletPopupOpen, setIsWalletPopupOpen] = useState(false);
-  const walletRef = useRef<HTMLDivElement | null>(null);
-  useClickOutside(walletRef, () => setIsWalletPopupOpen(false));
 
-  const dispatch = useAppDispatch();
+  // Fetch transactions when connected
+  useEffect(() => {
+    if (isConnected) {
+      dispatch(getTransactions());
+    }
+  }, [isConnected, dispatch]);
+
+  const recentTransactions = transactions?.slice(0, 3) || [];
 
   const routes = [
     { name: "Chat", url: "/chat" },
@@ -66,40 +99,139 @@ const Navbar = () => {
 
       {/* Wallet / Connect */}
       {isConnected ? (
-        <div ref={walletRef} className="relative">
-          <button
-            onClick={() => setIsWalletPopupOpen((prev) => !prev)}
-            className="flex items-center gap-2 px-3 py-2 text-white transition-colors duration-200 border rounded-lg border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
-          >
-            <Wallet className="size-5" />
-            <span className="hidden text-sm text-white/70 sm:inline">Wallet</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-          </button>
-
-          {isWalletPopupOpen && (
-            <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/10 bg-[#0B0E19] p-4 shadow-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <span className="text-xs text-white/40">Connected</span>
-              </div>
-              <p className="mb-1 text-xs text-white/50">Balance</p>
-              <p className="text-xl font-semibold text-white">
-                {isBalanceLoading
-                  ? "Loading..."
-                  : `${walletBalance?.formatted || "0.00"} ${walletBalance?.symbol || "SEI"}`}
-              </p>
-              <div className="h-px my-3 bg-white/10" />
-              <button
-                onClick={() => {
-                  disconnect();
-                  setIsWalletPopupOpen(false);
-                }}
-                className="w-full py-2 text-sm font-medium text-red-300 transition-colors duration-200 border rounded-lg border-red-500/30 bg-red-500/10 hover:bg-red-500/20"
-              >
-                Disconnect
+        <div className="flex gap-3 pb-[12px]">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="p-2 box-content text-[#fff] border-2 border-primary-border rounded-full cursor-pointer hover:border-white/50 transition-colors">
+                <Wallet className="size-[24px]" />
               </button>
-            </div>
-          )}
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-[320px] bg-[#0a0a0a] border border-[#7cabf9] rounded-[16px] p-5 font-['Figtree',sans-serif]"
+            >
+              <div className="flex flex-col gap-5">
+                {/* Header with avatar and actions */}
+                <div className="flex items-start justify-between">
+                  <div className="flex flex-col gap-1">
+                    <AvatarIcon className="size-12 rounded-full" />
+                    <span className="text-white text-[16px] font-medium mt-2">
+                      {formatAddress(address || "")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                      {/* <Settings className="size-5" /> */}
+                    </button>
+                    <button
+                      onClick={() => disconnect()}
+                      className="text-white/60 hover:text-white transition-colors cursor-pointer"
+                    >
+                      <PowerIcon className="size-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Balance Display */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-white text-[36px] font-semibold leading-tight">
+                    {seiBalance
+                      ? parseFloat(formatUnits(seiBalance.value, seiBalance.decimals)).toFixed(2)
+                      : "0.00"}{" "}
+                    <span className="text-white/40">SEI</span>
+                  </span>
+                </div>
+
+                {/* View Portfolio Button */}
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full py-3 px-4 border border-white/20 hover:border-white/40 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span className="text-white font-medium text-[14px]">View portfolio</span>
+                  <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                {/* Recent Activity */}
+                <div className="flex flex-col gap-3">
+                  <span className="text-white font-semibold text-[14px]">Recent activity</span>
+
+                  {recentTransactions.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {recentTransactions.map((tx, index) => (
+                        <button
+                          key={tx.hash || index}
+                          onClick={() => navigate(`/transactions?highlight=${tx.hash}`)}
+                          className="flex items-center justify-between py-2 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center">
+                              <svg className="size-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                <path d="M9 12h6M9 16h6" />
+                              </svg>
+                            </div>
+                            <span className="text-white text-[14px]">
+                              {tx.status === "success" ? "Transaction confirmed" : tx.status || "Transaction"}
+                            </span>
+                          </div>
+                          <span className="text-white/40 text-[12px]">
+                            {formatTime(tx.timestamp)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-white/40 text-[12px]">No recent activity</span>
+                  )}
+
+                  {transactions && transactions.length > 3 && (
+                    <button
+                      onClick={() => navigate("/transactions")}
+                      className="text-white/40 hover:text-white/60 text-[12px] text-left transition-colors cursor-pointer"
+                    >
+                      View more
+                    </button>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Settings Button */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="p-2 box-content text-[#fff] border-2 border-primary-border rounded-full cursor-pointer hover:border-white/50 transition-colors">
+                <SettingsIcon className="size-[24px]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-[200px] bg-[#0a0a0a] border border-[#7cabf9] rounded-[16px] p-3 font-['Figtree',sans-serif]"
+            >
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    dispatch(clearChat());
+                    navigate("/chat");
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer w-full text-left"
+                >
+                  <svg
+                    className="size-5 text-white/60"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  <span className="text-white text-[14px] font-medium">New Chat</span>
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       ) : (
         <button

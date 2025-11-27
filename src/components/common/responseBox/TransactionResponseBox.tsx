@@ -3,7 +3,9 @@ import { getChatHistory } from "@/redux/chatData/action";
 import React, { useEffect, useRef, useMemo } from "react";
 import TransactionCanvas from "./components/TransactionCanvas";
 import TransactionLoader from "@/assets/chat/transactionLoader.png";
+import avatarImg from "@/assets/home/avatar.png";
 import { useAccount } from "wagmi";
+import TokenVisualization from "@/components/tokenVisualization/TokenVisualization";
 
 const TransactionResponseBox = () => {
   // Only select the specific token value to avoid re-renders when other globalData properties change
@@ -21,6 +23,20 @@ const TransactionResponseBox = () => {
   // Memoize chat count to avoid unnecessary re-renders
   const chatsCount = useMemo(() => chats.length, [chats.length]);
 
+  // Check if there's any transaction UI to display (tool outputs or loading state)
+  const hasTransactionUI = useMemo(() => {
+    return chats.some(
+      (chat) =>
+        chat?.toolOutputsLoading ||
+        (chat?.response?.tool_outputs && chat.response.tool_outputs.length > 0)
+    );
+  }, [chats]);
+
+  // Check if token visualization data is available
+  const tokenVisualizationData = useAppSelector(
+    (state) => state.tokenVisualization.currentToken
+  );
+
   // Auto-scroll to bottom only when new chat is added
   useEffect(() => {
     if (scrollContainerRef.current && chatsCount > prevChatsCountRef.current && chatsCount > 0) {
@@ -35,8 +51,35 @@ const TransactionResponseBox = () => {
   return (
     <div
       ref={scrollContainerRef}
-      className="relative z-30 flex flex-col justify-start flex-grow w-full gap-6 py-2 pr-4 mx-auto overflow-y-auto scrollbar-none"
+      className="relative z-30 flex flex-col justify-start w-full h-full gap-6 py-2 pr-4 mx-auto overflow-y-auto scrollbar-none"
     >
+      {/* Token Visualization */}
+      {tokenVisualizationData && <TokenVisualization />}
+
+      {/* Centered Avatar when no transaction UI and no token visualization to display */}
+      {!hasTransactionUI && !tokenVisualizationData && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="relative w-[160px] h-[160px]">
+            {/* Glow effect */}
+            <div
+              className="absolute inset-0 rounded-full blur-[32px] opacity-60 animate-pulse"
+              style={{
+                background:
+                  "linear-gradient(224.32deg, #FFFFFF 38.02%, #A1D9F7 94.78%)",
+              }}
+            />
+            {/* Avatar image with pulse */}
+            <div className="relative w-[160px] h-[160px] flex items-center justify-center animate-pulse">
+              <img
+                src={avatarImg}
+                alt="Zyra Avatar"
+                className="w-[160px] h-[160px] object-contain relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {chats.length > 0 &&
         chats.map((chat, idx) => (
           <React.Fragment key={idx}>
