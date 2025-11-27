@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { getTransactions } from "@/redux/transactionData/action";
-import { ArrowDownToLine, ArrowUpRight, Filter, Search } from "lucide-react";
+import { ArrowDownToLine, ArrowUpRight, ExternalLink, Filter, Search } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ");
@@ -17,6 +18,8 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 const Transactions = () => {
   const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightHash = searchParams.get("highlight");
   const { transactions, loading } = useAppSelector(
     (state) => state.transactionData || { transactions: [], loading: false }
   );
@@ -30,6 +33,16 @@ const Transactions = () => {
   useEffect(() => {
     dispatch(getTransactions());
   }, [dispatch]);
+
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightHash) {
+      const timer = setTimeout(() => {
+        setSearchParams({});
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightHash, setSearchParams]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -227,7 +240,11 @@ const Transactions = () => {
               )}
               {!loading &&
                 paginatedTransactions.map((txn, idx) => (
-                  <Row key={txn.hash || `${idx}-${txn.timestamp}`} txn={txn} />
+                  <Row
+                    key={txn.hash || `${idx}-${txn.timestamp}`}
+                    txn={txn}
+                    isHighlighted={txn.hash === highlightHash}
+                  />
                 ))}
             </div>
           </div>
@@ -280,13 +297,40 @@ const Transactions = () => {
   );
 };
 
-const Row = ({ txn }: { txn: any }) => {
+const Row = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isHighlighted && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
+
   return (
-    <div className="grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm">
+    <div
+      ref={rowRef}
+      className={cn(
+        "grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm transition-all duration-500",
+        isHighlighted && "bg-[#7cabf9]/20 ring-1 ring-[#7cabf9]/50 rounded-lg"
+      )}
+    >
       <div className="col-span-4">
-        <p className="font-mono text-white">
-          {formatHash(txn.hash)}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="font-mono text-white">
+            {formatHash(txn.hash)}
+          </p>
+          {txn.hash && (
+            <a
+              href={`https://seitrace.com/tx/${txn.hash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-white/40 hover:text-[#7cabf9] transition-colors"
+              title="View on Seitrace"
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
         <p className="text-xs text-white/50">
           {formatAddress(txn.from)} → {formatAddress(txn.to)}
         </p>

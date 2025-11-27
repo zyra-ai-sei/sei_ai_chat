@@ -8,6 +8,7 @@ import {
 } from "@microsoft/fetch-event-source";
 import { formatLLMResponse } from "@/utility/formatLLMResponse";
 import { LLMResponseEnum } from "@/enum/llm.enum";
+import { setTokenVisualization } from "../tokenVisualization/action";
 // Use the native AbortController instead of the package
 // import {AbortController} from 'abort-controller'
 
@@ -74,10 +75,10 @@ export const streamChatPrompt = createAsyncThunk<
               );
             } else if (
               payload.type === "tool" &&
-              payload.tool_output != undefined 
+              payload.tool_output != undefined
             ) {
               payload.tool_output.map((tool:any)=>{
-                
+
                 const sanitizedToolOutput = JSON.parse(
                   JSON.stringify(tool, (_, value) =>
                     typeof value === "bigint" ? value.toString() : value
@@ -90,6 +91,9 @@ export const streamChatPrompt = createAsyncThunk<
                   })
                 );
               })
+            } else if (payload.type === "token_data" && payload.token_data) {
+              // Handle token visualization data from backend
+              dispatch(setTokenVisualization(payload.token_data));
             }
           } catch (err) {
             console.error("Failed to parse SSE payload", err);
@@ -360,5 +364,21 @@ export const abortTool = createAsyncThunk<
     }
   } catch (err) {
     console.error(`Error aborting tool ${toolId}:`, err);
+  }
+});
+
+export const clearChat = createAsyncThunk<
+  void,
+  void,
+  { state: IRootState }
+>("chatData/clearChat", async (_, { dispatch }) => {
+  try {
+    await axiosInstance.get("/llm/clearChat");
+    dispatch(resetChat());
+    dispatch(initializePrompt());
+  } catch (err) {
+    console.error("Error clearing chat:", err);
+    // Still reset the local state even if API fails
+    dispatch(resetChat());
   }
 });
