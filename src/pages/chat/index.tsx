@@ -7,7 +7,6 @@ import {
   resetGlobalData,
   validateToken,
 } from "@/redux/globalData/action";
-import TransactionHistory from "@/components/chat/TransactionHistory";
 import ChatBox from "@/components/chat/chatBox";
 import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 import { TransactionNavigationProvider } from "@/contexts/TransactionNavigationContext";
@@ -99,7 +98,6 @@ function Chat() {
         />
         <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
           <div ref={containerRef} className="flex justify-end w-full h-full">
-            {/* <TransactionHistory /> */}
             <div
               style={{ width: `${chatBoxWidth}%` }}
               className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"

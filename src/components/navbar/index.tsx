@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { setGlobalData } from "@/redux/globalData/action";
 import useClickOutside from "@/hooks/useOutsideClick";
+
 const Navbar = () => {
   const location = useLocation();
   const globalData = useAppSelector((state) => state?.globalData?.data) || {};
@@ -24,68 +25,84 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
 
   const routes = [
-    {
-      name: "Chat",
-      url: "/chat",
-    },
-    {
-      name: "Dashboard",
-      url: "/dashboard",
-    },
-    {
-      name: "Transactions",
-      url: "/transactions",
-    },
+    { name: "Chat", url: "/chat" },
+    { name: "Dashboard", url: "/dashboard" },
+    { name: "Transactions", url: "/transactions" },
   ];
+
   return (
-    <div className="h-[64px] font-['Satoshi',sans-serif] border-b-2 border-primary-border px-[24px] pt-[12px] gap-[100px] flex items-center justify-between relative">
-      <h1 className="flex items-center gap-2 pb-[12px] shadow-">
-        <Logo className="h-[40px] w-[40px]" />
-        <h1 className="font-bold text-[34px] text-white">Zyra</h1>
-      </h1>
-      <ul className="flex items-end h-full gap-4 text-[20px] w-full ">
-        {routes.map((route, index) => (
-          <Link
-            key={index}
-            className={` ${location.pathname === route.url ? "text-text-primary border-b border-b-text-secondary" : "text-text-secondary"} pb-[12px] px-8`}
-            to={route.url}
-          >
-            {route.name}
-          </Link>
-        ))}
-      </ul>
+    <div className="h-[64px] font-['Satoshi',sans-serif] border-b border-white/10 px-6 flex items-center justify-between relative bg-[#0a0d14]">
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-2.5">
+        <Logo className="h-9 w-9" />
+        <span className="text-2xl font-bold text-white">Zyra</span>
+      </Link>
+
+      {/* Navigation Links */}
+      <nav className="flex items-center h-full gap-1">
+        {routes.map((route, index) => {
+          const isActive = location.pathname === route.url;
+          return (
+            <Link
+              key={index}
+              to={route.url}
+              className={`
+                relative h-full flex items-center px-4 text-sm font-medium tracking-wide
+                transition-colors duration-200
+                ${isActive 
+                  ? "text-white" 
+                  : "text-white/50 hover:text-white/80"
+                }
+              `}
+            >
+              {route.name}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Wallet / Connect */}
       {isConnected ? (
-        <div ref={walletRef} className="relative pb-[12px]">
+        <div ref={walletRef} className="relative">
           <button
             onClick={() => setIsWalletPopupOpen((prev) => !prev)}
-            className="flex items-center gap-2 rounded-full border-2 border-primary-border p-2 text-white transition hover:border-white/60"
+            className="flex items-center gap-2 px-3 py-2 text-white transition-colors duration-200 border rounded-lg border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
           >
-            <Wallet className="size-[24px]" />
-            <span className="text-sm uppercase tracking-[0.35em] text-white/70 hidden sm:inline">Wallet</span>
+            <Wallet className="size-5" />
+            <span className="hidden text-sm text-white/70 sm:inline">Wallet</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
           </button>
 
           {isWalletPopupOpen && (
-            <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-white/10 bg-[#0B0E19] p-4 shadow-[0_20px_45px_rgba(5,6,15,0.85)]">
-              <p className="text-xs uppercase tracking-[0.35em] text-white/50">Current Balance</p>
-              <p className="mt-2 text-2xl font-semibold text-white">
+            <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/10 bg-[#0B0E19] p-4 shadow-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                <span className="text-xs text-white/40">Connected</span>
+              </div>
+              <p className="mb-1 text-xs text-white/50">Balance</p>
+              <p className="text-xl font-semibold text-white">
                 {isBalanceLoading
                   ? "Loading..."
                   : `${walletBalance?.formatted || "0.00"} ${walletBalance?.symbol || "SEI"}`}
               </p>
+              <div className="h-px my-3 bg-white/10" />
               <button
                 onClick={() => {
                   disconnect();
                   setIsWalletPopupOpen(false);
                 }}
-                className="mt-4 w-full rounded-xl border border-red-400/60 bg-transparent py-2 text-sm font-semibold text-red-200 transition hover:text-red-100"
+                className="w-full py-2 text-sm font-medium text-red-300 transition-colors duration-200 border rounded-lg border-red-500/30 bg-red-500/10 hover:bg-red-500/20"
               >
-                Logout
+                Disconnect
               </button>
             </div>
           )}
         </div>
       ) : (
-        <div
+        <button
           onClick={() => {
             dispatch(
               setGlobalData({
@@ -94,10 +111,10 @@ const Navbar = () => {
               })
             );
           }}
-          className="bg-gradient-to-r from-[#204887] to-[#3B82F6] border-x-[1px] border-y-[0.1px] border-y-white/80 active:border-[#3B82F6] border-[white] text-white rounded-full py-[8px] px-[24px] cursor-pointer"
+          className="px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-500"
         >
           Connect
-        </div>
+        </button>
       )}
     </div>
   );

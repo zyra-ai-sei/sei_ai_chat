@@ -1,6 +1,7 @@
 import { chatDataSlice } from "./reducer";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "@/services/axios";
+
 import { IRootState } from "../store";
 import {
   fetchEventSource,
@@ -8,6 +9,7 @@ import {
 } from "@microsoft/fetch-event-source";
 import { formatLLMResponse } from "@/utility/formatLLMResponse";
 import { LLMResponseEnum } from "@/enum/llm.enum";
+import { MessageTypeEnum } from "@/enum/messageType.enum";
 // Use the native AbortController instead of the package
 // import {AbortController} from 'abort-controller'
 
@@ -29,28 +31,34 @@ export const streamChatPrompt = createAsyncThunk<
   void,
   {
     prompt: string;
+    messageType?: MessageTypeEnum;
     abortSignal?: AbortSignal;
   },
   { state: IRootState }
 >(
   "chatData/streamChatPrompt",
-  async ({ prompt, abortSignal }, { dispatch, getState }) => {
+  async ({ prompt, messageType = MessageTypeEnum.HUMAN, abortSignal }, { dispatch, getState }) => {
     const state = getState();
     const token = state.globalData?.data?.token;
 
     if (!token) throw new Error("Missing auth token");
 
+    const controller = new AbortController();
+    abortSignal?.addEventListener("abort", () => controller.abort(), {
+      once: true,
+    });
+    console.log('prompt:::',prompt)
+    const params = new URLSearchParams({ prompt, messageType });
+
+    // Add prompt to chat and show response (same for both human and system messages)
     dispatch(addPrompt(prompt));
 
     const chatIndex = getState().chatData.chats.length - 1;
     dispatch(setLoading({ index: chatIndex, loading: true }));
 
-    const controller = new AbortController();
-    abortSignal?.addEventListener("abort", () => controller.abort(), {
-      once: true,
-    });
-
-    const params = new URLSearchParams({ prompt });
+    // Track if we received any successful response
+    let hasReceivedResponse = false;
+    let streamError: Error | DOMException | null = null;
 
     try {
       await fetchEventSource(`/api/v1/llm/stream?${params.toString()}`, {
@@ -64,8 +72,8 @@ export const streamChatPrompt = createAsyncThunk<
           if (!event.data) return;
           try {
             const payload = JSON.parse(event.data);
-            console.log('ultimate',payload)
             if (payload.type === "token") {
+              hasReceivedResponse = true;
               dispatch(
                 updateResponse({
                   index: chatIndex,
@@ -76,6 +84,7 @@ export const streamChatPrompt = createAsyncThunk<
               payload.type === "tool" &&
               payload.tool_output != undefined 
             ) {
+              hasReceivedResponse = true;
               payload.tool_output.map((tool:any)=>{
                 
                 const sanitizedToolOutput = JSON.parse(
@@ -95,17 +104,33 @@ export const streamChatPrompt = createAsyncThunk<
             console.error("Failed to parse SSE payload", err);
           }
         },
-        onerror: (err) => {
-          controller.abort();
+        onerror: (err: any) => {
+          // Ignore AbortError - this is expected when stream closes normally
+          if (err?.name === 'AbortError' || controller.signal.aborted) {
+            return;
+          }
+          // Only track real errors, not abort errors
           console.error("SSE error:", err);
-          dispatch(setError({ index: chatIndex }));
+          streamError = err instanceof Error ? err : new Error(String(err));
+          controller.abort();
         },
         onclose: () => {
-          controller.abort();
+          // Normal close - this is expected behavior, not an error
         },
       });
     } finally {
       dispatch(setLoading({ index: chatIndex, loading: false }));
+      
+      // Only dispatch error if:
+      // 1. There was an actual stream error (not AbortError)
+      // 2. We never received any successful response
+      if (streamError && !hasReceivedResponse) {
+        const errorName = (streamError as any)?.name;
+        if (errorName !== 'AbortError') {
+          dispatch(setError({ index: chatIndex }));
+        }
+      }
+      
       if (!controller.signal.aborted) {
         controller.abort();
       }
@@ -209,8 +234,11 @@ export const getChatHistory = createAsyncThunk<
                 ...existingToolOutputs,
                 ...formattedMessage.tool_output,
               ];
-              updatedResponse.chat =
-                (updatedResponse.chat || " ") + formattedMessage.content;
+              
+              // Only append content if it's a non-empty string
+              const contentToAdd = typeof formattedMessage.content === 'string' ? formattedMessage.content : '';
+              const existingChat = typeof updatedResponse.chat === 'string' ? updatedResponse.chat : '';
+              updatedResponse.chat = existingChat + (contentToAdd ? ' ' + contentToAdd : '');
 
               dispatch(
                 setResponse({
@@ -223,77 +251,33 @@ export const getChatHistory = createAsyncThunk<
             formattedMessage?.type == LLMResponseEnum.AIMESSAGE ||
             formattedMessage?.type == LLMResponseEnum.AIMESSAGECHUNK
           ) {
-            const currentChat = getState().chatData.chats[currentChatIndex];
-            const existingResponse = currentChat?.response || {
-              chat: "",
-              tool_outputs: [],
-            };
-            let updatedResponse = { ...existingResponse };
-            updatedResponse.chat =
-               formattedMessage.content;
+            if (currentChatIndex >= 0) {
+              const currentChat = getState().chatData.chats[currentChatIndex];
+              const existingResponse = currentChat?.response || {
+                chat: "",
+                tool_outputs: [],
+              };
+              let updatedResponse = { ...existingResponse };
+              
+              // Ensure we're working with strings and add a space between consecutive AI messages
+              const existingChat = typeof updatedResponse.chat === 'string' ? updatedResponse.chat : '';
+              const contentToAdd = typeof formattedMessage.content === 'string' ? formattedMessage.content : '';
+              
+              // Add space between messages if both exist
+              if (existingChat && contentToAdd) {
+                updatedResponse.chat = existingChat + ' ' + contentToAdd;
+              } else {
+                updatedResponse.chat = existingChat + contentToAdd;
+              }
 
-            dispatch(
-              setResponse({
-                index: currentChatIndex,
-                response: updatedResponse,
-              })
-            );
+              dispatch(
+                setResponse({
+                  index: currentChatIndex,
+                  response: updatedResponse,
+                })
+              );
+            }
           }
-          // if (message["type"] === "HumanMessage") {
-          //   // Create a new chat item for each human message
-          //   dispatch(addPrompt(message["content"]));
-          //   currentChatIndex = getState().chatData.chats.length - 1;
-          //   console.log("created new chat item at index", currentChatIndex);
-          // } else if (
-          //   message["type"] === "ToolMessage" ||
-          //   message["type"] === "AIMessage" ||
-          //   message["type"] === "AIMessageChunk"
-          // ) {
-          //   // Add to the current chat item's response
-          //   if (currentChatIndex >= 0) {
-          //     const currentChat = getState().chatData.chats[currentChatIndex];
-          //     const existingResponse = currentChat?.response || {
-          //       chat: "",
-          //       tool_outputs: [],
-          //     };
-
-          //     let updatedResponse = { ...existingResponse };
-
-          //     if (message["type"] === "AIMessage" || "AIMessageChunk") {
-          //       // Append AI message content
-          //       updatedResponse.chat =
-          //         (updatedResponse.chat || "") + (message["content"] || "");
-          //     } else if (
-          //       message["type"] === "ToolMessage" &&
-          //       message["tool_output"]
-          //     ) {
-          //       // Add tool_output to the array
-          //       const existingToolOutputs = updatedResponse.tool_outputs || [];
-          //       updatedResponse.tool_outputs = [
-          //         ...existingToolOutputs,
-          //         message["tool_output"],
-          //       ];
-          //       updatedResponse.chat =
-          //         (updatedResponse.chat || " ") + message["content"];
-          //     }
-
-          //     console.log(
-          //       "updating chat item",
-          //       currentChatIndex,
-          //       "with",
-          //       message["type"],
-          //       "response:",
-          //       updatedResponse
-          //     );
-
-          //     dispatch(
-          //       setResponse({
-          //         index: currentChatIndex,
-          //         response: updatedResponse,
-          //       })
-          //     );
-          //   }
-          // }
         }
       }
     }
@@ -360,5 +344,27 @@ export const abortTool = createAsyncThunk<
     }
   } catch (err) {
     console.error(`Error aborting tool ${toolId}:`, err);
+  }
+});
+
+export const updateMessageState = createAsyncThunk<
+  void,
+  { executionId: string; executionState: "completed" | "failed"; txnHash?: string },
+  { state: IRootState }
+>("chatData/updateMessageState", async ({ executionId, executionState, txnHash }) => {
+  try {
+    const response = await axiosInstance.post("/llm/updateMessageState", {
+      executionId,
+      executionState,
+      ...(txnHash && { txnHash }),
+    });
+    const apiData = response?.data;
+    if (apiData?.success) {
+      console.log(`Message state updated for execution ${executionId}: ${executionState}`);
+    } else {
+      console.error(`Failed to update message state for execution ${executionId}`);
+    }
+  } catch (err) {
+    console.error(`Error updating message state for ${executionId}:`, err);
   }
 });

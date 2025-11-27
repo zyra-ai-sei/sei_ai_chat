@@ -17,7 +17,13 @@ interface Calendar24Props {
 
 export function Calendar24({ epoch, onEpochChange }: Calendar24Props) {
   const [open, setOpen] = React.useState(false)
-  const [dateTime, setDateTime] = React.useState<Date | undefined>(undefined)
+  const [dateTime, setDateTime] = React.useState<Date | undefined>(() => {
+    // Initialize with epoch if provided, otherwise use current date/time
+    if (epoch !== undefined) {
+      return new Date(epoch * 1000)
+    }
+    return new Date()
+  })
 
   // Convert epoch to Date when epoch prop changes
   React.useEffect(() => {
@@ -27,6 +33,15 @@ export function Calendar24({ epoch, onEpochChange }: Calendar24Props) {
     }
   }, [epoch])
 
+  // Format time for the input value (HH:MM:SS format)
+  const formatTimeForInput = (date: Date | undefined) => {
+    if (!date) return ""
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    const seconds = date.getSeconds().toString().padStart(2, '0')
+    return `${hours}:${minutes}:${seconds}`
+  }
+
   // Handle date selection
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -35,26 +50,31 @@ export function Calendar24({ epoch, onEpochChange }: Calendar24Props) {
         const newDateTime = new Date(date)
         newDateTime.setHours(dateTime.getHours(), dateTime.getMinutes(), dateTime.getSeconds())
         setDateTime(newDateTime)
+        
+        // Call onEpochChange if provided
+        if (onEpochChange) {
+          onEpochChange(Math.floor(newDateTime.getTime() / 1000))
+        }
       } else {
         // No existing time, just set the date
         setDateTime(date)
+        
+        // Call onEpochChange if provided
+        if (onEpochChange) {
+          onEpochChange(Math.floor(date.getTime() / 1000))
+        }
       }
     }
     setOpen(false)
-    
-    // Call onEpochChange if provided
-    if (onEpochChange && date) {
-      onEpochChange(Math.floor(date.getTime() / 1000))
-    }
   }
 
   // Handle time selection
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const timeString = e.target.value
-    if (timeString && dateTime) {
+    if (timeString) {
       const [hours, minutes, seconds] = timeString.split(':').map(Number)
-      const newDateTime = new Date(dateTime)
-      newDateTime.setHours(hours, minutes, seconds || 0)
+      const newDateTime = dateTime ? new Date(dateTime) : new Date()
+      newDateTime.setHours(hours || 0, minutes || 0, seconds || 0)
       setDateTime(newDateTime)
       
       // Call onEpochChange if provided
@@ -81,19 +101,19 @@ export function Calendar24({ epoch, onEpochChange }: Calendar24Props) {
             <Button
               variant="outline"
               id="date-picker"
-              className="justify-between w-48 font-normal text-white border-none bg-zinc-800"
+              className="justify-between w-48 font-normal rounded-2xl border border-white/15 bg-[#05060f]/60 px-4 py-3 text-sm text-white/80 hover:bg-[#090b18]/70 hover:text-white"
             >
               {formatDateTime(dateTime)}
               <ChevronDownIcon />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 overflow-hidden" align="start">
+          <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-white/20 bg-[#0a0d14] shadow-[0_10px_40px_rgba(0,0,0,0.5)]" align="start">
             <Calendar
               mode="single"
               selected={dateTime}
               captionLayout="dropdown"
               onSelect={handleDateSelect}
-              className="border-none outline-none bg-zinc-800 border-zinc-500 text-zinc-300"
+              className="border-none outline-none bg-[#0a0d14] text-white/80"
             />
           </PopoverContent>
         </Popover>
@@ -103,9 +123,9 @@ export function Calendar24({ epoch, onEpochChange }: Calendar24Props) {
           type="time"
           id="appointment-time"
           step="1"
+          value={formatTimeForInput(dateTime)}
           onChange={handleTimeChange}
-          defaultValue={dateTime?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          className="bg-zinc-800 border-none text-white appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="rounded-2xl border border-white/15 bg-[#05060f]/60 px-4 py-3 text-sm text-white/80 outline-none transition focus:border-white/50 focus:bg-[#090b18]/70 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     </div>

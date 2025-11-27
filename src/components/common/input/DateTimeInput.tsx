@@ -13,8 +13,8 @@ const DateTimeInput = ({
   className?: string;
 }) => {
   return (
-    <div className={`flex flex-col items-start p-3  ${className}`}>
-      <label htmlFor="">{title}</label>
+    <div className={`flex flex-col items-start gap-2 p-3 ${className}`}>
+      <label className="text-[11px] uppercase tracking-[0.35em] text-white/40">{title}</label>
       <Calendar24
         epoch={parseInt(val) || undefined}
         onEpochChange={(newEpoch) =>

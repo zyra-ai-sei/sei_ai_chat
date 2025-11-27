@@ -13,6 +13,7 @@ import {
   reorderTransactions,
   completeTool,
   abortTool,
+  updateMessageState,
 } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
 import { setGlobalData } from "@/redux/globalData/action";
@@ -65,6 +66,7 @@ const TransactionCanvas = ({
     setOrderedTxns(latestTxns);
   }, [txns, chats[chatIndex]?.response?.tool_outputs, chatIndex]);
 
+  // Update execution state when all transactions complete (but don't send notifications here)
   React.useEffect(() => {
     const toolOutputs = chats[chatIndex]?.response?.tool_outputs;
     if (toolOutputs && toolOutputs.length > 0) {
@@ -74,6 +76,9 @@ const TransactionCanvas = ({
       const hasPending = toolOutputs.some(
         (txn) => txn.status === StatusEnum.PENDING
       );
+      const hasIdle = toolOutputs.some(
+        (txn) => !txn.status || txn.status === StatusEnum.IDLE
+      );
       const successCount = toolOutputs.filter(
         (txn) => txn.status === StatusEnum.SUCCESS
       ).length;
@@ -82,7 +87,13 @@ const TransactionCanvas = ({
           txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR
       );
 
-      if (allCompleted && !hasPending && !executionState.isExecuting) {
+      // Only update execution state, don't send notifications from here
+      if (
+        allCompleted &&
+        !hasPending &&
+        !hasIdle &&
+        !executionState.isExecuting
+      ) {
         dispatch(
           updateExecutionState({
             index: chatIndex,
@@ -153,6 +164,8 @@ const TransactionCanvas = ({
 
     // Use local counter instead of reading from closure
     let completedCount = 0;
+    // Collect successful transaction hashes
+    const successfulTxHashes: string[] = [];
 
     for (let i = 0; i < currentTxns.length; i++) {
       const txn = currentTxns[i];
@@ -160,6 +173,9 @@ const TransactionCanvas = ({
       // Skip if transaction is already successful
       if (txn.status === StatusEnum.SUCCESS) {
         completedCount++;
+        if (txn.txHash) {
+          successfulTxHashes.push(txn.txHash);
+        }
         dispatch(
           updateExecutionState({
             index: chatIndex,
@@ -204,6 +220,7 @@ const TransactionCanvas = ({
                 onSuccess: (data) => {
                   clearTimeout(timeout);
                   completedCount++;
+                  successfulTxHashes.push(data as string);
                   dispatch(
                     updateExecutionState({
                       index: chatIndex,
@@ -230,6 +247,16 @@ const TransactionCanvas = ({
                       })
                     );
                   }
+                  // Update message state for this execution
+                  if (txn.executionId) {
+                    dispatch(
+                      updateMessageState({
+                        executionId: txn.executionId,
+                        executionState: "completed",
+                        txnHash: data as string,
+                      })
+                    );
+                  }
                   resolve();
                 },
                 onError: (error) => {
@@ -246,6 +273,15 @@ const TransactionCanvas = ({
                   // Mark tool as aborted
                   if (txn.id) {
                     dispatch(abortTool({ toolId: txn.id.toString() }));
+                  }
+                  // Update message state for this execution
+                  if (txn.executionId) {
+                    dispatch(
+                      updateMessageState({
+                        executionId: txn.executionId,
+                        executionState: "failed",
+                      })
+                    );
                   }
                   reject(error);
                 },
@@ -261,6 +297,7 @@ const TransactionCanvas = ({
                 onSuccess: (data) => {
                   clearTimeout(timeout);
                   completedCount++;
+                  successfulTxHashes.push(data as string);
                   dispatch(
                     updateExecutionState({
                       index: chatIndex,
@@ -287,6 +324,16 @@ const TransactionCanvas = ({
                       })
                     );
                   }
+                  // Update message state for this execution
+                  if (txn.executionId) {
+                    dispatch(
+                      updateMessageState({
+                        executionId: txn.executionId,
+                        executionState: "completed",
+                        txnHash: data as string,
+                      })
+                    );
+                  }
                   resolve();
                 },
                 onError: (error) => {
@@ -304,6 +351,15 @@ const TransactionCanvas = ({
                   if (txn.id) {
                     dispatch(abortTool({ toolId: txn.id.toString() }));
                   }
+                  // Update message state for this execution
+                  if (txn.executionId) {
+                    dispatch(
+                      updateMessageState({
+                        executionId: txn.executionId,
+                        executionState: "failed",
+                      })
+                    );
+                  }
                   reject(error);
                 },
               }
@@ -315,36 +371,26 @@ const TransactionCanvas = ({
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (error) {
         console.error(`Failed to execute transaction ${i}:`, error);
-        // Mark transaction as failed and stop execution
-        dispatch(
-          updateExecutionState({
-            index: chatIndex,
-            response: {
-              isExecuting: false,
-              currentIndex: null,
-              hasErrors: true,
-              completedCount,
-            },
-          })
-        );
-        return; // Stop executing subsequent transactions
+        // Continue to next transaction instead of stopping
       }
     }
 
+    const hasErrors = successfulTxHashes.length < currentTxns.length;
     dispatch(
       updateExecutionState({
         index: chatIndex,
         response: {
           isExecuting: false,
           currentIndex: null,
-          isCompleted: true,
+          hasErrors,
+          isCompleted: !hasErrors,
           completedCount,
         },
       })
     );
   };
 
-  const handleExecuteTransaction = (txn: ToolOutput) => {
+  const handleExecuteTransaction = (txn: ToolOutput, txnIndex: number) => {
     // Check if user is on wrong network
     if (isWrongNetwork) {
       dispatch(
@@ -356,19 +402,140 @@ const TransactionCanvas = ({
       return;
     }
 
+    // Mark as pending before execution
+    dispatch(
+      updateTransactionStatus({
+        chatIndex,
+        toolOutputIndex: txnIndex,
+        status: StatusEnum.PENDING,
+      })
+    );
+
     // Execute individual transaction
     if (txn?.transaction?.abi) {
-      writeContract({
-        abi: txn.transaction.abi,
-        address: txn.transaction.address as Address,
-        functionName: txn.transaction.functionName,
-        args: txn.transaction.args || [],
-      });
+      writeContract(
+        {
+          abi: txn.transaction.abi,
+          address: txn.transaction.address as Address,
+          functionName: txn.transaction.functionName,
+          args: txn.transaction.args || [],
+        },
+        {
+          onSuccess: (data) => {
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.SUCCESS,
+                txHash: data as string,
+              })
+            );
+            dispatch(addTxn(data as string));
+            // Mark tool as completed
+            if (txn.id) {
+              dispatch(
+                completeTool({
+                  toolId: txn.id.toString(),
+                  hash: data as string,
+                })
+              );
+            }
+            // Update message state for this execution
+            if (txn.executionId) {
+              dispatch(
+                updateMessageState({
+                  executionId: txn.executionId,
+                  executionState: "completed",
+                  txnHash: data as string,
+                })
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("Transaction failed:", error);
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.ERROR,
+              })
+            );
+            if (txn.id) {
+              dispatch(abortTool({ toolId: txn.id.toString() }));
+            }
+            // Update message state for this execution
+            if (txn.executionId) {
+              dispatch(
+                updateMessageState({
+                  executionId: txn.executionId,
+                  executionState: "failed",
+                })
+              );
+            }
+          },
+        }
+      );
     } else {
-      sendTransaction({
-        to: txn.transaction!.to as Address,
-        value: BigInt(txn.transaction!.value || "0"),
-      });
+      sendTransaction(
+        {
+          to: txn.transaction!.to as Address,
+          value: BigInt(txn.transaction!.value || "0"),
+        },
+        {
+          onSuccess: (data) => {
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.SUCCESS,
+                txHash: data as string,
+              })
+            );
+            dispatch(addTxn(data as string));
+            // Mark tool as completed
+            if (txn.id) {
+              dispatch(
+                completeTool({
+                  toolId: txn.id.toString(),
+                  hash: data as string,
+                })
+              );
+            }
+            // Update message state for this execution
+            if (txn.executionId) {
+              dispatch(
+                updateMessageState({
+                  executionId: txn.executionId,
+                  executionState: "completed",
+                  txnHash: data as string,
+                })
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("Transaction failed:", error);
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: txnIndex,
+                status: StatusEnum.ERROR,
+              })
+            );
+            if (txn.id) {
+              dispatch(abortTool({ toolId: txn.id.toString() }));
+            }
+            // Update message state for this execution
+            if (txn.executionId) {
+              dispatch(
+                updateMessageState({
+                  executionId: txn.executionId,
+                  executionState: "failed",
+                })
+              );
+            }
+          },
+        }
+      );
     }
   };
 
@@ -479,7 +646,9 @@ const TransactionCanvas = ({
   };
 
   // Simulate individual transaction
-  const simulateTransaction = async (txn: ToolOutput): Promise<{ success: boolean; error?: string }> => {
+  const simulateTransaction = async (
+    txn: ToolOutput
+  ): Promise<{ success: boolean; error?: string }> => {
     return new Promise((resolve) => {
       try {
         if (txn?.transaction?.abi) {
@@ -520,7 +689,10 @@ const TransactionCanvas = ({
     });
   };
 
-  const handleSimulateTransaction = async (txn: ToolOutput, txnIndex: number) => {
+  const handleSimulateTransaction = async (
+    txn: ToolOutput,
+    txnIndex: number
+  ) => {
     // Check if user is on wrong network
     if (isWrongNetwork) {
       dispatch(
@@ -543,7 +715,7 @@ const TransactionCanvas = ({
 
     try {
       const result = await simulateTransaction(txn);
-      
+
       if (result.success) {
         dispatch(
           updateTransactionStatus({
@@ -577,7 +749,8 @@ const TransactionCanvas = ({
     <div className="rounded-3xl border border-white/10 p-5 shadow-[0_15px_35px_rgba(2,6,23,0.65)]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xs uppercase tracking-[0.2em] font-semibold text-white/60">
-          Transaction Queue [ <span className="text-white/90">{orderedTxns.length}</span>  ]
+          Transaction Queue [{" "}
+          <span className="text-white/90">{orderedTxns.length}</span> ]
         </h2>
         <div className="flex gap-3">
           <SimulateAllButton
@@ -631,7 +804,7 @@ const TransactionCanvas = ({
                           isCurrentlySimulating={isCurrentlySimulating}
                           onToggleExpanded={() => toggleExpanded(index)}
                           onExecuteTransaction={() =>
-                            handleExecuteTransaction(txn)
+                            handleExecuteTransaction(txn, index)
                           }
                           onSimulateTransaction={() =>
                             handleSimulateTransaction(txn, index)

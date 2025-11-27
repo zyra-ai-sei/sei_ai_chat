@@ -42,7 +42,7 @@ const TransactionResponseBox = () => {
           <React.Fragment key={idx}>
             <div>
               {chat?.toolOutputsLoading &&
-                !chat?.response?.tool_outputs?.length && (
+                chat?.response?.tool_outputs?.length && chat?.response?.tool_outputs?.length > 0 && (
                   <div className="flex items-center justify-center p-8 h-[250px]">
                     <div className="relative flex items-center justify-center animate-ping">
                       <div className="absolute left-auto right-auto w-6 h-6 bg-white rounded-full " />

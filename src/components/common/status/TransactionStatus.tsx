@@ -2,10 +2,15 @@ import { StatusEnum } from "@/enum/status.enum";
 
 const TransactionStatus = ({ status }: { status: StatusEnum }) => {
   const statusProps: Record<StatusEnum, { bgColor: string; textColor: string; label?: string }> = {
+    [StatusEnum.IDLE]: {
+      bgColor: "rgba(255, 255, 255, 0.05)",
+      textColor: "#9CA3AF",
+      label: "Ready",
+    },
     [StatusEnum.PENDING]: {
-      bgColor: "rgba(250, 201, 7, 0.1)",
-      textColor: "#FAC907",
-      label: "Pending",
+      bgColor: "rgba(59, 130, 246, 0.1)",
+      textColor: "#60A5FA",
+      label: "Executing...",
     },
     [StatusEnum.SUCCESS]: {
       bgColor: "rgba(35, 196, 59, 0.1)",

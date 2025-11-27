@@ -112,7 +112,7 @@ const ChatInterfaceBox = () => {
     <>
       <style>{cryptoHighlightStyles}</style>
 
-      <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/5 ">
+      <div className="relative w-full h-full overflow-hidden border border-white/5 ">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(90,126,255,0.18),_transparent_55%)] blur-[60px]" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.18]"
@@ -131,7 +131,7 @@ const ChatInterfaceBox = () => {
           chats.map((chat, idx) => (
             <React.Fragment key={idx}>
               <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-whi shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
-                <p className="mt-3 break-words text-white/70">{chat.prompt}</p>
+                <p className="break-words text-white/70">{chat.prompt}</p>
               </div>
 
               {/* AI Response with Figma Design - Dark Theme */}

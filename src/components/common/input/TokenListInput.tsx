@@ -35,18 +35,18 @@ const TokenListInput = ({
   },[val])
   
   return (
-    <div className={`flex flex-col p-3 ${className} `}>
-      <label>{title}</label>
+    <div className={`flex flex-col gap-2 p-3 ${className} `}>
+      <label className="text-[11px] uppercase tracking-[0.35em] text-white/40">{title}</label>
       <Select>
-        <SelectTrigger className="w-full border-none bg-zinc-800">
+        <SelectTrigger className="w-full rounded-2xl border border-white/15 bg-[#05060f]/60 px-4 py-3 text-sm font-medium text-white/80 outline-none transition focus:border-white/50 focus:bg-[#090b18]/70">
           <SelectValue placeholder={currentToken?.symbol} />
         </SelectTrigger>
-        <SelectContent className="border-none text-zinc-500 bg-zinc-800">
-          <SelectGroup >
-            <SelectLabel>Tokens</SelectLabel>
+        <SelectContent className="rounded-xl border border-white/20 bg-[#0a0d14] text-white/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+          <SelectGroup>
+            <SelectLabel className="text-white/50">Tokens</SelectLabel>
             {
               tokenList?.map((token)=>(
-                <SelectItem onClick={()=>(onChange(token?.address))} value={token?.address} className="hover:bg-zinc-800 focus:bg-zinc-600 bg-zinc-800">{token?.symbol}</SelectItem>
+                <SelectItem onClick={()=>(onChange(token?.address))} value={token?.address} className="text-white/80 hover:bg-white/10 focus:bg-white/15 focus:text-white">{token?.symbol}</SelectItem>
               ))
             }
           </SelectGroup>

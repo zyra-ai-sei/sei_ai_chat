@@ -87,7 +87,7 @@ const Transactions = () => {
 
   const stats = useMemo(() => {
     const totalValue = transactions.reduce(
-      (acc, txn) => acc + Number(txn.value || 0),
+      (acc:any, txn:any) => acc + Number(txn.value || 0),
       0
     );
     const successCount = transactions.filter(
@@ -107,7 +107,7 @@ const Transactions = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#05060E] text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 lg:px-0">
+      <section className="flex flex-col w-full max-w-6xl gap-6 px-4 py-12 mx-auto lg:px-0">
         <div className="rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(124,171,249,0.2),_transparent_60%),_linear-gradient(135deg,_rgba(124,171,249,0.15),_rgba(179,122,232,0.15))] p-8 shadow-[0_20px_80px_rgba(10,10,12,0.6)]">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
@@ -117,7 +117,7 @@ const Transactions = () => {
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
                 On-chain history, curated for you
               </h1>
-              <p className="mt-4 max-w-2xl text-base text-white/70">
+              <p className="max-w-2xl mt-4 text-base text-white/70">
                 Review every contract interaction, monitor token transfers, and
                 download detailed receipts without leaving Zyra.
               </p>
@@ -146,7 +146,7 @@ const Transactions = () => {
                   {formatTokenValue(stats.totalValue)} {transactions[0]?.token || "SEI"}
                 </span>
               </div>
-              <button className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20">
+              <button className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
                 <ArrowDownToLine size={16} /> Export CSV
               </button>
             </div>
@@ -159,17 +159,17 @@ const Transactions = () => {
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative w-full sm:w-72">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/40"
+                  className="absolute -translate-y-1/2 pointer-events-none left-3 top-1/2 text-white/40"
                   size={16}
                 />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by address or hash"
-                  className="h-10 w-full rounded-full border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  className="w-full h-10 py-2 pl-10 pr-4 text-sm text-white border rounded-full border-white/10 bg-white/5 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                 />
               </div>
-              <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 text-sm text-white/60">
+              <div className="flex items-center gap-1 p-1 text-sm border rounded-full border-white/10 bg-white/5 text-white/60">
                 <button
                   onClick={() => setSortKey("recent")}
                   className={cn(
@@ -204,13 +204,13 @@ const Transactions = () => {
                     : "text-white/70 hover:border-white/30"
                 )}
               >
-                {f.id === "all" ? <Filter size={16} /> : <span className="h-2 w-2 rounded-full bg-white/50" />}
+                {f.id === "all" ? <Filter size={16} /> : <span className="w-2 h-2 rounded-full bg-white/50" />}
                 {f.label}
               </button>
             ))}
           </div>
 
-          <div className="rounded-2xl border border-white/5 bg-black/30">
+          <div className="border rounded-2xl border-white/5 bg-black/30">
             <div className="grid grid-cols-12 gap-4 border-b border-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-white/50">
               <span className="col-span-4">Hash</span>
               <span className="col-span-3">Type</span>
@@ -232,7 +232,7 @@ const Transactions = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 border-t border-white/5 pt-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 pt-4 border-t border-white/5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-2 text-sm text-white/60">
               <span>Rows per page</span>
               <select
@@ -240,7 +240,7 @@ const Transactions = () => {
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
                 }}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-sm text-white focus:border-white/40 focus:outline-none"
+                className="px-3 py-1 text-sm text-white border rounded-full border-white/15 bg-white/5 focus:border-white/40 focus:outline-none"
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size} className="bg-[#05060E] text-white">
@@ -254,7 +254,7 @@ const Transactions = () => {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={safePage === 1}
-                className="rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 disabled:cursor-not-allowed disabled:opacity-40"
+                className="px-3 py-1 text-sm border rounded-full border-white/10 text-white/70 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Prev
               </button>
@@ -268,7 +268,7 @@ const Transactions = () => {
                   setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                 }
                 disabled={safePage === totalPages}
-                className="rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 disabled:cursor-not-allowed disabled:opacity-40"
+                className="px-3 py-1 text-sm border rounded-full border-white/10 text-white/70 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
               </button>
@@ -282,7 +282,7 @@ const Transactions = () => {
 
 const Row = ({ txn }: { txn: any }) => {
   return (
-    <div className="grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm">
+    <div className="grid items-center grid-cols-12 gap-4 px-6 py-5 text-sm">
       <div className="col-span-4">
         <p className="font-mono text-white">
           {formatHash(txn.hash)}
@@ -293,7 +293,7 @@ const Row = ({ txn }: { txn: any }) => {
       </div>
       <div className="col-span-3 text-white/80">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
             <ArrowUpRight size={16} />
           </span>
           <div>
@@ -308,7 +308,7 @@ const Row = ({ txn }: { txn: any }) => {
       <div className="col-span-2">
         <StatusBadge status={txn.status} />
       </div>
-      <div className="col-span-1 text-right text-xs text-white/50">
+      <div className="col-span-1 text-xs text-right text-white/50">
         {formatTime(txn.timestamp)}
       </div>
     </div>
@@ -351,7 +351,7 @@ const StatusBadge = ({ status = "pending" }: { status?: string | null }) => {
 const LoadingState = () => (
   <div className="flex flex-col gap-2 px-6 py-10 text-center text-white/50">
     <p>Fetching your on-chain history…</p>
-    <span className="mx-auto h-1 w-32 animate-pulse rounded-full bg-white/20" />
+    <span className="w-32 h-1 mx-auto rounded-full animate-pulse bg-white/20" />
   </div>
 );
 

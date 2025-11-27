@@ -13,6 +13,7 @@ export interface ToolOutput {
   id:number;
   label?: string;
   metadata: any;
+  executionId?: string;
   transaction: {
     address?: string;
     abi?: any[];

@@ -28,7 +28,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-1.5 text-xs font-medium text-blue-300/90"
+        className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/5 px-4 py-1.5 text-xs font-medium text-blue-300/90"
       >
         <div className="w-3 h-3 border-2 border-blue-400 rounded-full animate-spin border-t-transparent" />
         <span>
@@ -43,7 +43,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-xs font-medium text-red-300/90"
+        className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/5 px-4 py-1.5 text-xs font-medium text-red-300/90"
       >
         <span>Aborted {completedCount}/{totalTxns}</span>
       </button>
@@ -55,7 +55,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-300/90"
+        className="flex items-center gap-1.5 rounded-full border border-[#2AF598]/50 bg-gradient-to-tr from-[#2AF598]/25 to-[#009EFD]/25 px-4 py-1.5 text-xs font-medium text-[#2AF598]"
       >
         <span>✓ {completedCount}/{totalTxns}</span>
       </button>
@@ -67,7 +67,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
     <button
       onClick={onExecuteAll}
       disabled={orderedTxns.length === 0}
-      className={`group flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+      className={`group flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-medium transition-all ${
         orderedTxns.length === 0
           ? "cursor-not-allowed border-white/10 bg-white/[0.02] text-white/30"
           : "border-blue-500/20 bg-blue-500/5 text-blue-300/80 hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200"
