@@ -30,6 +30,7 @@ interface ChatResponse {
   chat: string;
   tool_outputs?: ToolOutput[];
   execution_state?: ExecutionState;
+  data_output?: any; // For crypto market data and other visualization data
 }
 
 export interface ChatItem {
@@ -124,10 +125,10 @@ const chatDataSlice = createSlice({
           ...existingToolOutputs,
           ...action.payload.response.tool_outputs,
         ];
-        
+
         // Turn off toolOutputsLoading when first tool_output arrives
         chatItem.toolOutputsLoading = false;
-        
+
         // Initialize execution_state if it doesn't exist
         if (!targetResponse.execution_state) {
           targetResponse.execution_state = {
@@ -138,6 +139,11 @@ const chatDataSlice = createSlice({
             isCompleted: false,
           };
         }
+      }
+
+      // Handle data_output for crypto market data and other visualizations
+      if (action.payload.response.data_output !== undefined) {
+        targetResponse.data_output = action.payload.response.data_output;
       }
     },
     setLoading(

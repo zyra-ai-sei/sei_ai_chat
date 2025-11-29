@@ -28,19 +28,12 @@ export interface TokenVisualizationData {
     supply_pct_mined: number;
   };
   chart?: {
-    prices: [number, number][]; // [timestamp, price]
+    prices: [number, number, number][]; // [timestamp, price, marketCap]
   };
   sentiment: {
     positive_pct: number;
     negative_pct: number;
     watchlist_count: number;
-  };
-  developer_activity: {
-    stars: number;
-    forks: number;
-    commit_count_4_weeks: number;
-    pull_requests_merged: number;
-    contributors: number;
   };
   liquidity: {
     top_exchange: string;
@@ -54,11 +47,13 @@ export interface TokenVisualizationData {
 export interface TokenVisualizationState {
   currentToken: TokenVisualizationData | null;
   isLoading: boolean;
+  chartLoading: boolean;
 }
 
 const initialState: TokenVisualizationState = {
   currentToken: null,
   isLoading: false,
+  chartLoading: false,
 };
 
 export const tokenVisualizationSlice = createSlice({
@@ -75,14 +70,42 @@ export const tokenVisualizationSlice = createSlice({
     clearTokenVisualization(state) {
       state.currentToken = null;
       state.isLoading = false;
+      state.chartLoading = false;
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
+    setChartLoading(state, action: PayloadAction<boolean>) {
+      state.chartLoading = action.payload;
+    },
+    updateChartData(
+      state,
+      action: PayloadAction<{ prices: [number, number, number][] }>
+    ) {
+      console.log('[Reducer] updateChartData called:', {
+        hasCurrentToken: !!state.currentToken,
+        newPricesLength: action.payload.prices.length,
+        samplePrice: action.payload.prices[0]
+      });
+
+      if (state.currentToken) {
+        state.currentToken.chart = {
+          prices: action.payload.prices,
+        };
+        console.log('[Reducer] Chart data updated successfully');
+      } else {
+        console.warn('[Reducer] Cannot update chart data - no current token!');
+      }
+    },
   },
 });
 
-export const { setTokenVisualization, clearTokenVisualization, setLoading } =
-  tokenVisualizationSlice.actions;
+export const {
+  setTokenVisualization,
+  clearTokenVisualization,
+  setLoading,
+  setChartLoading,
+  updateChartData,
+} = tokenVisualizationSlice.actions;
 
 export default tokenVisualizationSlice.reducer;
