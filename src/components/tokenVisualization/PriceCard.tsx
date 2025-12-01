@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { TokenVisualizationData } from "@/redux/tokenVisualization/reducer";
 import PriceChart from "./PriceChart";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { fetchMarketChartData } from "@/redux/tokenVisualization/action";
 
 interface PriceCardProps {
   token: TokenVisualizationData;
 }
 
+type DataType = "price" | "marketCap";
+type TimePeriod = "24h" | "7d" | "1m" | "3m" | "1y";
+
 const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
+  const dispatch = useAppDispatch();
+  const chartLoading = useAppSelector(
+    (state) => state.tokenVisualization.chartLoading
+  );
+
+  const [dataType, setDataType] = useState<DataType>("price");
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("7d");
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -23,6 +36,111 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
       day: "numeric",
     });
   };
+
+  // Fetch chart data when timeframe changes
+  useEffect(() => {
+    if (token.id) {
+      dispatch(fetchMarketChartData({ coinId: token.id, timeframe: timePeriod }));
+    }
+  }, [timePeriod, token.id, dispatch]);
+
+  // Client-side filtering of chart data based on timeframe
+  // This is a fallback when backend API is not available
+  const chartData = useMemo(() => {
+    const data = token.chart?.prices || [];
+
+    console.log('[PriceCard] Chart data from Redux:', {
+      hasChartObject: !!token.chart,
+      hasPricesArray: !!token.chart?.prices,
+      dataLength: data.length,
+      timePeriod,
+      dataType
+    });
+
+    if (data.length === 0) {
+      console.warn('[PriceCard] No chart data available!');
+      return [];
+    }
+
+    // Validate data structure
+    const isValidFormat = data.every((point, idx) => {
+      const isValid = Array.isArray(point) &&
+             point.length === 3 &&
+             typeof point[0] === 'number' &&
+             typeof point[1] === 'number' &&
+             typeof point[2] === 'number';
+
+      if (!isValid) {
+        console.error(`[PriceCard] Invalid data point at index ${idx}:`, point);
+      }
+      return isValid;
+    });
+
+    if (!isValidFormat) {
+      console.error('[PriceCard] Data format validation failed! Expected: [timestamp, price, marketCap][]');
+      return [];
+    }
+
+    // Filter data based on selected timeframe (using latest timestamp as reference)
+    const latestTimestamp = Math.max(...data.map(([ts]) => ts));
+    let cutoffTime = latestTimestamp;
+
+    switch (timePeriod) {
+      case "24h":
+        cutoffTime = latestTimestamp - 24 * 60 * 60 * 1000;
+        break;
+      case "7d":
+        cutoffTime = latestTimestamp - 7 * 24 * 60 * 60 * 1000;
+        break;
+      case "1m":
+        cutoffTime = latestTimestamp - 30 * 24 * 60 * 60 * 1000;
+        break;
+      case "3m":
+        cutoffTime = latestTimestamp - 90 * 24 * 60 * 60 * 1000;
+        break;
+      case "1y":
+        cutoffTime = latestTimestamp - 365 * 24 * 60 * 60 * 1000;
+        break;
+    }
+
+    const filteredData = data.filter(([timestamp]) => timestamp >= cutoffTime);
+
+    console.log('[PriceCard] Filtered Chart Data:', {
+      dataType,
+      timePeriod,
+      originalLength: data.length,
+      filteredLength: filteredData.length,
+      firstPoint: filteredData[0],
+      lastPoint: filteredData[filteredData.length - 1],
+      format: '[timestamp, price, marketCap]',
+      dateRange: filteredData.length > 0
+        ? `${new Date(filteredData[0][0]).toLocaleDateString()} to ${new Date(filteredData[filteredData.length - 1][0]).toLocaleDateString()}`
+        : 'No data',
+      samplePrice: filteredData[0]?.[1],
+      sampleMarketCap: filteredData[0]?.[2]
+    });
+
+    return filteredData;
+  }, [token.chart?.prices, dataType, timePeriod, token.chart]);
+
+  // Get the latest price from chart data (most recent data point)
+  const latestPrice = useMemo(() => {
+    if (chartData.length > 0) {
+      const lastPoint = chartData[chartData.length - 1];
+      return lastPoint[1]; // [timestamp, price, marketCap] - get price
+    }
+    return token.market.price_usd; // Fallback to token price if no chart data
+  }, [chartData, token.market.price_usd]);
+
+  // Calculate 24h change from chart data
+  const price24hChange = useMemo(() => {
+    if (chartData.length > 1) {
+      const latestPrice = chartData[chartData.length - 1][1];
+      const oldestPrice = chartData[0][1];
+      return ((latestPrice - oldestPrice) / oldestPrice) * 100;
+    }
+    return token.market.price_change_24h; // Fallback
+  }, [chartData, token.market.price_change_24h]);
 
   return (
     <div className="relative h-full rounded-2xl scrollbar-none border border-white/10 bg-gradient-to-br from-[#05060E]/95 via-[#0A0B15]/95 to-[#05060E]/95 p-5 shadow-[0_20px_60px_rgba(5,6,14,0.8)]">
@@ -47,18 +165,18 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
         <div className="mb-6">
           <div className="flex items-baseline gap-3 mb-2">
             <span className="text-4xl font-bold text-white">
-              {formatPrice(token.market.price_usd)}
+              {formatPrice(latestPrice)}
             </span>
             <div
               className={`flex items-center gap-1 px-2 py-1 rounded-full ${
-                token.market.price_change_24h >= 0
+                price24hChange >= 0
                   ? "bg-emerald-500/10 border border-emerald-500/30"
                   : "bg-rose-500/10 border border-rose-500/30"
               }`}
             >
               <svg
                 className={`w-3 h-3 ${
-                  token.market.price_change_24h >= 0
+                  price24hChange >= 0
                     ? "text-emerald-400"
                     : "text-rose-400 rotate-180"
                 }`}
@@ -75,27 +193,98 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
               </svg>
               <span
                 className={`text-sm font-semibold ${
-                  token.market.price_change_24h >= 0
+                  price24hChange >= 0
                     ? "text-emerald-400"
                     : "text-rose-400"
                 }`}
               >
-                {token.market.price_change_24h >= 0 ? "+" : ""}
-                {token.market.price_change_24h.toFixed(2)}%
+                {price24hChange >= 0 ? "+" : ""}
+                {price24hChange.toFixed(2)}%
               </span>
             </div>
           </div>
-          <p className="text-xs text-white/50 mb-3">24h change</p>
+          <p className="text-xs text-white/50 mb-3">
+            Change ({timePeriod})
+          </p>
+
+          {/* Chart Controls */}
+          <div className="mb-3 space-y-3">
+            {/* Data Type Toggle */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDataType("price")}
+                className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  dataType === "price"
+                    ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400"
+                    : "bg-white/5 border border-white/10 text-white/50 hover:bg-white/10"
+                }`}
+              >
+                Price
+              </button>
+              <button
+                onClick={() => setDataType("marketCap")}
+                className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  dataType === "marketCap"
+                    ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400"
+                    : "bg-white/5 border border-white/10 text-white/50 hover:bg-white/10"
+                }`}
+              >
+                Market Cap
+              </button>
+            </div>
+
+            {/* Time Period Toggles */}
+            <div className="flex gap-2">
+              {[
+                { value: "24h" as TimePeriod, label: "24H" },
+                { value: "7d" as TimePeriod, label: "7D" },
+                { value: "1m" as TimePeriod, label: "1M" },
+                { value: "3m" as TimePeriod, label: "3M" },
+                { value: "1y" as TimePeriod, label: "1Y" },
+              ].map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setTimePeriod(value)}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
+                    timePeriod === value
+                      ? "bg-blue-500/20 border border-blue-500/50 text-blue-400"
+                      : "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Price Chart */}
-          {token.chart?.prices && token.chart.prices.length > 0 && (
-            <div className="rounded-xl bg-white/5 border border-white/5 p-4 mb-2 h-[400px]">
-              <PriceChart
-                data={token.chart.prices}
-                change24h={token.market.price_change_24h}
-              />
+          <div className="rounded-xl bg-white/5 border border-white/5 p-4 mb-2 h-[400px] relative">
+            {/* Data type indicator */}
+            <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/10 border border-white/20">
+              <span className="text-[10px] font-semibold text-white/70">
+                {dataType === "price" ? "Price (USD)" : "Market Cap (USD)"}
+              </span>
             </div>
-          )}
+            {chartLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  <p className="text-xs text-white/50">Loading chart data...</p>
+                </div>
+              </div>
+            ) : chartData.length > 0 ? (
+              <PriceChart
+                key={`${dataType}-${timePeriod}`}
+                data={chartData}
+                change24h={price24hChange}
+                dataType={dataType}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-xs text-white/40">No chart data available</p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-4">

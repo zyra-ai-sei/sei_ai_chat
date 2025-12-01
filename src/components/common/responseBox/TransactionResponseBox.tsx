@@ -37,6 +37,11 @@ const TransactionResponseBox = () => {
     (state) => state.tokenVisualization.currentToken
   );
 
+  // Check if any chat has data_output (for crypto market data)
+  const hasDataOutput = useMemo(() => {
+    return chats.some((chat) => chat?.response?.data_output);
+  }, [chats]);
+
   // Auto-scroll to bottom only when new chat is added
   useEffect(() => {
     if (scrollContainerRef.current && chatsCount > prevChatsCountRef.current && chatsCount > 0) {
@@ -53,11 +58,11 @@ const TransactionResponseBox = () => {
       ref={scrollContainerRef}
       className="relative z-30 flex flex-col justify-start w-full h-full gap-6 py-2 pr-4 mx-auto overflow-y-auto scrollbar-none"
     >
-      {/* Token Visualization */}
-      {tokenVisualizationData && <TokenVisualization />}
+      {/* Token Visualization - Show if tokenVisualizationData exists OR if any chat has data_output */}
+      {(tokenVisualizationData || hasDataOutput) && <TokenVisualization />}
 
       {/* Centered Avatar when no transaction UI and no token visualization to display */}
-      {!hasTransactionUI && !tokenVisualizationData && (
+      {!hasTransactionUI && !tokenVisualizationData && !hasDataOutput && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative w-[160px] h-[160px]">
             {/* Glow effect */}

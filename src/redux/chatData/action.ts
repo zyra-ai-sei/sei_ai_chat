@@ -87,18 +87,92 @@ export const streamChatPrompt = createAsyncThunk<
             ) {
               hasReceivedResponse = true;
               payload.tool_output.map((tool:any)=>{
+                // Check if this is crypto market data
+                if (tool.type === "crypto_market_data") {
+                  console.log('[StreamChat] Received crypto market data:', {
+                    coinId: tool.coinId,
+                    timeframe: tool.timeframe,
+                    dataPoints: tool.dataPoints
+                  });
 
-                const sanitizedToolOutput = JSON.parse(
-                  JSON.stringify(tool, (_, value) =>
-                    typeof value === "bigint" ? value.toString() : value
-                  )
-                );
-                dispatch(
-                  updateResponse({
-                    index: chatIndex,
-                    response: { tool_outputs: [sanitizedToolOutput] },
-                  })
-                );
+                  // Dispatch chart data to token visualization
+                  if (tool.chartData && Array.isArray(tool.chartData)) {
+                    // Map the CoinGecko API response to our frontend format
+                    const marketData = tool.market_data || {};
+                    const tickers = tool.tickers || [];
+                    const topTicker = tickers[0] || {};
+
+                    const tokenData = {
+                      id: tool.coinId || tool.id,
+                      symbol: tool.symbol || tool.coinId.toUpperCase(),
+                      name: tool.name || (tool.coinId.charAt(0).toUpperCase() + tool.coinId.slice(1)),
+                      image: {
+                        thumb: tool.image?.thumb || `https://assets.coingecko.com/coins/images/1/thumb/${tool.coinId}.png`,
+                        large: tool.image?.large || `https://assets.coingecko.com/coins/images/1/large/${tool.coinId}.png`,
+                      },
+                      categories: tool.categories || [],
+                      market: {
+                        price_usd: marketData.current_price?.usd || tool.chartData[tool.chartData.length - 1][1],
+                        price_change_1h: marketData.price_change_percentage_1h_in_currency?.usd || 0,
+                        price_change_24h: marketData.price_change_percentage_24h_in_currency?.usd || 0,
+                        price_change_7d: marketData.price_change_percentage_7d_in_currency?.usd || 0,
+                        price_change_30d: marketData.price_change_percentage_30d_in_currency?.usd || 0,
+                        high_24h: marketData.high_24h?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
+                        low_24h: marketData.low_24h?.usd || Math.min(...tool.chartData.map((d: any) => d[1])),
+                        ath_usd: marketData.ath?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
+                        ath_change_pct: marketData.ath_change_percentage?.usd || 0,
+                        ath_date: marketData.ath_date?.usd || new Date().toISOString(),
+                        market_cap: marketData.market_cap?.usd || tool.chartData[tool.chartData.length - 1][2],
+                        market_cap_rank: marketData.market_cap_rank || 0,
+                        volume_24h: marketData.total_volume?.usd || 0,
+                        circulating_supply: marketData.circulating_supply || 0,
+                        max_supply: marketData.max_supply || 0,
+                        supply_pct_mined: marketData.max_supply > 0
+                          ? marketData.circulating_supply / marketData.max_supply
+                          : 0,
+                      },
+                      chart: {
+                        prices: tool.chartData,
+                      },
+                      sentiment: {
+                        positive_pct: tool.sentiment_votes_up_percentage || 50,
+                        negative_pct: tool.sentiment_votes_down_percentage || 50,
+                        watchlist_count: tool.watchlist_portfolio_users || 0,
+                      },
+                      liquidity: {
+                        top_exchange: topTicker.market?.name || "N/A",
+                        last_traded_price: topTicker.last || marketData.current_price?.usd || 0,
+                        volume_on_top_exchange: topTicker.volume || 0,
+                        spread_pct: topTicker.bid_ask_spread_percentage || 0,
+                        trust_score: topTicker.trust_score || "white",
+                      },
+                    };
+
+                    // Store in token visualization
+                    dispatch(setTokenVisualization(tokenData));
+
+                    // Also store in chat response as data_output
+                    dispatch(
+                      updateResponse({
+                        index: chatIndex,
+                        response: { data_output: tokenData },
+                      })
+                    );
+                  }
+                } else {
+                  // Regular tool output (transactions, etc.)
+                  const sanitizedToolOutput = JSON.parse(
+                    JSON.stringify(tool, (_, value) =>
+                      typeof value === "bigint" ? value.toString() : value
+                    )
+                  );
+                  dispatch(
+                    updateResponse({
+                      index: chatIndex,
+                      response: { tool_outputs: [sanitizedToolOutput] },
+                    })
+                  );
+                }
               })
             } else if (payload.type === "token_data" && payload.token_data) {
               // Handle token visualization data from backend
@@ -243,6 +317,65 @@ export const getChatHistory = createAsyncThunk<
               const contentToAdd = typeof formattedMessage.content === 'string' ? formattedMessage.content : '';
               const existingChat = typeof updatedResponse.chat === 'string' ? updatedResponse.chat : '';
               updatedResponse.chat = existingChat + (contentToAdd ? ' ' + contentToAdd : '');
+
+              // Check if any tool output is crypto market data
+              formattedMessage.tool_output.forEach((tool: any) => {
+                if (tool.type === "crypto_market_data" && tool.chartData) {
+                  // Map the CoinGecko API response to our frontend format
+                  const marketData = tool.market_data || {};
+                  const tickers = tool.tickers || [];
+                  const topTicker = tickers[0] || {};
+
+                  const tokenData = {
+                    id: tool.coinId || tool.id,
+                    symbol: tool.symbol || tool.coinId.toUpperCase(),
+                    name: tool.name || (tool.coinId.charAt(0).toUpperCase() + tool.coinId.slice(1)),
+                    image: {
+                      thumb: tool.image?.thumb || `https://assets.coingecko.com/coins/images/1/thumb/${tool.coinId}.png`,
+                      large: tool.image?.large || `https://assets.coingecko.com/coins/images/1/large/${tool.coinId}.png`,
+                    },
+                    categories: tool.categories || [],
+                    market: {
+                      price_usd: marketData.current_price?.usd || tool.chartData[tool.chartData.length - 1][1],
+                      price_change_1h: marketData.price_change_percentage_1h_in_currency?.usd || 0,
+                      price_change_24h: marketData.price_change_percentage_24h_in_currency?.usd || 0,
+                      price_change_7d: marketData.price_change_percentage_7d_in_currency?.usd || 0,
+                      price_change_30d: marketData.price_change_percentage_30d_in_currency?.usd || 0,
+                      high_24h: marketData.high_24h?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
+                      low_24h: marketData.low_24h?.usd || Math.min(...tool.chartData.map((d: any) => d[1])),
+                      ath_usd: marketData.ath?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
+                      ath_change_pct: marketData.ath_change_percentage?.usd || 0,
+                      ath_date: marketData.ath_date?.usd || new Date().toISOString(),
+                      market_cap: marketData.market_cap?.usd || tool.chartData[tool.chartData.length - 1][2],
+                      market_cap_rank: marketData.market_cap_rank || 0,
+                      volume_24h: marketData.total_volume?.usd || 0,
+                      circulating_supply: marketData.circulating_supply || 0,
+                      max_supply: marketData.max_supply || 0,
+                      supply_pct_mined: marketData.max_supply > 0
+                        ? marketData.circulating_supply / marketData.max_supply
+                        : 0,
+                    },
+                    chart: {
+                      prices: tool.chartData,
+                    },
+                    sentiment: {
+                      positive_pct: tool.sentiment_votes_up_percentage || 50,
+                      negative_pct: tool.sentiment_votes_down_percentage || 50,
+                      watchlist_count: tool.watchlist_portfolio_users || 0,
+                    },
+                    liquidity: {
+                      top_exchange: topTicker.market?.name || "N/A",
+                      last_traded_price: topTicker.last || marketData.current_price?.usd || 0,
+                      volume_on_top_exchange: topTicker.volume || 0,
+                      spread_pct: topTicker.bid_ask_spread_percentage || 0,
+                      trust_score: topTicker.trust_score || "white",
+                    },
+                  };
+                  updatedResponse.data_output = tokenData;
+                  // Also dispatch to token visualization store when loading from history
+                  dispatch(setTokenVisualization(tokenData));
+                }
+              });
 
               dispatch(
                 setResponse({

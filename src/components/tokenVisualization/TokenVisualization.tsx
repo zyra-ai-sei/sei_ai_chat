@@ -4,7 +4,6 @@ import PriceCard from "./PriceCard";
 import MarketStrengthCard from "./MarketStrengthCard";
 import SentimentCard from "./SentimentCard";
 import FundamentalsCard from "./FundamentalsCard";
-import DeveloperActivityCard from "./DeveloperActivityCard";
 import LiquidityCard from "./LiquidityCard";
 
 const TokenVisualization: React.FC = () => {
@@ -28,14 +27,16 @@ const TokenVisualization: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full space-y-6">
-      {/* Price Card takes full height */}
-      {/* Other cards below - accessible by scrolling */}
-        <PriceCard token={currentToken} />
+    <div className="w-full space-y-6">
+      {/* Price Card */}
+      <PriceCard token={currentToken} />
+      {/* Market Strength Card */}
       <MarketStrengthCard token={currentToken} />
+      {/* Sentiment Card */}
       <SentimentCard token={currentToken} />
+      {/* Fundamentals Card */}
       <FundamentalsCard token={currentToken} />
-      <DeveloperActivityCard token={currentToken} />
+      {/* Liquidity Card */}
       <LiquidityCard token={currentToken} />
     </div>
   );
