@@ -95,7 +95,7 @@ const InputBox = () => {
           supply_pct_mined: 0.94
         },
         chart: {
-          prices: bitcoinChartPrices
+          prices: bitcoinChartPrices as any
         },
         sentiment: {
           positive_pct: 84.07,

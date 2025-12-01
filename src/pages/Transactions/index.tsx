@@ -1,8 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { getTransactions } from "@/redux/transactionData/action";
-import { ArrowDownToLine, ArrowUpRight, ExternalLink, Filter, Search } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpRight,
+  ExternalLink,
+  Filter,
+  Search,
+} from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import {
+  formatAddress,
+  formatHash,
+  formatTime,
+  formatTokenValue,
+  normalizeStatus,
+  toSeiValue,
+} from "@/utility/transactionHistory";
+import { StatusBadge } from "./components/StatusBadge";
+import { EmptyState } from "./components/EmptyState";
+import { LoadingState } from "./components/LoadingState";
 
 const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ");
@@ -52,7 +69,7 @@ const Transactions = () => {
     let list = [...transactions];
 
     if (activeFilter !== "all") {
-      list = list.filter((txn) => {
+      list = list.filter((txn: any) => {
         const normalized = normalizeStatus(txn.status);
         if (activeFilter === "failed") {
           return normalized === "failed" || normalized === "error";
@@ -84,7 +101,10 @@ const Transactions = () => {
     return list;
   }, [transactions, activeFilter, query, sortKey]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / pageSize));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / pageSize)
+  );
   const safePage = Math.min(currentPage, totalPages);
   const pageStart = (safePage - 1) * pageSize;
   const paginatedTransactions = filteredTransactions.slice(
@@ -100,7 +120,7 @@ const Transactions = () => {
 
   const stats = useMemo(() => {
     const totalValue = transactions.reduce(
-      (acc:any, txn:any) => acc + Number(txn.value || 0),
+      (acc: any, txn: any) => acc + Number(txn.value || 0),
       0
     );
     const successCount = transactions.filter(
@@ -156,7 +176,8 @@ const Transactions = () => {
               <div className="flex items-center justify-between text-sm text-white/70">
                 <span>Total volume</span>
                 <span className="font-semibold text-white">
-                  {formatTokenValue(stats.totalValue)} {transactions[0]?.token || "SEI"}
+                  {formatTokenValue(stats.totalValue)}{" "}
+                  {transactions[0]?.token || "SEI"}
                 </span>
               </div>
               <button className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
@@ -217,13 +238,17 @@ const Transactions = () => {
                     : "text-white/70 hover:border-white/30"
                 )}
               >
-                {f.id === "all" ? <Filter size={16} /> : <span className="w-2 h-2 rounded-full bg-white/50" />}
+                {f.id === "all" ? (
+                  <Filter size={16} />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-white/50" />
+                )}
                 {f.label}
               </button>
             ))}
           </div>
 
-          <div className="border rounded-2xl border-white/5 bg-black/30">
+          <div className="w-full border rounded-2xl border-white/5 bg-black/30">
             <div className="grid grid-cols-12 gap-4 border-b border-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-white/50">
               <span className="col-span-4">Hash</span>
               <span className="col-span-3">Type</span>
@@ -231,13 +256,9 @@ const Transactions = () => {
               <span className="col-span-2">Status</span>
               <span className="col-span-1 text-right">Time</span>
             </div>
-            <div className="divide-y divide-white/5">
-              {loading && (
-                <LoadingState />
-              )}
-              {!loading && filteredTransactions.length === 0 && (
-                <EmptyState />
-              )}
+            <div className="w-full divide-y divide-white/5">
+              {loading && <LoadingState />}
+              {!loading && filteredTransactions.length === 0 && <EmptyState />}
               {!loading &&
                 paginatedTransactions.map((txn, idx) => (
                   <Row
@@ -260,7 +281,11 @@ const Transactions = () => {
                 className="px-3 py-1 text-sm text-white border rounded-full border-white/15 bg-white/5 focus:border-white/40 focus:outline-none"
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size} className="bg-[#05060E] text-white">
+                  <option
+                    key={size}
+                    value={size}
+                    className="bg-[#05060E] text-white"
+                  >
                     {size}
                   </option>
                 ))}
@@ -307,135 +332,58 @@ const Row = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
   }, [isHighlighted]);
 
   return (
-    <div className="grid items-center grid-cols-12 gap-4 px-6 py-5 text-sm">
-    <div
-      ref={rowRef}
-      className={cn(
-        "grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm transition-all duration-500",
-        isHighlighted && "bg-[#7cabf9]/20 ring-1 ring-[#7cabf9]/50 rounded-lg"
-      )}
-    >
-      <div className="col-span-4">
-        <div className="flex items-center gap-2">
-          <p className="font-mono text-white">
-            {formatHash(txn.hash)}
+    <div className="grid items-center w-full ">
+      <div
+        ref={rowRef}
+        className={cn(
+          "grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm transition-all duration-500",
+          isHighlighted && "bg-[#7cabf9]/20 ring-1 ring-[#7cabf9]/50 rounded-lg"
+        )}
+      >
+        <div className="col-span-4">
+          <div className="flex items-center gap-2">
+            <p className="font-mono text-white">{formatHash(txn.hash)}</p>
+            {txn.hash && (
+              <a
+                href={`https://seitrace.com/tx/${txn.hash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/40 hover:text-[#7cabf9] transition-colors"
+                title="View on Seitrace"
+              >
+                <ExternalLink size={14} />
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-white/50">
+            {formatAddress(txn.from)} → {formatAddress(txn.to)}
           </p>
-          {txn.hash && (
-            <a
-              href={`https://seitrace.com/tx/${txn.hash}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-white/40 hover:text-[#7cabf9] transition-colors"
-              title="View on Seitrace"
-            >
-              <ExternalLink size={14} />
-            </a>
-          )}
         </div>
-        <p className="text-xs text-white/50">
-          {formatAddress(txn.from)} → {formatAddress(txn.to)}
-        </p>
-      </div>
-      <div className="col-span-3 text-white/80">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
-            <ArrowUpRight size={16} />
-          </span>
-          <div>
-            <p className="font-medium capitalize">{txn.type || "Contract"}</p>
-            <p className="text-xs text-white/50">{txn.blockNumber ? `Block #${txn.blockNumber}` : ""}</p>
+        <div className="col-span-3 text-white/80">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
+              <ArrowUpRight size={16} />
+            </span>
+            <div>
+              <p className="font-medium capitalize">{txn.type || "Contract"}</p>
+              <p className="text-xs text-white/50">
+                {txn.blockNumber ? `Block #${txn.blockNumber}` : ""}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="col-span-2 font-semibold">
-        {formatTokenValue(txn.value)} {txn.token || "SEI"}
-      </div>
-      <div className="col-span-2">
-        <StatusBadge status={txn.status} />
-      </div>
-      <div className="col-span-1 text-xs text-right text-white/50">
-        {formatTime(txn.timestamp)}
+        <div className="col-span-2 font-semibold">
+          {formatTokenValue(txn.value)} {txn.token || "SEI"}
+        </div>
+        <div className="col-span-2">
+          <StatusBadge status={txn.status} />
+        </div>
+        <div className="col-span-1 text-xs text-right text-white/50">
+          {formatTime(txn.timestamp)}
+        </div>
       </div>
     </div>
   );
 };
-
-const StatusBadge = ({ status = "pending" }: { status?: string | null }) => {
-  const normalized = normalizeStatus(status);
-  const lookup: Record<string, { label: string; className: string }> = {
-    success: {
-      label: "Success",
-      className:
-        "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30",
-    },
-    failed: {
-      label: "Failed",
-      className: "bg-rose-500/10 text-rose-300 border border-rose-500/30",
-    },
-    pending: {
-      label: "Pending",
-      className: "bg-amber-500/10 text-amber-300 border border-amber-500/30",
-    },
-  };
-
-  const config = lookup[normalized] || lookup.pending;
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs",
-        config.className
-      )}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {config.label}
-    </span>
-  );
-};
-
-const LoadingState = () => (
-  <div className="flex flex-col gap-2 px-6 py-10 text-center text-white/50">
-    <p>Fetching your on-chain history…</p>
-    <span className="w-32 h-1 mx-auto rounded-full animate-pulse bg-white/20" />
-  </div>
-);
-
-const EmptyState = () => (
-  <div className="flex flex-col gap-3 px-6 py-12 text-center text-white/50">
-    <p>No transactions found for the selected filters.</p>
-    <p className="text-sm">Try syncing your wallet or adjusting the filters.</p>
-  </div>
-);
-
-const normalizeStatus = (status?: string | null) =>
-  (status?.toLowerCase().replace("status_", "") || "pending") as
-    | "pending"
-    | "success"
-    | "failed"
-    | "error";
-
-const formatHash = (hash?: string) =>
-  hash ? `${hash.slice(0, 10)}…${hash.slice(-6)}` : "—";
-
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "—";
-
-const formatTokenValue = (value?: number | string | null) => {
-  const numeric = toSeiValue(value);
-  return Intl.NumberFormat("en-US", {
-    maximumFractionDigits: numeric < 1 ? 4 : 2,
-  }).format(numeric);
-};
-
-const formatTime = (timestamp?: string) =>
-  timestamp
-    ? new Date(timestamp).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "--:--";
-
-const toSeiValue = (value?: number | string | null) =>
-  Number(value || 0) / 10 ** 18;
 
 export default Transactions;

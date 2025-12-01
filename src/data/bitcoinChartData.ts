@@ -1,6 +1,6 @@
 // Bitcoin 7-day price chart data (sampled for performance)
 // Every 12th data point to keep it lightweight
-export const bitcoinChartPrices: [number, number][] = [
+export let bitcoinChartPrices = [
   [1761454870205, 111436.09985959985],
   [1761496948779, 113557.60101098006],
   [1761539088390, 115269.0589739152],

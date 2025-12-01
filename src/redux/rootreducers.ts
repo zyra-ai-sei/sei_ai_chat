@@ -5,6 +5,9 @@ import chatDataReducer from "./chatData/reducer";
 import transactionReducer from "./transactionData/reducer";
 import tokenReducer from "./tokenData/reducer";
 import tokenVisualizationReducer from "./tokenVisualization/reducer";
+import portfolioReducer from "./portfolioData/reducer";
+import defiReducer from "./portfolioData/defiReducer";
+
 export const rootReducers = combineReducers({
 
   SocketData: SocketReducer,
@@ -13,5 +16,7 @@ export const rootReducers = combineReducers({
   transactionData: transactionReducer,
   tokenData: tokenReducer,
   tokenVisualization: tokenVisualizationReducer,
+  portfolioData: portfolioReducer,
+  defiData: defiReducer,
 });
 export type RootState = ReturnType<typeof rootReducers>;

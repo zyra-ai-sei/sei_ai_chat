@@ -12,8 +12,8 @@ import { setGlobalData } from "./redux/globalData/action";
 
 import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
-import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Dashboard from "./pages/Dashboard";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
