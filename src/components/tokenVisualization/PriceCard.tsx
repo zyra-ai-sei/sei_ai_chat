@@ -143,7 +143,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
   }, [chartData, token.market.price_change_24h]);
 
   return (
-    <div className="relative h-full rounded-2xl scrollbar-none border border-white/10 bg-gradient-to-br from-[#05060E]/95 via-[#0A0B15]/95 to-[#05060E]/95 p-5 shadow-[0_20px_60px_rgba(5,6,14,0.8)]">
+    <div className="relative h-fit rounded-2xl scrollbar-none border border-white/10 bg-gradient-to-br from-[#05060E]/95 via-[#0A0B15]/95 to-[#05060E]/95 p-5 shadow-[0_20px_60px_rgba(5,6,14,0.8)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(110,178,255,0.12),_transparent_60%)]" />
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-5">
@@ -203,7 +203,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
               </span>
             </div>
           </div>
-          <p className="text-xs text-white/50 mb-3">
+          <p className="mb-3 text-xs text-white/50">
             Change ({timePeriod})
           </p>
 
@@ -260,7 +260,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
           {/* Price Chart */}
           <div className="rounded-xl bg-white/5 border border-white/5 p-4 mb-2 h-[400px] relative">
             {/* Data type indicator */}
-            <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/10 border border-white/20">
+            <div className="absolute z-10 px-2 py-1 border rounded top-2 left-2 bg-white/10 border-white/20">
               <span className="text-[10px] font-semibold text-white/70">
                 {dataType === "price" ? "Price (USD)" : "Market Cap (USD)"}
               </span>
@@ -268,7 +268,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
             {chartLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  <div className="w-10 h-10 border-4 rounded-full border-blue-500/30 border-t-blue-500 animate-spin" />
                   <p className="text-xs text-white/50">Loading chart data...</p>
                 </div>
               </div>
@@ -288,7 +288,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="rounded-xl bg-white/5 border border-white/5 p-3">
+          <div className="p-3 border rounded-xl bg-white/5 border-white/5">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">
               1H
             </p>
@@ -303,7 +303,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
               {token.market.price_change_1h.toFixed(2)}%
             </p>
           </div>
-          <div className="rounded-xl bg-white/5 border border-white/5 p-3">
+          <div className="p-3 border rounded-xl bg-white/5 border-white/5">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">
               7D
             </p>
@@ -318,7 +318,7 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
               {token.market.price_change_7d.toFixed(2)}%
             </p>
           </div>
-          <div className="rounded-xl bg-white/5 border border-white/5 p-3">
+          <div className="p-3 border rounded-xl bg-white/5 border-white/5">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">
               30D
             </p>
@@ -337,29 +337,29 @@ const PriceCard: React.FC<PriceCardProps> = ({ token }) => {
 
         <div className="flex items-center justify-between pt-4 border-t border-white/5">
           <div>
-            <p className="text-xs text-white/50 mb-1">24h High</p>
+            <p className="mb-1 text-xs text-white/50">24h High</p>
             <p className="text-sm font-semibold text-white/80">
               {formatPrice(token.market.high_24h)}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-white/50 mb-1">24h Low</p>
+            <p className="mb-1 text-xs text-white/50">24h Low</p>
             <p className="text-sm font-semibold text-white/80">
               {formatPrice(token.market.low_24h)}
             </p>
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-white/5">
+        <div className="pt-4 mt-4 border-t border-white/5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-white/50 mb-1">ATH</p>
+              <p className="mb-1 text-xs text-white/50">ATH</p>
               <p className="text-sm font-semibold text-white/80">
                 {formatPrice(token.market.ath_usd)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-white/50 mb-1">From ATH</p>
+              <p className="mb-1 text-xs text-white/50">From ATH</p>
               <p
                 className={`text-sm font-semibold ${
                   token.market.ath_change_pct >= 0

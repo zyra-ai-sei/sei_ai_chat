@@ -10,6 +10,7 @@ export {
 } from "./reducer";
 export { fetchPortfolioBalance, refreshPortfolioBalance } from "./action";
 export { fetchDefiPositions, refreshDefiPositions } from "./defiAction";
+export { fetchPortfolioSummary, refreshPortfolioSummary } from "./summaryAction";
 export type {
   PortfolioToken,
   PortfolioApiResponse,
@@ -18,6 +19,13 @@ export type {
   TokenShare,
 } from "./types";
 export { CHAIN_NAMES } from "./types";
+
+// Summary types
+export type {
+  PortfolioSummaryItem,
+  PortfolioSummaryState,
+  PortfolioSummaryStats,
+} from "./summaryTypes";
 
 // Selectors
 export {
@@ -51,3 +59,13 @@ export {
   selectDefiChainSummary,
   selectDefiChainIds,
 } from "./defiSelectors";
+
+// Summary selectors
+export {
+  selectSummaryItems,
+  selectSummaryLoading,
+  selectSummaryError,
+  selectSummaryLastUpdated,
+  selectSummaryStats,
+  selectSummaryIsStale,
+} from "./summarySelectors";

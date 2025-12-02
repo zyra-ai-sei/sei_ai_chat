@@ -7,16 +7,42 @@ import { setDefiLoading, setDefiError, setDefiData, clearDefiData } from "./defi
 interface FetchDefiOptions {
   onSuccessCb?: () => void;
   onFailureCb?: (error: string) => void;
+  forceRefresh?: boolean; // Force refresh even if data is cached
 }
 
+// Cache duration: 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
+
+/**
+ * Fetch DeFi positions from API
+ * Calls: GET /portfolio/defiPositions
+ * 
+ * Implements caching: won't refetch if data is fresh (< 5 minutes old)
+ */
 export const fetchDefiPositions = createAsyncThunk<
   void,
   FetchDefiOptions | void,
   { state: IRootState }
->("portfolioData/fetchDefiPositions", async (options, { dispatch }) => {
-  const { onSuccessCb, onFailureCb } = options || {};
+>("portfolioData/fetchDefiPositions", async (options, { dispatch, getState }) => {
+  const { onSuccessCb, onFailureCb, forceRefresh } = options || {};
 
   try {
+    // Check if we have cached data
+    const state = getState();
+    const { lastUpdated, protocols } = state.defiData;
+    
+    // If we have fresh data and not forcing refresh, skip the API call
+    if (
+      !forceRefresh &&
+      lastUpdated &&
+      Date.now() - lastUpdated < CACHE_DURATION &&
+      protocols.length > 0
+    ) {
+      console.log("Using cached DeFi positions data");
+      if (onSuccessCb) onSuccessCb();
+      return;
+    }
+
     dispatch(setDefiLoading(true));
     const response = await axiosInstance.get<DefiApiResponse>(
       "/portfolio/defiPositions"
@@ -44,5 +70,5 @@ export const refreshDefiPositions = createAsyncThunk<
   { state: IRootState }
 >("portfolioData/refreshDefiPositions", async (options, { dispatch }) => {
   dispatch(clearDefiData());
-  await dispatch(fetchDefiPositions(options));
+  await dispatch(fetchDefiPositions({ ...options, forceRefresh: true }));
 });

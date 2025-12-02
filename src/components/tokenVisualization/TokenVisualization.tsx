@@ -6,12 +6,20 @@ import SentimentCard from "./SentimentCard";
 import FundamentalsCard from "./FundamentalsCard";
 import LiquidityCard from "./LiquidityCard";
 
-const TokenVisualization: React.FC = () => {
+interface TokenVisualizationProps {
+  data?: any; // Token data from chat.response.data_output
+}
+
+const TokenVisualization: React.FC<TokenVisualizationProps> = ({ data }) => {
   const { currentToken, isLoading } = useAppSelector(
     (state) => state.tokenVisualization
   );
 
-  if (isLoading) {
+  // Use prop data if provided, otherwise fall back to Redux
+  const tokenData = data || currentToken;
+  const loading = data ? false : isLoading;
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
@@ -22,22 +30,22 @@ const TokenVisualization: React.FC = () => {
     );
   }
 
-  if (!currentToken) {
+  if (!tokenData) {
     return null;
   }
 
   return (
     <div className="w-full space-y-6">
       {/* Price Card */}
-      <PriceCard token={currentToken} />
+      <PriceCard token={tokenData} />
       {/* Market Strength Card */}
-      <MarketStrengthCard token={currentToken} />
+      <MarketStrengthCard token={tokenData} />
       {/* Sentiment Card */}
-      <SentimentCard token={currentToken} />
+      <SentimentCard token={tokenData} />
       {/* Fundamentals Card */}
-      <FundamentalsCard token={currentToken} />
+      <FundamentalsCard token={tokenData} />
       {/* Liquidity Card */}
-      <LiquidityCard token={currentToken} />
+      <LiquidityCard token={tokenData} />
     </div>
   );
 };

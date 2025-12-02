@@ -6,12 +6,21 @@ import SettingsIcon from "@/assets/header/settings.svg?react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
-import { logoutUserRequest, resetGlobalData, setGlobalData } from "@/redux/globalData/action";
+import {
+  logoutUserRequest,
+  resetGlobalData,
+  setGlobalData,
+} from "@/redux/globalData/action";
 import { getTransactions } from "@/redux/transactionData/action";
 import { clearChat } from "@/redux/chatData/action";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Address, formatUnits } from "viem";
 import { useEffect } from "react";
+import WalletConnectModal from "../common/customWalletConnect";
 
 const formatAddress = (addr: string) => {
   if (!addr) return "";
@@ -31,7 +40,9 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const globalData = useAppSelector((state) => state?.globalData?.data);
-  const transactions = useAppSelector((state) => state?.transactionData?.transactions);
+  const transactions = useAppSelector(
+    (state) => state?.transactionData?.transactions
+  );
   const { isConnected, address } = useAccount();
   const dispatch = useAppDispatch();
 
@@ -82,10 +93,7 @@ const Navbar = () => {
               className={`
                 relative h-full flex items-center px-4 text-sm font-medium tracking-wide
                 transition-colors duration-200
-                ${isActive 
-                  ? "text-white" 
-                  : "text-white/50 hover:text-white/80"
-                }
+                ${isActive ? "text-white" : "text-white/50 hover:text-white/80"}
               `}
             >
               {route.name}
@@ -98,7 +106,7 @@ const Navbar = () => {
       </nav>
 
       {/* Wallet / Connect */}
-      {isConnected ? (
+      {isConnected && globalData.token ? (
         <div className="flex gap-3 pb-[12px]">
           <Popover>
             <PopoverTrigger asChild>
@@ -114,18 +122,18 @@ const Navbar = () => {
                 {/* Header with avatar and actions */}
                 <div className="flex items-start justify-between">
                   <div className="flex flex-col gap-1">
-                    <AvatarIcon className="size-12 rounded-full" />
+                    <AvatarIcon className="rounded-full size-12" />
                     <span className="text-white text-[16px] font-medium mt-2">
                       {formatAddress(address || "")}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                    <button className="transition-colors cursor-pointer text-white/60 hover:text-white">
                       {/* <Settings className="size-5" /> */}
                     </button>
                     <button
                       onClick={() => disconnect()}
-                      className="text-white/60 hover:text-white transition-colors cursor-pointer"
+                      className="transition-colors cursor-pointer text-white/60 hover:text-white"
                     >
                       <PowerIcon className="size-5" />
                     </button>
@@ -136,7 +144,9 @@ const Navbar = () => {
                 <div className="flex flex-col gap-1">
                   <span className="text-white text-[36px] font-semibold leading-tight">
                     {seiBalance
-                      ? parseFloat(formatUnits(seiBalance.value, seiBalance.decimals)).toFixed(2)
+                      ? parseFloat(
+                          formatUnits(seiBalance.value, seiBalance.decimals)
+                        ).toFixed(2)
                       : "0.00"}{" "}
                     <span className="text-white/40">SEI</span>
                   </span>
@@ -145,35 +155,55 @@ const Navbar = () => {
                 {/* View Portfolio Button */}
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full py-3 px-4 border border-white/20 hover:border-white/40 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="flex items-center justify-center w-full gap-2 px-4 py-3 transition-colors border rounded-full cursor-pointer border-white/20 hover:border-white/40"
                 >
-                  <span className="text-white font-medium text-[14px]">View portfolio</span>
-                  <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <span className="text-white font-medium text-[14px]">
+                    View portfolio
+                  </span>
+                  <svg
+                    className="text-white size-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </button>
 
                 {/* Recent Activity */}
                 <div className="flex flex-col gap-3">
-                  <span className="text-white font-semibold text-[14px]">Recent activity</span>
+                  <span className="text-white font-semibold text-[14px]">
+                    Recent activity
+                  </span>
 
                   {recentTransactions.length > 0 ? (
                     <div className="flex flex-col gap-2">
                       {recentTransactions.map((tx, index) => (
                         <button
                           key={tx.hash || index}
-                          onClick={() => navigate(`/transactions?highlight=${tx.hash}`)}
-                          className="flex items-center justify-between py-2 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors cursor-pointer"
+                          onClick={() =>
+                            navigate(`/transactions?highlight=${tx.hash}`)
+                          }
+                          className="flex items-center justify-between px-2 py-2 -mx-2 transition-colors rounded-lg cursor-pointer hover:bg-white/5"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center">
-                              <svg className="size-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <div className="flex items-center justify-center rounded-lg size-8 bg-white/10">
+                              <svg
+                                className="size-4 text-white/60"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
                                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 <path d="M9 12h6M9 16h6" />
                               </svg>
                             </div>
                             <span className="text-white text-[14px]">
-                              {tx.status === "success" ? "Transaction confirmed" : tx.status || "Transaction"}
+                              {tx.status === "success"
+                                ? "Transaction confirmed"
+                                : tx.status || "Transaction"}
                             </span>
                           </div>
                           <span className="text-white/40 text-[12px]">
@@ -183,7 +213,9 @@ const Navbar = () => {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-white/40 text-[12px]">No recent activity</span>
+                    <span className="text-white/40 text-[12px]">
+                      No recent activity
+                    </span>
                   )}
 
                   {transactions && transactions.length > 3 && (
@@ -227,26 +259,37 @@ const Navbar = () => {
                   >
                     <path d="M12 5v14M5 12h14" />
                   </svg>
-                  <span className="text-white text-[14px] font-medium">New Chat</span>
+                  <span className="text-white text-[14px] font-medium">
+                    New Chat
+                  </span>
                 </button>
               </div>
             </PopoverContent>
           </Popover>
         </div>
       ) : (
-        <button
-          onClick={() => {
-            dispatch(
-              setGlobalData({
-                ...globalData,
-                isConnectButtonClicked: !globalData?.isConnectButtonClicked,
-              })
-            );
-          }}
-          className="px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-500"
-        >
-          Connect
-        </button>
+        <>
+          <button
+            onClick={() => {
+              dispatch(
+                setGlobalData({
+                  ...globalData,
+                  isConnectButtonClicked: !globalData?.isConnectButtonClicked,
+                })
+              );
+            }}
+            className="px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-500"
+          >
+            Connect
+          </button>
+          
+          {!(isConnected && globalData?.token) &&
+            globalData?.isConnectButtonClicked && (
+              <div className="absolute right-0 z-50 p-1 top-16 w-[30%]">
+                <WalletConnectModal />
+              </div>
+            )}
+        </>
       )}
     </div>
   );

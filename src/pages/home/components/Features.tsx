@@ -12,17 +12,23 @@ const Features = () => {
       image: natlanImg,
       title: "Natural Language Trading",
       tab: "Natural Language Trading",
-      content:
-        "Trade Using Everyday Language, No Commands to Memorize",
+      content: "Trade Using Everyday Language, No Commands to Memorize",
       description:
         "Our cutting-edge artificial intelligence is designed to deeply comprehend your intentions, seamlessly translating them into accurate and efficient blockchain transactions. This technology not only enhances the speed of processing but also ensures that every transaction aligns perfectly with your specific needs.",
+    },
+    {
+      image: dashboardImg,
+      title: "Transaction Analytics",
+      tab: "Transaction Analytics",
+      content: "Real-Time Portfolio Tracking",
+      description:
+        "Track all your tokens and transaction history in real-time with a comprehensive dashboard—monitor performance, analyze activity, and maintain complete visibility of your portfolio.",
     },
     {
       image: feature1,
       title: "TWAP & DCA",
       tab: "TWAP & DCA",
-      content:
-        "Automate Your Trading Strategy",
+      content: "Automate Your Trading Strategy",
       description:
         "Automate trades with TWAP and DCA to reduce slippage and market risk—no constant monitoring needed. Execute sophisticated trading strategies with ease.",
     },
@@ -30,8 +36,7 @@ const Features = () => {
       image: feature1,
       title: "Multi-DEX Support",
       tab: "Multi-DEX Support",
-      content:
-        "Access Multiple Exchanges",
+      content: "Access Multiple Exchanges",
       description:
         "Currently routes trades through DragonSwap, with support for more Sei-native DEXs coming soon. Get the best prices across multiple exchanges.",
     },
@@ -45,20 +50,10 @@ const Features = () => {
     //     "Our AI understands context and intent, making blockchain interactions as simple as having a conversation.",
     // },
     {
-      image: dashboardImg,
-      title: "Transaction Analytics",
-      tab: "Transaction Analytics",
-      content:
-        "Real-Time Portfolio Tracking",
-      description:
-        "Track all your tokens and transaction history in real-time with a comprehensive dashboard—monitor performance, analyze activity, and maintain complete visibility of your portfolio.",
-    },
-    {
       image: feature1,
       title: "Built on Sei",
       tab: "Built on Sei",
-      content:
-        "Powered by Sei Network",
+      content: "Powered by Sei Network",
       description:
         "Runs on Sei's fast, low-fee, parallelized chain—perfect for real-time DeFi actions.",
     },
@@ -77,7 +72,8 @@ const Features = () => {
           Our key <span className="text-[#3B82F6]">features</span>
         </p>
         <p className="font-['Figtree',sans-serif] font-normal text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-white w-full">
-          See various ways Zyra helps you out. Get the information you need about Zyra
+          See various ways Zyra helps you out. Get the information you need
+          about Zyra
         </p>
       </motion.div>
 
@@ -90,7 +86,7 @@ const Features = () => {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6 }}
           className="flex items-start w-full overflow-x-auto scrollbar-hide py-2 px-1"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featuresList.map((feature, index) => (
             <motion.button
@@ -102,13 +98,17 @@ const Features = () => {
               onClick={() => setActiveTab(index)}
               className={`flex gap-[8px] h-[64px] items-center px-[32px] py-[16px] relative flex-shrink-0 ${
                 activeTab === index
-                  ? 'bg-[rgba(255,255,255,0.01)] rounded-[99px] shadow-[0px_0px_8px_0px_#629BF8]'
-                  : ''
+                  ? "bg-[rgba(255,255,255,0.01)] rounded-[99px] shadow-[0px_0px_8px_0px_#629BF8]"
+                  : ""
               }`}
             >
-              <p className={`font-['Figtree',sans-serif] ${
-                activeTab === index ? 'font-semibold text-white' : 'font-medium text-[rgba(255,255,255,0.3)]'
-              } text-[20px] leading-[30px] whitespace-nowrap`}>
+              <p
+                className={`font-['Figtree',sans-serif] ${
+                  activeTab === index
+                    ? "font-semibold text-white"
+                    : "font-medium text-[rgba(255,255,255,0.3)]"
+                } text-[20px] leading-[30px] whitespace-nowrap`}
+              >
                 {feature.tab}
               </p>
             </motion.button>
@@ -132,7 +132,11 @@ const Features = () => {
                   <img
                     src={featuresList[activeTab].image}
                     alt={featuresList[activeTab].title}
-                    className={activeTab === 0 || activeTab === 3 ? "w-full h-full object-cover object-top rounded-[24px]" : "w-[200px] h-[200px] opacity-50"}
+                    className={
+                      activeTab === 0 || activeTab === 1
+                        ? "w-full h-full object-cover object-top rounded-[24px]"
+                        : "w-[200px] h-[200px] opacity-50"
+                    }
                   />
                 </div>
               </div>

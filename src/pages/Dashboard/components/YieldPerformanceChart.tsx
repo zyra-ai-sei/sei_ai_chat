@@ -7,7 +7,7 @@ interface YieldPerformanceChartProps {
 
 const YieldPerformanceChart = ({ data }: YieldPerformanceChartProps) => {
   // Calculate chart dimensions
-  const chartHeight = 160;
+  const chartHeight = 200;
   const maxValue = Math.max(...data.map((d) => Math.max(d.predicted, d.actual || 0)));
   const minValue = 0;
   const valueRange = maxValue - minValue;
@@ -42,17 +42,7 @@ const YieldPerformanceChart = ({ data }: YieldPerformanceChartProps) => {
     <div className="bg-white/[0.02] rounded-2xl border border-white/30 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-semibold text-lg">Yield Performance</h2>
-        <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-gradient-to-r from-[#2AF598] to-[#009EFD] rounded" />
-            <span className="text-white/60">Predicted</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-white/40 rounded" />
-            <span className="text-white/60">Actual</span>
-          </div>
-        </div>
+        <h2 className="text-white font-semibold text-lg">DeFi Yield Performance</h2>
       </div>
 
       <div className="flex gap-4">
@@ -151,11 +141,11 @@ const YieldPerformanceChart = ({ data }: YieldPerformanceChartProps) => {
                   key={index}
                   cx={x}
                   cy={y}
-                  r="4"
+                  r="3"
                   fill="#0a0d14"
                   stroke="url(#predictedGradient)"
-                  strokeWidth="2"
-                  className="hover:r-6 transition-all cursor-pointer"
+                  strokeWidth="1"
+                  className="hover:r-2 transition-all cursor-pointer"
                 />
               );
             })}

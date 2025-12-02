@@ -64,61 +64,6 @@ const InputBox = () => {
 
     if (prompt.trim() === "") return;
 
-    // Check if the prompt contains "bitcoin" (case insensitive)
-    if (prompt.toLowerCase().includes("bitcoin") || prompt.toLowerCase().includes("btc")) {
-      // Dispatch mock Bitcoin token data
-      dispatch(setTokenVisualization({
-        id: "bitcoin",
-        symbol: "btc",
-        name: "Bitcoin",
-        image: {
-          thumb: "https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png",
-          large: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
-        },
-        categories: ["Cryptocurrency", "Layer 1", "Proof of Work"],
-        market: {
-          price_usd: 69840,
-          price_change_1h: 0.79,
-          price_change_24h: 2.37,
-          price_change_7d: -0.89,
-          price_change_30d: 1.81,
-          high_24h: 69805,
-          low_24h: 67985,
-          ath_usd: 73738,
-          ath_change_pct: -5.33,
-          ath_date: "2024-03-14",
-          market_cap: 1373546629363,
-          market_cap_rank: 1,
-          volume_24h: 18867210007,
-          circulating_supply: 19675962,
-          max_supply: 21000000,
-          supply_pct_mined: 0.94
-        },
-        chart: {
-          prices: bitcoinChartPrices as any
-        },
-        sentiment: {
-          positive_pct: 84.07,
-          negative_pct: 15.93,
-          watchlist_count: 1541900
-        },
-        developer_activity: {
-          stars: 73168,
-          forks: 36426,
-          commit_count_4_weeks: 108,
-          pull_requests_merged: 11215,
-          contributors: 846
-        },
-        liquidity: {
-          top_exchange: "Binance",
-          last_traded_price: 69816,
-          volume_on_top_exchange: 19988.82111,
-          spread_pct: 0.01,
-          trust_score: "green"
-        }
-      }));
-    }
-
     dispatch(streamChatPrompt({ prompt, abortSignal: new AbortController().signal }));
     setPrompt("");
     if (textareaRef.current) {

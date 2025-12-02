@@ -38,7 +38,10 @@ export const streamChatPrompt = createAsyncThunk<
   { state: IRootState }
 >(
   "chatData/streamChatPrompt",
-  async ({ prompt, messageType = MessageTypeEnum.HUMAN, abortSignal }, { dispatch, getState }) => {
+  async (
+    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal },
+    { dispatch, getState }
+  ) => {
     const state = getState();
     const token = state.globalData?.data?.token;
 
@@ -48,7 +51,7 @@ export const streamChatPrompt = createAsyncThunk<
     abortSignal?.addEventListener("abort", () => controller.abort(), {
       once: true,
     });
-    console.log('prompt:::',prompt)
+    console.log("prompt:::", prompt);
     const params = new URLSearchParams({ prompt, messageType });
 
     // Add prompt to chat and show response (same for both human and system messages)
@@ -86,80 +89,9 @@ export const streamChatPrompt = createAsyncThunk<
               payload.tool_output != undefined
             ) {
               hasReceivedResponse = true;
-              payload.tool_output.map((tool:any)=>{
+              payload.tool_output.map((tool: any) => {
                 // Check if this is crypto market data
-                if (tool.type === "crypto_market_data") {
-                  console.log('[StreamChat] Received crypto market data:', {
-                    coinId: tool.coinId,
-                    timeframe: tool.timeframe,
-                    dataPoints: tool.dataPoints
-                  });
-
-                  // Dispatch chart data to token visualization
-                  if (tool.chartData && Array.isArray(tool.chartData)) {
-                    // Map the CoinGecko API response to our frontend format
-                    const marketData = tool.market_data || {};
-                    const tickers = tool.tickers || [];
-                    const topTicker = tickers[0] || {};
-
-                    const tokenData = {
-                      id: tool.coinId || tool.id,
-                      symbol: tool.symbol || tool.coinId.toUpperCase(),
-                      name: tool.name || (tool.coinId.charAt(0).toUpperCase() + tool.coinId.slice(1)),
-                      image: {
-                        thumb: tool.image?.thumb || `https://assets.coingecko.com/coins/images/1/thumb/${tool.coinId}.png`,
-                        large: tool.image?.large || `https://assets.coingecko.com/coins/images/1/large/${tool.coinId}.png`,
-                      },
-                      categories: tool.categories || [],
-                      market: {
-                        price_usd: marketData.current_price?.usd || tool.chartData[tool.chartData.length - 1][1],
-                        price_change_1h: marketData.price_change_percentage_1h_in_currency?.usd || 0,
-                        price_change_24h: marketData.price_change_percentage_24h_in_currency?.usd || 0,
-                        price_change_7d: marketData.price_change_percentage_7d_in_currency?.usd || 0,
-                        price_change_30d: marketData.price_change_percentage_30d_in_currency?.usd || 0,
-                        high_24h: marketData.high_24h?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
-                        low_24h: marketData.low_24h?.usd || Math.min(...tool.chartData.map((d: any) => d[1])),
-                        ath_usd: marketData.ath?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
-                        ath_change_pct: marketData.ath_change_percentage?.usd || 0,
-                        ath_date: marketData.ath_date?.usd || new Date().toISOString(),
-                        market_cap: marketData.market_cap?.usd || tool.chartData[tool.chartData.length - 1][2],
-                        market_cap_rank: marketData.market_cap_rank || 0,
-                        volume_24h: marketData.total_volume?.usd || 0,
-                        circulating_supply: marketData.circulating_supply || 0,
-                        max_supply: marketData.max_supply || 0,
-                        supply_pct_mined: marketData.max_supply > 0
-                          ? marketData.circulating_supply / marketData.max_supply
-                          : 0,
-                      },
-                      chart: {
-                        prices: tool.chartData,
-                      },
-                      sentiment: {
-                        positive_pct: tool.sentiment_votes_up_percentage || 50,
-                        negative_pct: tool.sentiment_votes_down_percentage || 50,
-                        watchlist_count: tool.watchlist_portfolio_users || 0,
-                      },
-                      liquidity: {
-                        top_exchange: topTicker.market?.name || "N/A",
-                        last_traded_price: topTicker.last || marketData.current_price?.usd || 0,
-                        volume_on_top_exchange: topTicker.volume || 0,
-                        spread_pct: topTicker.bid_ask_spread_percentage || 0,
-                        trust_score: topTicker.trust_score || "white",
-                      },
-                    };
-
-                    // Store in token visualization
-                    dispatch(setTokenVisualization(tokenData));
-
-                    // Also store in chat response as data_output
-                    dispatch(
-                      updateResponse({
-                        index: chatIndex,
-                        response: { data_output: tokenData },
-                      })
-                    );
-                  }
-                } else {
+                if (tool) {
                   // Regular tool output (transactions, etc.)
                   const sanitizedToolOutput = JSON.parse(
                     JSON.stringify(tool, (_, value) =>
@@ -173,10 +105,111 @@ export const streamChatPrompt = createAsyncThunk<
                     })
                   );
                 }
-              })
-            } else if (payload.type === "token_data" && payload.token_data) {
-              // Handle token visualization data from backend
-              dispatch(setTokenVisualization(payload.token_data));
+              });
+            } else if (payload.type === "data" && payload.data_output) {
+              const data = payload.data_output;
+              if (data.type === "crypto_market_data") {
+                console.log("[StreamChat] Received crypto market data:", {
+                  coinId: data.coinId,
+                  timeframe: data.timeframe,
+                  dataPoints: data.dataPoints,
+                });
+
+                // Dispatch chart data to token visualization
+                if (data.chartData && Array.isArray(data.chartData)) {
+                  // Map the CoinGecko API response to our frontend format
+                  const marketData = data.market_data || {};
+                  const tickers = data.tickers || [];
+                  const topTicker = tickers[0] || {};
+
+                  const tokenData = {
+                    id: data.coinId || data.id,
+                    symbol: data.symbol || data.coinId.toUpperCase(),
+                    name:
+                      data.name ||
+                      data.coinId.charAt(0).toUpperCase() +
+                        data.coinId.slice(1),
+                    image: {
+                      thumb:
+                        data.image?.thumb ||
+                        `https://assets.coingecko.com/coins/images/1/thumb/${data.coinId}.png`,
+                      large:
+                        data.image?.large ||
+                        `https://assets.coingecko.com/coins/images/1/large/${data.coinId}.png`,
+                    },
+                    categories: data.categories || [],
+                    market: {
+                      price_usd:
+                        marketData.current_price?.usd ||
+                        data.chartData[data.chartData.length - 1][1],
+                      price_change_1h:
+                        marketData.price_change_percentage_1h_in_currency
+                          ?.usd || 0,
+                      price_change_24h:
+                        marketData.price_change_percentage_24h_in_currency
+                          ?.usd || 0,
+                      price_change_7d:
+                        marketData.price_change_percentage_7d_in_currency
+                          ?.usd || 0,
+                      price_change_30d:
+                        marketData.price_change_percentage_30d_in_currency
+                          ?.usd || 0,
+                      high_24h:
+                        marketData.high_24h?.usd ||
+                        Math.max(...data.chartData.map((d: any) => d[1])),
+                      low_24h:
+                        marketData.low_24h?.usd ||
+                        Math.min(...data.chartData.map((d: any) => d[1])),
+                      ath_usd:
+                        marketData.ath?.usd ||
+                        Math.max(...data.chartData.map((d: any) => d[1])),
+                      ath_change_pct:
+                        marketData.ath_change_percentage?.usd || 0,
+                      ath_date:
+                        marketData.ath_date?.usd || new Date().toISOString(),
+                      market_cap:
+                        marketData.market_cap?.usd ||
+                        data.chartData[data.chartData.length - 1][2],
+                      market_cap_rank: marketData.market_cap_rank || 0,
+                      volume_24h: marketData.total_volume?.usd || 0,
+                      circulating_supply: marketData.circulating_supply || 0,
+                      max_supply: marketData.max_supply || 0,
+                      supply_pct_mined:
+                        marketData.max_supply > 0
+                          ? marketData.circulating_supply /
+                            marketData.max_supply
+                          : 0,
+                    },
+                    chart: {
+                      prices: data.chartData,
+                    },
+                    sentiment: {
+                      positive_pct: data.sentiment_votes_up_percentage || 50,
+                      negative_pct: data.sentiment_votes_down_percentage || 50,
+                      watchlist_count: data.watchlist_portfolio_users || 0,
+                    },
+                    liquidity: {
+                      top_exchange: topTicker.market?.name || "N/A",
+                      last_traded_price:
+                        topTicker.last || marketData.current_price?.usd || 0,
+                      volume_on_top_exchange: topTicker.volume || 0,
+                      spread_pct: topTicker.bid_ask_spread_percentage || 0,
+                      trust_score: topTicker.trust_score || "white",
+                    },
+                  };
+
+                  // Store in token visualization
+                  dispatch(setTokenVisualization(tokenData));
+
+                  // Also store in chat response as data_output
+                  dispatch(
+                    updateResponse({
+                      index: chatIndex,
+                      response: { data_output: tokenData },
+                    })
+                  );
+                }
+              }
             }
           } catch (err) {
             console.error("Failed to parse SSE payload", err);
@@ -184,7 +217,7 @@ export const streamChatPrompt = createAsyncThunk<
         },
         onerror: (err: any) => {
           // Ignore AbortError - this is expected when stream closes normally
-          if (err?.name === 'AbortError' || controller.signal.aborted) {
+          if (err?.name === "AbortError" || controller.signal.aborted) {
             return;
           }
           // Only track real errors, not abort errors
@@ -198,17 +231,17 @@ export const streamChatPrompt = createAsyncThunk<
       });
     } finally {
       dispatch(setLoading({ index: chatIndex, loading: false }));
-      
+
       // Only dispatch error if:
       // 1. There was an actual stream error (not AbortError)
       // 2. We never received any successful response
       if (streamError && !hasReceivedResponse) {
         const errorName = (streamError as any)?.name;
-        if (errorName !== 'AbortError') {
+        if (errorName !== "AbortError") {
           dispatch(setError({ index: chatIndex }));
         }
       }
-      
+
       if (!controller.signal.aborted) {
         controller.abort();
       }
@@ -298,7 +331,8 @@ export const getChatHistory = createAsyncThunk<
           if (formattedMessage?.type == LLMResponseEnum.HUMANMESSAGE) {
             dispatch(addPrompt(formattedMessage.content));
             currentChatIndex = getState().chatData.chats.length - 1;
-          } else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE) {
+          } 
+          else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE && formattedMessage.tool_output) {
             if (currentChatIndex >= 0) {
               const currentChat = getState().chatData.chats[currentChatIndex];
               const existingResponse = currentChat?.response || {
@@ -312,60 +346,127 @@ export const getChatHistory = createAsyncThunk<
                 ...existingToolOutputs,
                 ...formattedMessage.tool_output,
               ];
-              
+
               // Only append content if it's a non-empty string
-              const contentToAdd = typeof formattedMessage.content === 'string' ? formattedMessage.content : '';
-              const existingChat = typeof updatedResponse.chat === 'string' ? updatedResponse.chat : '';
-              updatedResponse.chat = existingChat + (contentToAdd ? ' ' + contentToAdd : '');
+              const contentToAdd =
+                typeof formattedMessage.content === "string"
+                  ? formattedMessage.content
+                  : "";
+              const existingChat =
+                typeof updatedResponse.chat === "string"
+                  ? updatedResponse.chat
+                  : "";
+              updatedResponse.chat =
+                existingChat + (contentToAdd ? " " + contentToAdd : "");
+              
+
+              dispatch(
+                setResponse({
+                  index: currentChatIndex,
+                  response: updatedResponse,
+                })
+              );
+            }
+          }
+           else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE && formattedMessage.data_output) {
+            if (currentChatIndex >= 0) {
+              const currentChat = getState().chatData.chats[currentChatIndex];
+              const existingResponse = currentChat?.response || {
+                chat: "",
+                tool_outputs: [],
+              };
+              let updatedResponse = { ...existingResponse };
+          
+              // Only append content if it's a non-empty string
+              const contentToAdd =
+                typeof formattedMessage.content === "string"
+                  ? formattedMessage.content
+                  : "";
+              const existingChat =
+                typeof updatedResponse.chat === "string"
+                  ? updatedResponse.chat
+                  : "";
+              updatedResponse.chat =
+                existingChat + (contentToAdd ? " " + contentToAdd : "");
 
               // Check if any tool output is crypto market data
-              formattedMessage.tool_output.forEach((tool: any) => {
-                if (tool.type === "crypto_market_data" && tool.chartData) {
+            
+                if (formattedMessage.data_output.type === "crypto_market_data" && formattedMessage.data_output.chartData) {
                   // Map the CoinGecko API response to our frontend format
-                  const marketData = tool.market_data || {};
-                  const tickers = tool.tickers || [];
+                  const marketData = formattedMessage.data_output.market_data || {};
+                  const tickers = formattedMessage.data_output.tickers || [];
                   const topTicker = tickers[0] || {};
 
                   const tokenData = {
-                    id: tool.coinId || tool.id,
-                    symbol: tool.symbol || tool.coinId.toUpperCase(),
-                    name: tool.name || (tool.coinId.charAt(0).toUpperCase() + tool.coinId.slice(1)),
+                    id: formattedMessage.data_output.coinId || formattedMessage.data_output.id,
+                    symbol: formattedMessage.data_output.symbol || formattedMessage.data_output.coinId.toUpperCase(),
+                    name:
+                      formattedMessage.data_output.name ||
+                      formattedMessage.data_output.coinId.charAt(0).toUpperCase() +
+                        formattedMessage.data_output.coinId.slice(1),
                     image: {
-                      thumb: tool.image?.thumb || `https://assets.coingecko.com/coins/images/1/thumb/${tool.coinId}.png`,
-                      large: tool.image?.large || `https://assets.coingecko.com/coins/images/1/large/${tool.coinId}.png`,
+                      thumb:
+                        formattedMessage.data_output.image?.thumb ||
+                        `https://assets.coingecko.com/coins/images/1/thumb/${formattedMessage.data_output.coinId}.png`,
+                      large:
+                        formattedMessage.data_output.image?.large ||
+                        `https://assets.coingecko.com/coins/images/1/large/${formattedMessage.data_output.coinId}.png`,
                     },
-                    categories: tool.categories || [],
+                    categories: formattedMessage.data_output.categories || [],
                     market: {
-                      price_usd: marketData.current_price?.usd || tool.chartData[tool.chartData.length - 1][1],
-                      price_change_1h: marketData.price_change_percentage_1h_in_currency?.usd || 0,
-                      price_change_24h: marketData.price_change_percentage_24h_in_currency?.usd || 0,
-                      price_change_7d: marketData.price_change_percentage_7d_in_currency?.usd || 0,
-                      price_change_30d: marketData.price_change_percentage_30d_in_currency?.usd || 0,
-                      high_24h: marketData.high_24h?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
-                      low_24h: marketData.low_24h?.usd || Math.min(...tool.chartData.map((d: any) => d[1])),
-                      ath_usd: marketData.ath?.usd || Math.max(...tool.chartData.map((d: any) => d[1])),
-                      ath_change_pct: marketData.ath_change_percentage?.usd || 0,
-                      ath_date: marketData.ath_date?.usd || new Date().toISOString(),
-                      market_cap: marketData.market_cap?.usd || tool.chartData[tool.chartData.length - 1][2],
+                      price_usd:
+                        marketData.current_price?.usd ||
+                        formattedMessage.data_output.chartData[formattedMessage.data_output.chartData.length - 1][1],
+                      price_change_1h:
+                        marketData.price_change_percentage_1h_in_currency
+                          ?.usd || 0,
+                      price_change_24h:
+                        marketData.price_change_percentage_24h_in_currency
+                          ?.usd || 0,
+                      price_change_7d:
+                        marketData.price_change_percentage_7d_in_currency
+                          ?.usd || 0,
+                      price_change_30d:
+                        marketData.price_change_percentage_30d_in_currency
+                          ?.usd || 0,
+                      high_24h:
+                        marketData.high_24h?.usd ||
+                        Math.max(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
+                      low_24h:
+                        marketData.low_24h?.usd ||
+                        Math.min(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
+                      ath_usd:
+                        marketData.ath?.usd ||
+                        Math.max(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
+                      ath_change_pct:
+                        marketData.ath_change_percentage?.usd || 0,
+                      ath_date:
+                        marketData.ath_date?.usd || new Date().toISOString(),
+                      market_cap:
+                        marketData.market_cap?.usd ||
+                        formattedMessage.data_output.chartData[formattedMessage.data_output.chartData.length - 1][2],
                       market_cap_rank: marketData.market_cap_rank || 0,
                       volume_24h: marketData.total_volume?.usd || 0,
                       circulating_supply: marketData.circulating_supply || 0,
                       max_supply: marketData.max_supply || 0,
-                      supply_pct_mined: marketData.max_supply > 0
-                        ? marketData.circulating_supply / marketData.max_supply
-                        : 0,
+                      supply_pct_mined:
+                        marketData.max_supply > 0
+                          ? marketData.circulating_supply /
+                            marketData.max_supply
+                          : 0,
                     },
                     chart: {
-                      prices: tool.chartData,
+                      prices: formattedMessage.data_output.chartData,
                     },
                     sentiment: {
-                      positive_pct: tool.sentiment_votes_up_percentage || 50,
-                      negative_pct: tool.sentiment_votes_down_percentage || 50,
-                      watchlist_count: tool.watchlist_portfolio_users || 0,
+                      positive_pct: formattedMessage.data_output.sentiment_votes_up_percentage || 50,
+                      negative_pct: formattedMessage.data_output.sentiment_votes_down_percentage || 50,
+                      watchlist_count: formattedMessage.data_output.watchlist_portfolio_users || 0,
                     },
                     liquidity: {
                       top_exchange: topTicker.market?.name || "N/A",
-                      last_traded_price: topTicker.last || marketData.current_price?.usd || 0,
+                      last_traded_price:
+                        topTicker.last || marketData.current_price?.usd || 0,
                       volume_on_top_exchange: topTicker.volume || 0,
                       spread_pct: topTicker.bid_ask_spread_percentage || 0,
                       trust_score: topTicker.trust_score || "white",
@@ -375,7 +476,7 @@ export const getChatHistory = createAsyncThunk<
                   // Also dispatch to token visualization store when loading from history
                   dispatch(setTokenVisualization(tokenData));
                 }
-              });
+              
 
               dispatch(
                 setResponse({
@@ -384,7 +485,8 @@ export const getChatHistory = createAsyncThunk<
                 })
               );
             }
-          } else if (
+          }
+          else if (
             formattedMessage?.type == LLMResponseEnum.AIMESSAGE ||
             formattedMessage?.type == LLMResponseEnum.AIMESSAGECHUNK
           ) {
@@ -395,14 +497,20 @@ export const getChatHistory = createAsyncThunk<
                 tool_outputs: [],
               };
               let updatedResponse = { ...existingResponse };
-              
+
               // Ensure we're working with strings and add a space between consecutive AI messages
-              const existingChat = typeof updatedResponse.chat === 'string' ? updatedResponse.chat : '';
-              const contentToAdd = typeof formattedMessage.content === 'string' ? formattedMessage.content : '';
-              
+              const existingChat =
+                typeof updatedResponse.chat === "string"
+                  ? updatedResponse.chat
+                  : "";
+              const contentToAdd =
+                typeof formattedMessage.content === "string"
+                  ? formattedMessage.content
+                  : "";
+
               // Add space between messages if both exist
               if (existingChat && contentToAdd) {
-                updatedResponse.chat = existingChat + ' ' + contentToAdd;
+                updatedResponse.chat = existingChat + " " + contentToAdd;
               } else {
                 updatedResponse.chat = existingChat + contentToAdd;
               }
@@ -420,7 +528,7 @@ export const getChatHistory = createAsyncThunk<
     }
   } catch (err) {
     console.log("err", err);
-    dispatch(resetChat())
+    dispatch(resetChat());
   }
 });
 
@@ -484,40 +592,50 @@ export const abortTool = createAsyncThunk<
   }
 });
 
-export const clearChat = createAsyncThunk<
-  void,
-  void,
-  { state: IRootState }
->("chatData/clearChat", async (_, { dispatch }) => {
-  try {
-    await axiosInstance.get("/llm/clearChat");
-    dispatch(resetChat());
-    dispatch(initializePrompt());
-  } catch (err) {
-    console.error("Error clearing chat:", err);
-    // Still reset the local state even if API fails
-    dispatch(resetChat());
+export const clearChat = createAsyncThunk<void, void, { state: IRootState }>(
+  "chatData/clearChat",
+  async (_, { dispatch }) => {
+    try {
+      await axiosInstance.get("/llm/clearChat");
+      dispatch(resetChat());
+      dispatch(initializePrompt());
+    } catch (err) {
+      console.error("Error clearing chat:", err);
+      // Still reset the local state even if API fails
+      dispatch(resetChat());
+    }
   }
-});
+);
 
 export const updateMessageState = createAsyncThunk<
   void,
-  { executionId: string; executionState: "completed" | "failed"; txnHash?: string },
+  {
+    executionId: string;
+    executionState: "completed" | "failed";
+    txnHash?: string;
+  },
   { state: IRootState }
->("chatData/updateMessageState", async ({ executionId, executionState, txnHash }) => {
-  try {
-    const response = await axiosInstance.post("/llm/updateMessageState", {
-      executionId,
-      executionState,
-      ...(txnHash && { txnHash }),
-    });
-    const apiData = response?.data;
-    if (apiData?.success) {
-      console.log(`Message state updated for execution ${executionId}: ${executionState}`);
-    } else {
-      console.error(`Failed to update message state for execution ${executionId}`);
+>(
+  "chatData/updateMessageState",
+  async ({ executionId, executionState, txnHash }) => {
+    try {
+      const response = await axiosInstance.post("/llm/updateMessageState", {
+        executionId,
+        executionState,
+        ...(txnHash && { txnHash }),
+      });
+      const apiData = response?.data;
+      if (apiData?.success) {
+        console.log(
+          `Message state updated for execution ${executionId}: ${executionState}`
+        );
+      } else {
+        console.error(
+          `Failed to update message state for execution ${executionId}`
+        );
+      }
+    } catch (err) {
+      console.error(`Error updating message state for ${executionId}:`, err);
     }
-  } catch (err) {
-    console.error(`Error updating message state for ${executionId}:`, err);
   }
-});
+);

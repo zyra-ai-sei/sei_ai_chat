@@ -28,11 +28,14 @@ import {
   selectDefiError,
   selectDefiChainIds,
   selectDefiProtocols,
+  fetchPortfolioSummary,
+  selectSummaryStats,
+  selectSummaryLoading,
+  selectSummaryError,
 } from "@/redux/portfolioData";
 
 import ChainDropdown from "./components/ChainDropdown";
 import { defiToAssetCategories } from "./utils/defiDashboard.utils";
-import { axiosInstance } from "@/services/axios";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -53,10 +56,10 @@ const Dashboard = () => {
   const defiChainIds = useAppSelector(selectDefiChainIds);
   const defiProtocols = useAppSelector(selectDefiProtocols);
 
-  // State for /portfolio/summary API
-  const [summaryData, setSummaryData] = useState<any[]>([]);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  // Summary data from Redux
+  const summaryStats = useAppSelector(selectSummaryStats);
+  const summaryLoading = useAppSelector(selectSummaryLoading);
+  const summaryError = useAppSelector(selectSummaryError);
 
   // Chain selection state for DeFi sections
   const [selectedDefiChainId, setSelectedDefiChainId] = useState<number>(() =>
@@ -90,27 +93,12 @@ const Dashboard = () => {
     }
   }, [defiChainIds, selectedDefiChainId]);
 
-  // Fetch portfolio and DeFi data on mount
+  // Fetch portfolio, DeFi, and summary data on mount
+  // These will use cached data if available (< 5 minutes old)
   useEffect(() => {
     dispatch(fetchPortfolioBalance());
     dispatch(fetchDefiPositions());
-    setSummaryLoading(true);
-    axiosInstance("/portfolio/summary")
-      .then((res) => {
-        if (
-          res?.data?.status === 200 &&
-          Array.isArray(res?.data?.data?.items)
-        ) {
-          setSummaryData(res.data.data.items);
-          setSummaryError(null);
-        } else {
-          setSummaryError("Invalid summary response");
-        }
-      })
-      .catch((err) => {
-        setSummaryError(err?.message || "Failed to fetch summary");
-      })
-      .finally(() => setSummaryLoading(false));
+    dispatch(fetchPortfolioSummary());
   }, [dispatch]);
 
   // Portfolio stats for PortfolioValueCard
@@ -173,33 +161,26 @@ const Dashboard = () => {
         {/* Stats Cards Row */}
         <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
           <PortfolioValueCard data={portfolioStats} />
-          {/* Duplicate PortfolioValueCard with trade/profit info from summary */}
+          {/* Trading Summary from portfolio/summary API */}
           <StatCard title="Trading Summary">
             {summaryLoading ? (
               <span className="text-white/60">Loading...</span>
             ) : summaryError ? (
               <span className="text-red-400">{summaryError}</span>
-            ) : summaryData.length > 0 ? (
+            ) : summaryStats.totalTrades > 0 ? (
               <div className="flex flex-col gap-1">
                 <span className="text-lg font-semibold">
-                  Total Trades:{" "}
-                  {summaryData.reduce(
-                    (acc, c) => acc + (c.total_count_of_trades || 0),
-                    0
-                  )}
+                  Total Trades: {summaryStats.totalTrades}
                 </span>
                 <span className="text-sm">
                   Total Realized Profit: ${" "}
-                  {summaryData
-                    .reduce(
-                      (acc, c) =>
-                        acc + Number(c.total_realized_profit_usd || 0),
-                      0
-                    )
-                    .toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  {summaryStats.totalRealizedProfitUsd.toLocaleString(
+                    undefined,
+                    { maximumFractionDigits: 2 }
+                  )}
                 </span>
                 <span className="text-xs text-white/60">
-                  Chains: {summaryData.map((c) => c.chainId).join(", ")}
+                  Chains: {summaryStats.chainIds.join(", ")}
                 </span>
               </div>
             ) : (
@@ -217,11 +198,8 @@ const Dashboard = () => {
           <AiManagementCard
             data={{
               ...MOCK_DASHBOARD_DATA.aiManagement,
-              activeCategories: summaryData.reduce(
-                (acc, c) => acc + (c.total_count_of_trades || 0),
-                0
-              ),
-              totalCategories: summaryData.length,
+              activeCategories: summaryStats.totalTrades,
+              totalCategories: summaryStats.chainCount,
               borrowedUsd: totalBorrowedUsd,
             }}
             onToggle={handleAiModeToggle}
@@ -272,49 +250,7 @@ const Dashboard = () => {
             <span className="font-medium text-white/80">
               DeFi Yield Performance
             </span>
-            {defiChainIds.length > 1 && (
-              <ChainDropdown
-                chainIds={defiChainIds}
-                selectedChainId={selectedDefiChainId}
-                onSelect={setSelectedDefiChainId}
-              />
-            )}
           </div>
-          {defiLoading ? (
-            <div className="py-8 text-center text-white/60">
-              Loading DeFi data...
-            </div>
-          ) : defiError ? (
-            <div className="py-8 text-center text-red-400">{defiError}</div>
-          ) : (
-            <YieldPerformanceChart
-              data={(() => {
-                const summary = defiChainSummaries.find(
-                  (s) => s.chainId === selectedDefiChainId
-                );
-                if (!summary) return [];
-                // Map projected earnings to YieldPerformanceData[]
-                return [
-                  {
-                    month: "Daily",
-                    predicted: summary.totalProjectedEarnings.daily,
-                  },
-                  {
-                    month: "Weekly",
-                    predicted: summary.totalProjectedEarnings.weekly,
-                  },
-                  {
-                    month: "Monthly",
-                    predicted: summary.totalProjectedEarnings.monthly,
-                  },
-                  {
-                    month: "Yearly",
-                    predicted: summary.totalProjectedEarnings.yearly,
-                  },
-                ];
-              })()}
-            />
-          )}
         </div>
 
         {/* Charts Row */}
@@ -323,7 +259,52 @@ const Dashboard = () => {
             data={MOCK_DASHBOARD_DATA.portfolioPerformance}
             isWalletConnected={chainBalances.length > 0}
           />
-          <YieldPerformanceChart data={MOCK_DASHBOARD_DATA.yieldPerformance} />
+          {defiLoading ? (
+            <div className="py-8 text-center text-white/60">
+              Loading DeFi data...
+            </div>
+          ) : defiError ? (
+            <div className="py-8 text-center text-red-400">{defiError}</div>
+          ) : (
+            <div className="relative">
+              <div className="absolute top-6 right-2">
+              {defiChainIds.length > 0 && (
+                <ChainDropdown
+                chainIds={defiChainIds}
+                selectedChainId={selectedDefiChainId}
+                onSelect={setSelectedDefiChainId}
+                />
+              )}
+              </div>
+              <YieldPerformanceChart
+                data={(() => {
+                  const summary = defiChainSummaries.find(
+                    (s) => s.chainId === selectedDefiChainId
+                  );
+                  if (!summary) return [];
+                  // Map projected earnings to YieldPerformanceData[]
+                  return [
+                    {
+                      month: "Daily",
+                      predicted: summary.totalProjectedEarnings.daily,
+                    },
+                    {
+                      month: "Weekly",
+                      predicted: summary.totalProjectedEarnings.weekly,
+                    },
+                    {
+                      month: "Monthly",
+                      predicted: summary.totalProjectedEarnings.monthly,
+                    },
+                    {
+                      month: "Yearly",
+                      predicted: summary.totalProjectedEarnings.yearly,
+                    },
+                  ];
+                })()}
+              />
+            </div>
+          )}{" "}
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import tokenReducer from "./tokenData/reducer";
 import tokenVisualizationReducer from "./tokenVisualization/reducer";
 import portfolioReducer from "./portfolioData/reducer";
 import defiReducer from "./portfolioData/defiReducer";
+import portfolioSummaryReducer from "./portfolioData/summaryReducer";
 
 export const rootReducers = combineReducers({
 
@@ -18,5 +19,6 @@ export const rootReducers = combineReducers({
   tokenVisualization: tokenVisualizationReducer,
   portfolioData: portfolioReducer,
   defiData: defiReducer,
+  portfolioSummary: portfolioSummaryReducer,
 });
 export type RootState = ReturnType<typeof rootReducers>;

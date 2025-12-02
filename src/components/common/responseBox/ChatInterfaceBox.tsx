@@ -24,10 +24,14 @@ const ChatIndicator = ({
   hasChat,
   toolOutputsLength,
   chatIndex,
+  isLastChat,
+  hasDataOutput,
 }: {
   hasChat: boolean;
   toolOutputsLength: number;
   chatIndex: number;
+  isLastChat: boolean;
+  hasDataOutput: boolean;
 }) => {
   const [textIndex, setTextIndex] = useState(0);
   const { scrollToTransaction } = useTransactionNavigation();
@@ -47,8 +51,8 @@ const ChatIndicator = ({
     }
   };
 
-  // Show loading state when no chat response
-  if (!hasChat) {
+  // Show loading state ONLY for the last chat when no response
+  if (!hasChat && isLastChat) {
     return (
       <div className="flex items-center gap-3">
         <div className="animate-spin">
@@ -68,18 +72,24 @@ const ChatIndicator = ({
         <img src={iconSvg} alt="Zyra AI" className="w-12 h-12" />
       </div>
       
-      <button
-        onClick={handleOpsClick}
-        disabled={toolOutputsLength === 0}
-        className={`ml-auto flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/50 transition-all ${
-          toolOutputsLength > 0
-            ? "cursor-pointer hover:border-blue-400/40 hover:bg-blue-500/5 hover:text-white/70"
-            : ""
-        }`}
-      >
-        <span className="h-1.5 w-1.5 rounded-full bg-[#7CABF9]" />
-        {toolOutputsLength} ops
-      </button>
+      <div className="ml-auto flex items-center gap-2">
+        {toolOutputsLength > 0 && (
+          <button
+            onClick={handleOpsClick}
+            className="flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/50 transition-all cursor-pointer hover:border-blue-400/40 hover:bg-blue-500/5 hover:text-white/70"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[#7CABF9]" />
+            {toolOutputsLength} ops
+          </button>
+        )}
+        
+        {hasDataOutput && (
+          <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-emerald-400/70">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Data
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -128,7 +138,23 @@ const ChatInterfaceBox = () => {
           className="relative z-30 flex flex-col justify-start w-full h-full gap-6 px-6 py-6 overflow-y-auto"
         >
         {chats.length > 0 ? (
-          chats.map((chat, idx) => (
+          chats.map((chat, idx) => {
+            const isLastChat = idx === chats.length - 1;
+            const hasResponse = !!chat.response?.chat;
+            const hasDataOutput = !!chat.response?.data_output;
+            
+            // Determine the response to display
+            let displayResponse = "";
+            if (hasResponse) {
+              displayResponse = typeof chat.response.chat === "string" 
+                ? chat.response.chat 
+                : "Response format error from model";
+            } else if (!isLastChat) {
+              // For previous chats without response, show appropriate message
+              displayResponse = "⚠️ Execution stopped or reverted. No response generated.";
+            }
+
+            return (
             <React.Fragment key={idx}>
               <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-whi shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
                 <p className="break-words text-white/70">{chat.prompt}</p>
@@ -146,27 +172,29 @@ const ChatInterfaceBox = () => {
                   innerClassName="relative overflow-hidden bg-[#05060E]/90 p-5 backdrop-blur"
                 >
                   <ChatIndicator
-                    hasChat={!!chat.response?.chat}
+                    hasChat={hasResponse}
                     toolOutputsLength={chat.response?.tool_outputs?.length || 0}
                     chatIndex={idx}
+                    isLastChat={isLastChat}
+                    hasDataOutput={hasDataOutput}
                   />
 
                   {/* Response Content */}
-                  <div className="mt-4 break-words text-wrap text-[15px] leading-7 text-white/80">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight, rehypeRaw]}
-                      components={markdownComponents}
-                    >
-                      {typeof chat.response.chat === "string"
-                        ? chat.response.chat || ""
-                        : "response format error from model"}
-                    </ReactMarkdown>
-                  </div>
+                  {(hasResponse || !isLastChat) && (
+                    <div className={`mt-4 break-words text-wrap text-[15px] leading-7 ${hasResponse ? 'text-white/80' : 'text-orange-400/70 italic'}`}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                        components={markdownComponents}
+                      >
+                        {displayResponse}
+                      </ReactMarkdown>
+                    </div>
+                  )}
 
                   {chat.response?.tool_outputs?.length ? (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {chat.response.tool_outputs.map((tool, toolIdx) => (
+                      {chat.response.tool_outputs.map((tool:any, toolIdx:any) => (
                         <button
                           key={`${tool.id}-${toolIdx}`}
                           onClick={() => scrollToTransaction(idx, toolIdx)}
@@ -180,7 +208,7 @@ const ChatInterfaceBox = () => {
                 </GradientBorder>
               </div>
             </React.Fragment>
-          ))
+          )})
         ) : (
           <>
             <PromptSuggestion />

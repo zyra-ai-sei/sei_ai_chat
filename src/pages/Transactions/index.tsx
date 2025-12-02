@@ -47,9 +47,11 @@ const Transactions = () => {
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
+useEffect(() => {
+  if (!transactions || transactions.length === 0) {
     dispatch(getTransactions());
-  }, [dispatch]);
+  }
+}, [dispatch, transactions]);
 
   // Clear highlight after 3 seconds
   useEffect(() => {
