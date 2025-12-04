@@ -223,7 +223,7 @@ export const streamChatPrompt = createAsyncThunk<
           // Only track real errors, not abort errors
           console.error("SSE error:", err);
           streamError = err instanceof Error ? err : new Error(String(err));
-          controller.abort();
+          // controller.abort();
         },
         onclose: () => {
           // Normal close - this is expected behavior, not an error

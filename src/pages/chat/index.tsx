@@ -100,7 +100,7 @@ function Chat() {
           <div ref={containerRef} className="flex justify-end w-full h-full">
             <div
               style={{ width: `${chatBoxWidth}%` }}
-              className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto border-x border-zinc-800"
+              className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto "
             >
               <TransactionResponseBox />
             </div>

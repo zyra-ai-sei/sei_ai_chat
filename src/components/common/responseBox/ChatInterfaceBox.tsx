@@ -34,7 +34,7 @@ const ChatIndicator = ({
   hasDataOutput: boolean;
 }) => {
   const [textIndex, setTextIndex] = useState(0);
-  const { scrollToTransaction } = useTransactionNavigation();
+  const { scrollToTransaction, scrollToDataOutput } = useTransactionNavigation();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -48,6 +48,12 @@ const ChatIndicator = ({
     if (toolOutputsLength > 0) {
       // Scroll to the first transaction
       scrollToTransaction(chatIndex, 0);
+    }
+  };
+  const handleDataClick = () => {
+    if (hasDataOutput) {
+      // Scroll to the first transaction
+      scrollToDataOutput(chatIndex);
     }
   };
 
@@ -72,7 +78,7 @@ const ChatIndicator = ({
         <img src={iconSvg} alt="Zyra AI" className="w-12 h-12" />
       </div>
       
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto">
         {toolOutputsLength > 0 && (
           <button
             onClick={handleOpsClick}
@@ -84,10 +90,10 @@ const ChatIndicator = ({
         )}
         
         {hasDataOutput && (
-          <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-emerald-400/70">
+          <button onClick={handleDataClick} className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-emerald-400/70">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Data
-          </div>
+          </button>
         )}
       </div>
     </div>

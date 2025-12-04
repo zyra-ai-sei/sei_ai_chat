@@ -746,7 +746,7 @@ const TransactionCanvas = ({
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 p-5 shadow-[0_15px_35px_rgba(2,6,23,0.65)]">
+    <div className="rounded-3xl border border-white/10 p-5 bg-[radial-gradient(circle_at_top_right,_rgba(110,178,255,0.12),_transparent_60%)] shadow-[0_15px_35px_rgba(2,6,23,0.65)]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xs uppercase tracking-[0.2em] font-semibold text-white/60">
           Transaction Queue [{" "}

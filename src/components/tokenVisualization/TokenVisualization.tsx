@@ -8,9 +8,13 @@ import LiquidityCard from "./LiquidityCard";
 
 interface TokenVisualizationProps {
   data?: any; // Token data from chat.response.data_output
+  chatIndex: number;
 }
 
-const TokenVisualization: React.FC<TokenVisualizationProps> = ({ data }) => {
+const TokenVisualization: React.FC<TokenVisualizationProps> = ({
+  data,
+  chatIndex,
+}) => {
   const { currentToken, isLoading } = useAppSelector(
     (state) => state.tokenVisualization
   );
@@ -37,7 +41,7 @@ const TokenVisualization: React.FC<TokenVisualizationProps> = ({ data }) => {
   return (
     <div className="w-full space-y-6">
       {/* Price Card */}
-      <PriceCard token={tokenData} />
+      <PriceCard chatIndex={chatIndex}/>
       {/* Market Strength Card */}
       <MarketStrengthCard token={tokenData} />
       {/* Sentiment Card */}

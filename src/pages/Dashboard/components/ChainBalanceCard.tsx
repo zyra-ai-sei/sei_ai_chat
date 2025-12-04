@@ -27,7 +27,9 @@ const ChainBalanceCard = ({
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const selectedChain = chainBalances.find((c) => c.chainId === selectedChainId);
+  const selectedChain = chainBalances.find(
+    (c) => c.chainId === selectedChainId
+  );
   const nativeToken = selectedChain?.nativeToken;
 
   const handleChainSelect = (chainId: number) => {
@@ -37,23 +39,23 @@ const ChainBalanceCard = ({
 
   if (isLoading) {
     return (
-      <div className="flex-1 border border-white/30 rounded-2xl p-5 flex flex-col justify-between min-h-[168px]">
+      <div className="flex-1 border border-white/30 rounded-2xl p-5 flex flex-col  bg-gradient-to-r from-[#7cacf910] via-[#FFFFFF0A] to-[#FFFFFF0A] justify-between min-h-[168px]">
         <div className="flex items-center justify-between">
-          <p className="text-white/60 text-sm">Chain Balance</p>
+          <p className="text-sm text-white/60">Chain Balance</p>
         </div>
         <div className="animate-pulse">
-          <div className="h-8 bg-white/10 rounded w-32 mb-2" />
-          <div className="h-4 bg-white/10 rounded w-24" />
+          <div className="w-32 h-8 mb-2 rounded bg-white/10" />
+          <div className="w-24 h-4 rounded bg-white/10" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 border border-white/30 rounded-2xl p-5 flex flex-col justify-between min-h-[168px]">
+    <div className="flex-1 border border-white/30 rounded-2xl p-5 flex  bg-gradient-to-r from-[#7cacf910] via-[#FFFFFF0A] to-[#FFFFFF0A] flex-col justify-between min-h-[168px]">
       {/* Header with Dropdown */}
       <div className="flex items-center justify-between">
-        <p className="text-white/60 text-sm">Chain Balance</p>
+        <p className="text-sm text-white/60">Chain Balance</p>
 
         {/* Chain Selector Dropdown */}
         <div className="relative">
@@ -88,19 +90,17 @@ const ChainBalanceCard = ({
                     key={chain.chainId}
                     onClick={() => handleChainSelect(chain.chainId)}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.06] transition-colors ${
-                      chain.chainId === selectedChainId
-                        ? "bg-white/[0.04]"
-                        : ""
+                      chain.chainId === selectedChainId ? "bg-white/[0.04]" : ""
                     }`}
                   >
                     <span className="text-lg">
                       {CHAIN_ICONS[chain.chainId] || "⚪"}
                     </span>
                     <div className="flex-1">
-                      <p className="text-white text-sm font-medium">
+                      <p className="text-sm font-medium text-white">
                         {chain.chainName}
                       </p>
-                      <p className="text-white/40 text-xs">
+                      <p className="text-xs text-white/40">
                         {formatCurrency(chain.totalUsdValue)}
                       </p>
                     </div>
@@ -123,12 +123,12 @@ const ChainBalanceCard = ({
               ? `${parseFloat(nativeToken.balance_formatted).toFixed(4)} ${nativeToken.symbol}`
               : "0.00"}
           </p>
-          <p className="text-xs text-white/60 mt-1">
+          <p className="mt-1 text-xs text-white/60">
             {nativeToken ? formatCurrency(nativeToken.usd_value) : "$0.00"} USD
           </p>
         </div>
 
-        <div className="text-xs text-white/60 text-right leading-4">
+        <div className="text-xs leading-4 text-right text-white/60">
           <p>
             Price:{" "}
             {nativeToken ? formatCurrency(nativeToken.usd_price) : "$0.00"}

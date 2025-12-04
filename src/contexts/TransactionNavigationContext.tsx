@@ -4,6 +4,7 @@ interface TransactionNavigationContextType {
   scrollToTransaction: (chatIndex: number, txnIndex: number) => void;
   highlightedTransaction: string | null;
   clearHighlight: () => void;
+  scrollToDataOutput: (chatIndex: number) => void;
 }
 
 const TransactionNavigationContext = createContext<
@@ -41,13 +42,37 @@ export const TransactionNavigationProvider: React.FC<{
     []
   );
 
+  const scrollToDataOutput = useCallback(
+    (chatIndex: number) => {
+      const elementId = `txn-${chatIndex}`;
+      const element = document.getElementById(elementId);
+
+      if (element) {
+        // Scroll to the element with smooth behavior
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Highlight the transaction
+        setHighlightedTransaction(elementId);
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedTransaction(null);
+        }, 3000);
+      }
+    },
+    []
+  );
+
   const clearHighlight = useCallback(() => {
     setHighlightedTransaction(null);
   }, []);
 
   return (
     <TransactionNavigationContext.Provider
-      value={{ scrollToTransaction, highlightedTransaction, clearHighlight }}
+      value={{ scrollToTransaction, highlightedTransaction, clearHighlight, scrollToDataOutput }}
     >
       {children}
     </TransactionNavigationContext.Provider>

@@ -12,7 +12,7 @@ const AiManagementCard = ({ data, onToggle }: AiManagementCardProps) => {
   const { mode, isAutoEnabled, activeCategories, totalCategories, borrowedUsd } = data;
 
   return (
-    <div className="flex-1 border border-white/30 rounded-2xl p-5 flex flex-col justify-between min-h-[168px]">
+    <div className="flex-1 border border-white/30 rounded-2xl  bg-gradient-to-r from-[#7cacf910] via-[#FFFFFF0A] to-[#FFFFFF0A] p-5 flex flex-col justify-between min-h-[168px]">
       <div className="flex items-center gap-4">
         <div className="bg-white/[0.08] border border-white/10 rounded-xl p-2 flex items-center justify-center">
           <Wallet className="w-6 h-6 text-white" />

@@ -47,6 +47,39 @@ const Transactions = () => {
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const handleExportCSV = () => {
+    if (!transactions || transactions.length === 0) {
+      return;
+    }
+
+    const headers = Object.keys(transactions[0]);
+
+    const csvRows: string[] = [];
+
+    csvRows.push(headers.join(','));
+
+    for (const row of transactions) {
+      const values = headers.map((header) => {
+        const val = (row as any)[header]; // cast to any to allow dynamic indexing
+        // Escape quotes within the string and wrap in quotes to handle commas within data
+        const escaped = ('' + val).replace(/"/g, '\\"');
+        return `"${escaped}"`;
+      });
+      csvRows.push(values.join(','));
+    }
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'transactions.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
 useEffect(() => {
   if (!transactions || transactions.length === 0) {
     dispatch(getTransactions());
@@ -182,7 +215,7 @@ useEffect(() => {
                   {transactions[0]?.token || "SEI"}
                 </span>
               </div>
-              <button className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
+              <button onClick={handleExportCSV} className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
                 <ArrowDownToLine size={16} /> Export CSV
               </button>
             </div>

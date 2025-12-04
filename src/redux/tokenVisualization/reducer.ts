@@ -92,7 +92,7 @@ export const tokenVisualizationSlice = createSlice({
         state.currentToken.chart = {
           prices: action.payload.prices,
         };
-        console.log('[Reducer] Chart data updated successfully');
+        console.log('[Reducer] Chart data updated successfully', state);
       } else {
         console.warn('[Reducer] Cannot update chart data - no current token!');
       }

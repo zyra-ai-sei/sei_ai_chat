@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import {
   PortfolioValueCard,
   ChainBalanceCard,
-  StablecoinCard,
-  AiManagementCard,
+  PortfolioOverviewCard,
   AssetAllocationSection,
   PortfolioPerformanceSection,
   YieldPerformanceChart,
   StatCard,
+  ChainPerformanceCard,
 } from "./components";
-import { MOCK_DASHBOARD_DATA } from "./constants/dashboard.constants";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import {
   fetchPortfolioBalance,
@@ -19,7 +18,6 @@ import {
   selectPercentageChange24hr,
   selectIsPositiveChange,
   selectChainBalances,
-  selectTotalStablecoinBalance,
   selectPortfolioLoading,
   selectPortfolioError,
   fetchDefiPositions,
@@ -27,11 +25,11 @@ import {
   selectDefiLoading,
   selectDefiError,
   selectDefiChainIds,
-  selectDefiProtocols,
   fetchPortfolioSummary,
   selectSummaryStats,
   selectSummaryLoading,
   selectSummaryError,
+  selectSummaryItems,
 } from "@/redux/portfolioData";
 
 import ChainDropdown from "./components/ChainDropdown";
@@ -45,7 +43,6 @@ const Dashboard = () => {
   const percentageChange = useAppSelector(selectPercentageChange24hr);
   const isPositiveChange = useAppSelector(selectIsPositiveChange);
   const chainBalances = useAppSelector(selectChainBalances);
-  const stablecoinBalance = useAppSelector(selectTotalStablecoinBalance);
   const isLoading = useAppSelector(selectPortfolioLoading);
   const error = useAppSelector(selectPortfolioError);
 
@@ -54,33 +51,16 @@ const Dashboard = () => {
   const defiLoading = useAppSelector(selectDefiLoading);
   const defiError = useAppSelector(selectDefiError);
   const defiChainIds = useAppSelector(selectDefiChainIds);
-  const defiProtocols = useAppSelector(selectDefiProtocols);
 
   // Summary data from Redux
   const summaryStats = useAppSelector(selectSummaryStats);
   const summaryLoading = useAppSelector(selectSummaryLoading);
   const summaryError = useAppSelector(selectSummaryError);
+  const summaryItems = useAppSelector(selectSummaryItems);
 
   // Chain selection state for DeFi sections
   const [selectedDefiChainId, setSelectedDefiChainId] = useState<number>(() =>
     defiChainIds.length > 0 ? defiChainIds[0] : 1
-  );
-
-  const totalBorrowedUsd = defiProtocols.reduce(
-    (sum: number, protocol: any) => {
-      if (!protocol.position?.tokens) return sum;
-      return (
-        sum +
-        protocol.position.tokens
-          .filter((t: any) => t.token_type?.toLowerCase() === "borrowed")
-          .reduce(
-            (s: number, t: any) =>
-              s + (typeof t.usd_value === "number" ? t.usd_value : 0),
-            0
-          )
-      );
-    },
-    0
   );
 
   // Update selected chain if available chains change
@@ -106,23 +86,6 @@ const Dashboard = () => {
     totalValue: totalUsdBalance,
     performanceScore: percentageChange,
     isPerformancePositive: isPositiveChange,
-  };
-
-  // Stablecoin data for StablecoinCard
-  const stablecoinData = {
-    balance: stablecoinBalance,
-    canClaim: false, // This would come from a different API
-    claimAmount: 0,
-  };
-
-  const handleAiModeToggle = (isAutoEnabled: boolean) => {
-    // TODO: API call to toggle AI mode
-    console.log("AI Mode toggled:", isAutoEnabled);
-  };
-
-  const handleClaimStablecoin = () => {
-    // TODO: API call to claim stablecoin
-    console.log("Claiming stablecoin...");
   };
 
   if (isLoading && chainBalances.length === 0) {
@@ -163,55 +126,65 @@ const Dashboard = () => {
           <PortfolioValueCard data={portfolioStats} />
           {/* Trading Summary from portfolio/summary API */}
           <StatCard title="Trading Summary">
-            {summaryLoading ? (
-              <span className="text-white/60">Loading...</span>
-            ) : summaryError ? (
-              <span className="text-red-400">{summaryError}</span>
-            ) : summaryStats.totalTrades > 0 ? (
-              <div className="flex flex-col gap-1">
-                <span className="text-lg font-semibold">
-                  Total Trades: {summaryStats.totalTrades}
-                </span>
-                <span className="text-sm">
-                  Total Realized Profit: ${" "}
-                  {summaryStats.totalRealizedProfitUsd.toLocaleString(
-                    undefined,
-                    { maximumFractionDigits: 2 }
-                  )}
-                </span>
-                <span className="text-xs text-white/60">
-                  Chains: {summaryStats.chainIds.join(", ")}
-                </span>
-              </div>
-            ) : (
-              <span className="text-white/60">No data</span>
-            )}
+            <div className="flex items-start justify-between w-full">
+              {summaryLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border border-white/20 border-t-[#2AF598] rounded-full animate-spin"></div>
+                  <span className="text-white/60">Loading...</span>
+                </div>
+              ) : summaryError ? (
+                <span className="text-red-400">{summaryError}</span>
+              ) : summaryStats.totalTrades > 0 ? (
+                <>
+                  <div>
+                    <p className="text-2xl font-semibold tracking-tight text-transparent bg-gradient-to-r from-white to-white/60 bg-clip-text">
+                      {summaryStats.totalTrades}
+                    </p>
+                    <p className={`text-sm font-medium mt-1 ${
+                      summaryStats.totalRealizedProfitUsd >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      P&L: ${summaryStats.totalRealizedProfitUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="text-xs leading-4 text-right text-white/60">
+                    <p>Total Trades</p>
+                    <p className="mt-1">
+                      {summaryStats.chainCount} chain{summaryStats.chainCount !== 1 ? 's' : ''} active
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center w-full gap-2">
+                  <div className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center">
+                    <span className="text-xl text-white/40">📈</span>
+                  </div>
+                  <span className="text-sm text-white/40">No trading data</span>
+                </div>
+              )}
+            </div>
           </StatCard>
           <ChainBalanceCard
             chainBalances={chainBalances}
             isLoading={isLoading}
           />
-          <StablecoinCard
-            data={stablecoinData}
-            onClaim={handleClaimStablecoin}
+          <PortfolioOverviewCard
+            totalBalance={totalUsdBalance}
+            percentageChange={percentageChange}
+            isPositiveChange={isPositiveChange}
+            chainBalances={chainBalances}
+            totalChains={chainBalances.length}
           />
-          <AiManagementCard
-            data={{
-              ...MOCK_DASHBOARD_DATA.aiManagement,
-              activeCategories: summaryStats.totalTrades,
-              totalCategories: summaryStats.chainCount,
-              borrowedUsd: totalBorrowedUsd,
-            }}
-            onToggle={handleAiModeToggle}
-          />
+        </div>
+
+        {/* Chain Performance Overview */}
+        <div className="mb-6">
+          <ChainPerformanceCard summaryData={summaryItems} />
         </div>
 
         {/* Asset Allocation Section (DeFi) */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-medium text-white/80">
-              DeFi Asset Allocation
-            </span>
+         
             {defiChainIds.length > 1 && (
               <ChainDropdown
                 chainIds={defiChainIds}
@@ -256,7 +229,7 @@ const Dashboard = () => {
         {/* Charts Row */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <PortfolioPerformanceSection
-            data={MOCK_DASHBOARD_DATA.portfolioPerformance}
+            summaryData={summaryItems}
             isWalletConnected={chainBalances.length > 0}
           />
           {defiLoading ? (

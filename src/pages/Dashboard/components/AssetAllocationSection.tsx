@@ -17,11 +17,11 @@ const AssetAllocationSection = ({
   const otherAssets = assets.filter((a) => a.tag !== "Staked");
 
   return (
-    <div className="bg-white/[0.02] rounded-2xl border border-white/30 p-6">
+    <div className="bg-white/[0.02] rounded-2xl  bg-gradient-to-r from-[#1B1F2A] via-[#17171B] to-[#17161B] border border-white/30 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-semibold text-lg">Asset Allocation</h2>
-        <button className="text-white/60 hover:text-white transition-colors">
+        <h2 className="text-lg font-semibold text-white">Asset Allocation</h2>
+        <button className="transition-colors text-white/60 hover:text-white">
           <svg
             width="20"
             height="20"
@@ -48,7 +48,7 @@ const AssetAllocationSection = ({
         </div>
 
         {/* Asset Categories Grid */}
-        <div className="flex-1 flex flex-col gap-3">
+        <div className="flex flex-col flex-1 gap-3">
           {/* First row - 3 items */}
           <div className="flex gap-3">
             {otherAssets.slice(0, 3).map((asset) => (

@@ -39,11 +39,28 @@ export const selectSummaryStats = createSelector(
       0
     );
 
+    const totalBuys = items.reduce(
+      (acc, item) => acc + (item.total_buys || 0),
+      0
+    );
+
+    const totalSells = items.reduce(
+      (acc, item) => acc + (item.total_sells || 0),
+      0
+    );
+
+    const avgProfitPercentage = items.length > 0 
+      ? items.reduce((acc, item) => acc + (item.profit_percentage || 0), 0) / items.length
+      : 0;
+
     const chainIds = items.map((item) => item.chainId);
 
     return {
       totalTrades,
       totalRealizedProfitUsd,
+      totalBuys,
+      totalSells,
+      avgProfitPercentage,
       chainCount: chainIds.length,
       chainIds,
     };
