@@ -62,22 +62,6 @@ const getCachedData = (
 };
 
 /**
- * Store data in cache
- */
-const setCachedData = (
-  coinId: string,
-  timeframe: string,
-  data: CryptoMarketDataResponse
-): void => {
-  const cacheKey = getCacheKey(coinId, timeframe);
-  marketDataCache.set(cacheKey, {
-    data,
-    timestamp: Date.now(),
-  });
-  console.log(`[Cache] STORED ${cacheKey} (total cached: ${marketDataCache.size})`);
-};
-
-/**
  * Clear all cached data (useful for manual refresh)
  */
 export const clearMarketDataCache = (): void => {

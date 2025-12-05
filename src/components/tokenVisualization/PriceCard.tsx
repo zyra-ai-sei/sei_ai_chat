@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { TokenVisualizationData } from "@/redux/tokenVisualization/reducer";
 import PriceChart from "./PriceChart";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { fetchMarketChartData } from "@/redux/tokenVisualization/action";

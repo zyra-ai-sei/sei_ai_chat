@@ -19,7 +19,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
   } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const { points, minValue, maxValue, valueRange, dataPoints } = useMemo(() => {
+  const { points, minValue, maxValue, dataPoints } = useMemo(() => {
     if (!data || data.length === 0) {
       console.log('[PriceChart] No data provided');
       return {
@@ -276,7 +276,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
             transform: "translate(-50%, -120%)",
           }}
         >
-          <div className="text-xs text-white/90 font-semibold mb-1">
+          <div className="mb-1 text-xs font-semibold text-white/90">
             {formatValue(hoveredPoint.value)}
           </div>
           <div className="text-[10px] text-white/50">

@@ -16,7 +16,7 @@ const DcaPriceChart: React.FC<DcaPriceChartProps> = ({ prices, buyPoints }) => {
   } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const { pathPoints, minValue, maxValue, buyPointsPositions, dataPoints } = useMemo(() => {
+  const { pathPoints, buyPointsPositions, dataPoints } = useMemo(() => {
     if (!prices || prices.length === 0) {
       return {
         pathPoints: "",
@@ -275,7 +275,7 @@ const DcaPriceChart: React.FC<DcaPriceChartProps> = ({ prices, buyPoints }) => {
                 transform: "translate(-50%, -120%)",
               }}
             >
-              <p className="text-xs text-white/50 mb-1">
+              <p className="mb-1 text-xs text-white/50">
                 {formatDate(hoveredPoint.timestamp)}
               </p>
               <p className="text-sm font-bold text-white">

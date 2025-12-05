@@ -14,7 +14,6 @@ import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
 import Transactions from "./pages/Transactions";
 import Dashboard from "./pages/Dashboard";
-import DcaTest from "./pages/test/DcaTest";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -70,19 +69,33 @@ function RouterConfig() {
         />
         <Route
           path="/chat"
-          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Chat}/>} />}
+          element={
+            <DefaultAppLayout
+              MainContentComponent={() => (
+                <DefaultLayout MainContentComponent={Chat} />
+              )}
+            />
+          }
         />
         <Route
           path="/dashboard"
-          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Dashboard}/>} />}
+          element={
+            <DefaultAppLayout
+              MainContentComponent={() => (
+                <DefaultLayout MainContentComponent={Dashboard} />
+              )}
+            />
+          }
         />
         <Route
           path="/transactions"
-          element={<DefaultAppLayout MainContentComponent={()=><DefaultLayout MainContentComponent={Transactions}/>} />}
-        />
-        <Route
-          path="/test/dca"
-          element={<DcaTest />}
+          element={
+            <DefaultAppLayout
+              MainContentComponent={() => (
+                <DefaultLayout MainContentComponent={Transactions} />
+              )}
+            />
+          }
         />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

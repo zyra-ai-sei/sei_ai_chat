@@ -1,12 +1,10 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { streamChatPrompt } from "@/redux/chatData/action";
 import { setGlobalData } from "@/redux/globalData/action";
-import { setTokenVisualization } from "@/redux/tokenVisualization/action";
 import React, { useRef, useState } from "react";
 import SendIcon from "@/assets/chat/sendIcon.svg?react";
 import { useChainId } from "wagmi";
 import NetworkSwitchWarning from "./NetworkSwitchWarning";
-import { bitcoinChartPrices } from "@/data/bitcoinChartData";
 
 const InputBox = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);

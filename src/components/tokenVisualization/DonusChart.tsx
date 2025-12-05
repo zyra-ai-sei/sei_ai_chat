@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Styles object (CSS-in-JS)
 const styles = {

@@ -17,7 +17,7 @@ const DcaPortfolioChart: React.FC<DcaPortfolioChartProps> = ({
   } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const { pathPoints, minValue, maxValue, investmentLine, dataPoints } = useMemo(() => {
+  const { pathPoints, investmentLine, dataPoints } = useMemo(() => {
     if (!portfolioValues || portfolioValues.length === 0) {
       return {
         pathPoints: "",
@@ -241,7 +241,7 @@ const DcaPortfolioChart: React.FC<DcaPortfolioChartProps> = ({
                 transform: "translate(-50%, -120%)",
               }}
             >
-              <p className="text-xs text-white/50 mb-1">
+              <p className="mb-1 text-xs text-white/50">
                 {formatDate(hoveredPoint.timestamp)}
               </p>
               <p className="text-sm font-bold text-white">

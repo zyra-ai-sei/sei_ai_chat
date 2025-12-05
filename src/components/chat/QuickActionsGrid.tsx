@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { streamChatPrompt } from "@/redux/chatData/action";
 import { Token } from "@/redux/tokenData/reducer";
-import React, { useState } from "react";
+import { useState } from "react";
 
 // --- 1. Reusable UI Helpers (Inputs/Selects) ---
 const Input = ({ placeholder, value, onChange, type = "text" }: any) => (
