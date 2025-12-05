@@ -6,6 +6,22 @@ import TransactionLoader from "@/assets/chat/transactionLoader.png";
 import { useAccount } from "wagmi";
 import TokenVisualization from "@/components/tokenVisualization/TokenVisualization";
 import QuickActionsGrid from "@/components/chat/QuickActionsGrid";
+import DcaSimulationPanel from "@/components/strategy/DcaSimulationPanel";
+import { DcaResponse } from "@/types/dca";
+
+// Helper function to check if data is DCA simulation data
+const isDcaData = (data: any): data is DcaResponse => {
+  return (
+    data &&
+    typeof data === "object" &&
+    "summary" in data &&
+    "chartData" in data &&
+    "projections" in data &&
+    data.summary &&
+    "total_investment" in data.summary &&
+    "buy_count" in data.summary
+  );
+};
 
 const TransactionResponseBox = () => {
   // Only select the specific token value to avoid re-renders when other globalData properties change
@@ -44,9 +60,10 @@ const TransactionResponseBox = () => {
       className="relative z-30 flex flex-col justify-start w-full h-full gap-6 py-2 pr-4 mx-auto overflow-y-auto scrollbar-none"
     >
       {!chats.some(
-        (chat) => chat.response.tool_outputs || chat.response.data_output
+        (chat) => (chat.response.tool_outputs || chat.response.data_output)
       ) && (
         <>
+        {console.log("[TransactionResponseBox] No transaction or data output found in chats. Rendering QuickActionsGrid.",chats)}
           <QuickActionsGrid/>
         </>
       )}
@@ -88,7 +105,18 @@ const TransactionResponseBox = () => {
                   )}
                 {chat?.response?.data_output && (
                   <div className="mt-4">
-                    <TokenVisualization data={chat.response.data_output} chatIndex={idx} />
+                    <>
+                    {console.log(`[TransactionResponseBox] Rendering data_output for chat ${idx}:`, chat.response.data_output)}
+                    {isDcaData(chat.response.data_output) ? (
+                      <DcaSimulationPanel
+                      data={chat.response.data_output}
+                      coinSymbol={(chat.response.data_output as any).coin || "Token"}
+                      coinName={(chat.response.data_output as any).coinName || "Cryptocurrency"}
+                      />
+                    ) : (
+                      <TokenVisualization data={chat.response.data_output} chatIndex={idx} />
+                    )}
+                    </>
                   </div>
                 )}
               </div>

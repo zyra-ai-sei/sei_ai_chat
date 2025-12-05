@@ -108,7 +108,25 @@ export const streamChatPrompt = createAsyncThunk<
               });
             } else if (payload.type === "data" && payload.data_output) {
               const data = payload.data_output;
-              if (data.type === "crypto_market_data") {
+              console.log("data output payload", data);
+              // Check if this is DCA simulation data
+              if (data.type === "DCA_Simulation" || data.summary) {
+                console.log("[StreamChat] Received DCA simulation data:", {
+                  total_investment: data.summary.total_investment,
+                  buy_count: data.summary.buy_count,
+                  return_pct: data.summary.return_pct,
+                });
+
+                hasReceivedResponse = true;
+
+                // Store DCA data directly in chat response as data_output
+                dispatch(
+                  updateResponse({
+                    index: chatIndex,
+                    response: { data_output: data },
+                  })
+                );
+              } else if (data.type === "crypto_market_data") {
                 console.log("[StreamChat] Received crypto market data:", {
                   coinId: data.coinId,
                   timeframe: data.timeframe,
@@ -389,9 +407,19 @@ export const getChatHistory = createAsyncThunk<
               updatedResponse.chat =
                 existingChat + (contentToAdd ? " " + contentToAdd : "");
 
+              // Check if this is DCA simulation data
+              if (formattedMessage.data_output.type === "DCA_Simulation") {
+                console.log("[getChatHistory] Received DCA simulation data:", {
+                  total_investment: formattedMessage.data_output.summary?.total_investment,
+                  buy_count: formattedMessage.data_output.summary?.buy_count,
+                  return_pct: formattedMessage.data_output.summary?.return_pct,
+                });
+
+                // Store DCA data directly
+                updatedResponse.data_output = formattedMessage.data_output;
+              }
               // Check if any tool output is crypto market data
-            
-                if (formattedMessage.data_output.type === "crypto_market_data" && formattedMessage.data_output.chartData) {
+              else if (formattedMessage.data_output.type === "crypto_market_data" && formattedMessage.data_output.chartData) {
                   // Map the CoinGecko API response to our frontend format
                   const marketData = formattedMessage.data_output.market_data || {};
                   const tickers = formattedMessage.data_output.tickers || [];
