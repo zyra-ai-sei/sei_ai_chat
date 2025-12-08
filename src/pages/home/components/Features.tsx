@@ -2,6 +2,8 @@ import { useState } from "react";
 import feature1 from "@/assets/features/nlp.svg";
 import natlanImg from "@/assets/features/natlan2.png";
 import dashboardImg from "@/assets/features/dashboard.png";
+import builtForSeiImg from "@/assets/features/builtForSei.jpeg";
+import twapDcaImg from "@/assets/features/twapDca.jpeg";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Features = () => {
@@ -25,21 +27,21 @@ const Features = () => {
         "Track all your tokens and transaction history in real-time with a comprehensive dashboard—monitor performance, analyze activity, and maintain complete visibility of your portfolio.",
     },
     {
-      image: feature1,
+      image: twapDcaImg,
       title: "TWAP & DCA",
       tab: "TWAP & DCA",
       content: "Automate Your Trading Strategy",
       description:
         "Automate trades with TWAP and DCA to reduce slippage and market risk—no constant monitoring needed. Execute sophisticated trading strategies with ease.",
     },
-    {
-      image: feature1,
-      title: "Multi-DEX Support",
-      tab: "Multi-DEX Support",
-      content: "Access Multiple Exchanges",
-      description:
-        "Currently routes trades through DragonSwap, with support for more Sei-native DEXs coming soon. Get the best prices across multiple exchanges.",
-    },
+    // {
+    //   image: feature1,
+    //   title: "Multi-DEX Support",
+    //   tab: "Multi-DEX Support",
+    //   content: "Access Multiple Exchanges",
+    //   description:
+    //     "Currently routes trades through DragonSwap, with support for more Sei-native DEXs coming soon. Get the best prices across multiple exchanges.",
+    // },
     // {
     //   image: feature1,
     //   title: "Natural Language Trading",
@@ -50,7 +52,7 @@ const Features = () => {
     //     "Our AI understands context and intent, making blockchain interactions as simple as having a conversation.",
     // },
     {
-      image: feature1,
+      image: builtForSeiImg,
       title: "Built on Sei",
       tab: "Built on Sei",
       content: "Powered by Sei Network",
@@ -132,11 +134,7 @@ const Features = () => {
                   <img
                     src={featuresList[activeTab].image}
                     alt={featuresList[activeTab].title}
-                    className={
-                      activeTab === 0 || activeTab === 1
-                        ? "w-full h-full object-cover object-top rounded-[24px]"
-                        : "w-[200px] h-[200px] opacity-50"
-                    }
+                    className="w-full h-full object-cover object-top rounded-[24px]"
                   />
                 </div>
               </div>
