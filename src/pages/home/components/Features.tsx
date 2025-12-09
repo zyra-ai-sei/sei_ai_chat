@@ -1,5 +1,4 @@
 import { useState } from "react";
-import feature1 from "@/assets/features/nlp.svg";
 import natlanImg from "@/assets/features/natlan2.png";
 import dashboardImg from "@/assets/features/dashboard.png";
 import builtForSeiImg from "@/assets/features/builtForSei.jpeg";

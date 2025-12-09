@@ -7,11 +7,13 @@ import { useAccount } from "wagmi";
 import TokenVisualization from "@/components/tokenVisualization/TokenVisualization";
 import QuickActionsGrid from "@/components/chat/QuickActionsGrid";
 import DcaSimulationPanel from "@/components/strategy/DcaSimulationPanel";
+import LumpSumSimulationPanel from "@/components/strategy/LumpSumSimulationPanel";
 import { DcaResponse } from "@/types/dca";
+import { LumpSumResponse } from "@/types/lumpsum";
 
 // Helper function to check if data is DCA simulation data
 const isDcaData = (data: any): data is DcaResponse => {
-  return (
+  const isDca = (
     data &&
     typeof data === "object" &&
     "summary" in data &&
@@ -19,8 +21,36 @@ const isDcaData = (data: any): data is DcaResponse => {
     "projections" in data &&
     data.summary &&
     "total_investment" in data.summary &&
-    "buy_count" in data.summary
+    "buy_count" in data.summary &&
+    "average_buy_price" in data.summary &&
+    "total_tokens" in data.summary
   );
+  if (isDca) {
+    console.log("[TransactionResponseBox] Detected DCA data");
+  }
+  return isDca;
+};
+
+// Helper function to check if data is Lump Sum simulation data
+const isLumpSumData = (data: any): data is LumpSumResponse => {
+  const isLumpSum = (
+    data &&
+    typeof data === "object" &&
+    "summary" in data &&
+    "chartData" in data &&
+    "projections" in data &&
+    data.summary &&
+    "total_investment" in data.summary &&
+    "buy_price" in data.summary &&
+    "tokens_bought" in data.summary &&
+    !("buy_count" in data.summary) &&
+    !("average_buy_price" in data.summary) &&
+    !("total_tokens" in data.summary)
+  );
+  if (isLumpSum) {
+    console.log("[TransactionResponseBox] Detected Lump Sum data");
+  }
+  return isLumpSum;
 };
 
 const TransactionResponseBox = () => {
@@ -77,8 +107,11 @@ const TransactionResponseBox = () => {
               {
                 hasDataOutput: !!chat.response.data_output,
                 dataType: typeof chat.response.data_output,
-                tokenSymbol: chat.response.data_output?.symbol,
-                tokenName: chat.response.data_output?.name,
+                fullData: chat.response.data_output,
+                hasSummary: !!chat.response.data_output?.summary,
+                summaryKeys: chat.response.data_output?.summary ? Object.keys(chat.response.data_output.summary) : [],
+                hasChartData: !!chat.response.data_output?.chartData,
+                hasProjections: !!chat.response.data_output?.projections,
               }
             );
           }
@@ -105,18 +138,32 @@ const TransactionResponseBox = () => {
                   )}
                 {chat?.response?.data_output && (
                   <div className="mt-4">
-                    <>
-                    {console.log(`[TransactionResponseBox] Rendering data_output for chat ${idx}:`, chat.response.data_output)}
-                    {isDcaData(chat.response.data_output) ? (
-                      <DcaSimulationPanel
-                      data={chat.response.data_output}
-                      coinSymbol={(chat.response.data_output as any).coin || "Token"}
-                      coinName={(chat.response.data_output as any).coinName || "Cryptocurrency"}
-                      />
-                    ) : (
-                      <TokenVisualization data={chat.response.data_output} chatIndex={idx} />
-                    )}
-                    </>
+                    {(() => {
+                      console.log(`[TransactionResponseBox] Rendering data_output for chat ${idx}:`, chat.response.data_output);
+
+                      if (isDcaData(chat.response.data_output)) {
+                        console.log(`[TransactionResponseBox] Rendering DCA Panel for chat ${idx}`);
+                        return (
+                          <DcaSimulationPanel
+                            data={chat.response.data_output}
+                            coinSymbol={(chat.response.data_output as any).coin || "Token"}
+                            coinName={(chat.response.data_output as any).coinName || "Cryptocurrency"}
+                          />
+                        );
+                      } else if (isLumpSumData(chat.response.data_output)) {
+                        console.log(`[TransactionResponseBox] Rendering Lump Sum Panel for chat ${idx}`);
+                        return (
+                          <LumpSumSimulationPanel
+                            data={chat.response.data_output}
+                            coinSymbol={(chat.response.data_output as any).coin || "Token"}
+                            coinName={(chat.response.data_output as any).coinName || "Cryptocurrency"}
+                          />
+                        );
+                      } else {
+                        console.log(`[TransactionResponseBox] Rendering TokenVisualization for chat ${idx}`);
+                        return <TokenVisualization data={chat.response.data_output} chatIndex={idx} />;
+                      }
+                    })()}
                   </div>
                 )}
               </div>

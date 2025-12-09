@@ -112,9 +112,13 @@ export default defineConfig(({ mode }) => {
         },
         "/api": {
           target: "http://localhost:3000",
-
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+        "/strategies-api": {
+          target: "http://localhost:3001",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/strategies-api/, ""),
         },
       },
       port: 9027,

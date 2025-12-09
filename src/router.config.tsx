@@ -14,6 +14,7 @@ import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
 import Transactions from "./pages/Transactions";
 import Dashboard from "./pages/Dashboard";
+import LumpSumTest from "./pages/test/LumpSumTest";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -97,6 +98,7 @@ function RouterConfig() {
             />
           }
         />
+        <Route path="/test/lumpsum" element={<LumpSumTest />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </Router>

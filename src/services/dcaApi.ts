@@ -20,7 +20,7 @@ export const runDcaSimulation = async (
       success: boolean;
       data: DcaResponse;
       message?: string;
-    }>("/strategy/dca", params);
+    }>("/strategies-api/v1/strategies/dca/simulate", params);
 
     console.log(`[DCA API] Simulation completed successfully:`, {
       buy_count: response.data.data?.summary?.buy_count,
