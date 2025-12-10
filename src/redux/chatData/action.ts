@@ -418,6 +418,18 @@ export const getChatHistory = createAsyncThunk<
                 // Store DCA data directly
                 updatedResponse.data_output = formattedMessage.data_output;
               }
+              // Check if this is Lump Sum simulation data
+              else if (formattedMessage.data_output.type === "LumpSum_Simulation") {
+                console.log("[getChatHistory] Received Lump Sum simulation data:", {
+                  total_investment: formattedMessage.data_output.summary?.total_investment,
+                  buy_price: formattedMessage.data_output.summary?.buy_price,
+                  tokens_bought: formattedMessage.data_output.summary?.tokens_bought,
+                  return_pct: formattedMessage.data_output.summary?.return_pct,
+                });
+
+                // Store Lump Sum data directly
+                updatedResponse.data_output = formattedMessage.data_output;
+              }
               // Check if any tool output is crypto market data
               else if (formattedMessage.data_output.type === "crypto_market_data" && formattedMessage.data_output.chartData) {
                   // Map the CoinGecko API response to our frontend format
