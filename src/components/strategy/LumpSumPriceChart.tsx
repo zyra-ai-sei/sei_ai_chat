@@ -2,7 +2,7 @@ import React, { useMemo, useState, useRef } from "react";
 
 interface LumpSumPriceChartProps {
   prices: Array<[number, number]>;
-  buyPoint: Array<[number, number]>;
+  buyPoint: [number, number, number]; // [timestamp, price, tokens_bought]
 }
 
 const LumpSumPriceChart: React.FC<LumpSumPriceChartProps> = ({ prices, buyPoint }) => {
@@ -69,8 +69,8 @@ const LumpSumPriceChart: React.FC<LumpSumPriceChartProps> = ({ prices, buyPoint 
       .join(" ");
 
     let buyPointPos = null;
-    if (buyPoint && buyPoint.length > 0) {
-      const [timestamp, price] = buyPoint[0];
+    if (buyPoint && buyPoint.length === 3) {
+      const [timestamp, price, _tokens] = buyPoint;
       const priceIndex = prices.findIndex(p => p[0] === timestamp);
       if (priceIndex !== -1) {
         const x = prices.length === 1

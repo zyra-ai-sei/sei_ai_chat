@@ -17,10 +17,10 @@ const LumpSumSimulationPanel: React.FC<LumpSumSimulationPanelProps> = ({
   coinName = "Cryptocurrency",
 }) => {
   const buyPointInfo = useMemo(() => {
-    if (!data.chartData.buy_point || data.chartData.buy_point.length === 0) {
+    if (!data.chartData.buy_point || data.chartData.buy_point.length !== 3) {
       return null;
     }
-    const [timestamp, price] = data.chartData.buy_point[0];
+    const [timestamp, price, tokens] = data.chartData.buy_point;
     return {
       date: new Date(timestamp).toLocaleDateString("en-US", {
         month: "short",
@@ -28,6 +28,7 @@ const LumpSumSimulationPanel: React.FC<LumpSumSimulationPanelProps> = ({
         year: "numeric",
       }),
       price,
+      tokens,
     };
   }, [data.chartData.buy_point]);
 
@@ -95,7 +96,7 @@ const LumpSumSimulationPanel: React.FC<LumpSumSimulationPanelProps> = ({
               <div className="rounded-xl bg-white/5 border border-white/5 p-4">
                 <p className="text-xs text-white/50 mb-2">Tokens Acquired</p>
                 <p className="text-sm font-semibold text-[#7CABF9]">
-                  {formatTokens(data.summary.tokens_bought)} {coinSymbol}
+                  {formatTokens(buyPointInfo.tokens)} {coinSymbol}
                 </p>
               </div>
             </div>

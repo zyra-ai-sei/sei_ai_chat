@@ -419,7 +419,7 @@ export const getChatHistory = createAsyncThunk<
                 updatedResponse.data_output = formattedMessage.data_output;
               }
               // Check if this is Lump Sum simulation data
-              else if (formattedMessage.data_output.type === "LumpSum_Simulation") {
+              else if (formattedMessage.data_output.type === "lump_sum_strategy") {
                 console.log("[getChatHistory] Received Lump Sum simulation data:", {
                   total_investment: formattedMessage.data_output.summary?.total_investment,
                   buy_price: formattedMessage.data_output.summary?.buy_price,

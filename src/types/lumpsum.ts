@@ -8,7 +8,7 @@ export interface LumpSumSummary {
 
 export interface LumpSumChartData {
   prices: Array<[number, number]>;
-  buy_point: Array<[number, number]>;
+  buy_point: [number, number, number]; // [timestamp, price, tokens_bought]
   portfolio_values: Array<[number, number]>;
 }
 
