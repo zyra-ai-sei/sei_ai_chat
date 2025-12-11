@@ -11,12 +11,11 @@ import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import {
   updateTransactionStatus,
   reorderTransactions,
-  completeTool,
   abortTool,
   updateMessageState,
 } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
-import { setGlobalData } from "@/redux/globalData/action";
+import { Activity } from "lucide-react";
 
 const TransactionCanvas = ({
   txns,
@@ -27,11 +26,7 @@ const TransactionCanvas = ({
 }) => {
   const dispatch = useAppDispatch();
   const chats = useAppSelector((state) => state.chatData.chats);
-  const globalData = useAppSelector((state) => state?.globalData?.data);
-  const { token } = globalData || {};
   const chainId = useChainId();
-  const correctChainId = Number(import.meta.env?.VITE_BASE_CHAIN_ID);
-  const isWrongNetwork = Boolean(token && chainId !== correctChainId);
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
@@ -135,17 +130,6 @@ const TransactionCanvas = ({
 
   // Execute all transactions sequentially
   const executeAllTransactions = async () => {
-    // Check if user is on wrong network
-    if (isWrongNetwork) {
-      dispatch(
-        setGlobalData({
-          ...globalData,
-          isNetworkSwitchWarningTriggered: true,
-        })
-      );
-      return;
-    }
-
     const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
     if (currentTxns.length === 0) return;
 
@@ -237,16 +221,10 @@ const TransactionCanvas = ({
                     })
                   );
                   // Add transaction to transaction store
-                  dispatch(addTxn(data as string));
-                  // Mark tool as completed
-                  if (txn.id) {
-                    dispatch(
-                      completeTool({
-                        toolId: txn.id.toString(),
-                        hash: data as string,
-                      })
-                    );
-                  }
+                  dispatch(
+                    addTxn({ txHash: data, network: txn.metadata?.network })
+                  );
+                 
                   // Update message state for this execution
                   if (txn.executionId) {
                     dispatch(
@@ -254,6 +232,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "completed",
                         txnHash: data as string,
+                        network: txn.metadata?.network,
                       })
                     );
                   }
@@ -280,6 +259,7 @@ const TransactionCanvas = ({
                       updateMessageState({
                         executionId: txn.executionId,
                         executionState: "failed",
+                        network: txn?.metadata?.network,
                       })
                     );
                   }
@@ -314,16 +294,10 @@ const TransactionCanvas = ({
                     })
                   );
                   // Add transaction to transaction store
-                  dispatch(addTxn(data as string));
-                  // Mark tool as completed
-                  if (txn.id) {
-                    dispatch(
-                      completeTool({
-                        toolId: txn.id.toString(),
-                        hash: data as string,
-                      })
-                    );
-                  }
+                  dispatch(
+                    addTxn({ txHash: data, network: txn.metadata?.network })
+                  );
+                
                   // Update message state for this execution
                   if (txn.executionId) {
                     dispatch(
@@ -331,6 +305,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "completed",
                         txnHash: data as string,
+                        network: txn.metadata?.network,
                       })
                     );
                   }
@@ -357,6 +332,7 @@ const TransactionCanvas = ({
                       updateMessageState({
                         executionId: txn.executionId,
                         executionState: "failed",
+                        network: txn?.metadata?.network,
                       })
                     );
                   }
@@ -392,16 +368,6 @@ const TransactionCanvas = ({
 
   const handleExecuteTransaction = (txn: ToolOutput, txnIndex: number) => {
     // Check if user is on wrong network
-    if (isWrongNetwork) {
-      dispatch(
-        setGlobalData({
-          ...globalData,
-          isNetworkSwitchWarningTriggered: true,
-        })
-      );
-      return;
-    }
-
     // Mark as pending before execution
     dispatch(
       updateTransactionStatus({
@@ -430,16 +396,8 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn(data as string));
-            // Mark tool as completed
-            if (txn.id) {
-              dispatch(
-                completeTool({
-                  toolId: txn.id.toString(),
-                  hash: data as string,
-                })
-              );
-            }
+            dispatch(addTxn({ txHash: data, network: txn.metadata?.network }));
+           
             // Update message state for this execution
             if (txn.executionId) {
               dispatch(
@@ -447,6 +405,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "completed",
                   txnHash: data as string,
+                  network: txn?.metadata?.network,
                 })
               );
             }
@@ -469,6 +428,7 @@ const TransactionCanvas = ({
                 updateMessageState({
                   executionId: txn.executionId,
                   executionState: "failed",
+                  network: txn.metadata.network,
                 })
               );
             }
@@ -476,6 +436,7 @@ const TransactionCanvas = ({
         }
       );
     } else {
+      console.log("fucker", txn);
       sendTransaction(
         {
           to: txn.transaction!.to as Address,
@@ -491,16 +452,8 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn(data as string));
-            // Mark tool as completed
-            if (txn.id) {
-              dispatch(
-                completeTool({
-                  toolId: txn.id.toString(),
-                  hash: data as string,
-                })
-              );
-            }
+            dispatch(addTxn({ txHash: data, network: txn.metadata?.network }));
+          
             // Update message state for this execution
             if (txn.executionId) {
               dispatch(
@@ -508,6 +461,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "completed",
                   txnHash: data as string,
+                  network: txn.metadata.network,
                 })
               );
             }
@@ -530,6 +484,7 @@ const TransactionCanvas = ({
                 updateMessageState({
                   executionId: txn.executionId,
                   executionState: "failed",
+                  network: txn?.metadata?.network,
                 })
               );
             }
@@ -542,15 +497,6 @@ const TransactionCanvas = ({
   // Simulate all transactions sequentially
   const simulateAllTransactions = async () => {
     // Check if user is on wrong network
-    if (isWrongNetwork) {
-      dispatch(
-        setGlobalData({
-          ...globalData,
-          isNetworkSwitchWarningTriggered: true,
-        })
-      );
-      return;
-    }
 
     const currentTxns = chats[chatIndex]?.response?.tool_outputs || [];
     if (currentTxns.length === 0) return;
@@ -694,15 +640,6 @@ const TransactionCanvas = ({
     txnIndex: number
   ) => {
     // Check if user is on wrong network
-    if (isWrongNetwork) {
-      dispatch(
-        setGlobalData({
-          ...globalData,
-          isNetworkSwitchWarningTriggered: true,
-        })
-      );
-      return;
-    }
 
     // Mark as simulating
     dispatch(
@@ -746,80 +683,100 @@ const TransactionCanvas = ({
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 p-5 bg-[radial-gradient(circle_at_top_right,_rgba(110,178,255,0.12),_transparent_60%)] shadow-[0_15px_35px_rgba(2,6,23,0.65)]">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xs uppercase tracking-[0.2em] font-semibold text-white/60">
-          Transaction Queue [{" "}
-          <span className="text-white/90">{orderedTxns.length}</span> ]
-        </h2>
-        <div className="flex gap-3">
-          <SimulateAllButton
-            simulationState={simulationState}
-            orderedTxns={orderedTxns}
-            onSimulateAll={simulateAllTransactions}
-          />
-          <ExecuteAllButton
-            executionState={executionState}
-            orderedTxns={orderedTxns}
-            onExecuteAll={executeAllTransactions}
-          />
+    <div className="w-full max-w-4xl mx-auto mb-4 animate-fade-in-up">
+      <div className="relative group rounded-xl bg-[#0d0d10] border border-white/5 p-[1px] shadow-xl">
+        <div className="absolute -top-[1px] left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="px-4 py-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400">
+                <Activity size={14} />
+              </div>
+              <div>
+                <h2 className="text-[11px] font-bold text-slate-200 uppercase tracking-[0.2em]">
+                  Transaction Queue
+                </h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[9px] text-slate-500 font-mono">
+                    QID: {chatIndex}
+                  </span>
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-600" />
+                  <span className="text-[9px] text-violet-400 font-mono">
+                    {orderedTxns.length} PENDING
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <SimulateAllButton
+                simulationState={simulationState}
+                orderedTxns={orderedTxns}
+                onSimulateAll={simulateAllTransactions}
+              />
+              <ExecuteAllButton
+                executionState={executionState}
+                orderedTxns={orderedTxns}
+                onExecuteAll={executeAllTransactions}
+              />
+            </div>
+          </div>
+
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable-1" type="PERSON">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex flex-col gap-2"
+                >
+                  {orderedTxns.map((txn, index) => {
+                    const isExpanded = expandedTxns.has(index);
+                    const isCurrentlyExecuting =
+                      executionState.isExecuting &&
+                      executionState.currentIndex === index;
+                    const isCurrentlySimulating =
+                      simulationState.isSimulating &&
+                      simulationState.currentIndex === index;
+
+                    return (
+                      <Draggable
+                        key={`draggable-${index}`}
+                        draggableId={`draggable-${index}`}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            <TransactionCard
+                              txn={txn}
+                              index={index}
+                              chatIndex={chatIndex}
+                              isExpanded={isExpanded}
+                              isCurrentlyExecuting={isCurrentlyExecuting}
+                              isCurrentlySimulating={isCurrentlySimulating}
+                              onToggleExpanded={() => toggleExpanded(index)}
+                              onExecuteTransaction={() =>
+                                handleExecuteTransaction(txn, index)
+                              }
+                              onSimulateTransaction={() =>
+                                handleSimulateTransaction(txn, index)
+                              }
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       </div>
-
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="droppable-1" type="PERSON">
-          {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex flex-col gap-3"
-            >
-              {orderedTxns.map((txn, index) => {
-                const isExpanded = expandedTxns.has(index);
-                const isCurrentlyExecuting =
-                  executionState.isExecuting &&
-                  executionState.currentIndex === index;
-                const isCurrentlySimulating =
-                  simulationState.isSimulating &&
-                  simulationState.currentIndex === index;
-
-                return (
-                  <Draggable
-                    key={`draggable-${index}`}
-                    draggableId={`draggable-${index}`}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <TransactionCard
-                          txn={txn}
-                          index={index}
-                          chatIndex={chatIndex}
-                          isExpanded={isExpanded}
-                          isCurrentlyExecuting={isCurrentlyExecuting}
-                          isCurrentlySimulating={isCurrentlySimulating}
-                          onToggleExpanded={() => toggleExpanded(index)}
-                          onExecuteTransaction={() =>
-                            handleExecuteTransaction(txn, index)
-                          }
-                          onSimulateTransaction={() =>
-                            handleSimulateTransaction(txn, index)
-                          }
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                );
-              })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
     </div>
   );
 };

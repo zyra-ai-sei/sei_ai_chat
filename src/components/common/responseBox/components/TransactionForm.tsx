@@ -1,12 +1,11 @@
 import { ToolOutput } from "@/redux/chatData/reducer";
 import { getArgNames } from "@/utility/getArgNames";
-import { useAccount, useSendTransaction, useWriteContract, useChainId } from "wagmi";
+import { useAccount, useSendTransaction, useWriteContract, useChainId, useSwitchChain } from "wagmi";
 import TextInput from "../../input/TextInput";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import {
   updateTransactionStatus,
   updateTransactionData,
-  completeTool,
   abortTool,
 } from "@/redux/chatData/action";
 import { Address } from "viem";
@@ -18,7 +17,8 @@ import ExternalIcon from "@/assets/button/external.svg?react";
 import GetInputComponent from "./GetInputComponent";
 import { addTxn } from "@/redux/transactionData/action";
 import { setGlobalData } from "@/redux/globalData/action";
-import { Play } from "lucide-react";
+import { Play, ArrowLeftRight } from "lucide-react";
+import { isSupportedChainId, getChainByIdentifier } from "@/config/chains";
 
 const TransactionForm = ({
   txn,
@@ -38,8 +38,19 @@ const TransactionForm = ({
   const globalData = useAppSelector((state) => state?.globalData?.data);
   const { token } = globalData || {};
   const chainId = useChainId();
-  const correctChainId = Number(import.meta.env?.VITE_BASE_CHAIN_ID);
-  const isWrongNetwork = Boolean(token && chainId !== correctChainId);
+  const { switchChain } = useSwitchChain();
+  const isWrongNetwork = Boolean(token && !isSupportedChainId(chainId));
+
+  // Check if transaction network matches current chain
+  const networkLabel = txn?.metadata?.network;
+  const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+  const isWrongTxnNetwork = txnChain && txnChain.chainId !== chainId;
+
+  const handleSwitchChain = () => {
+    if (txnChain) {
+      switchChain({ chainId: txnChain.chainId });
+    }
+  };
   const { writeContract } = useWriteContract({
     mutation: {
       onError: () => {
@@ -57,8 +68,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn(data as string));
-          dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
+          dispatch(addTxn({txHash: data, network: txn.metadata.network}));
         }
         // dispatch(eraseLatestToolOutput());
       },
@@ -108,8 +118,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn(data as string));
-          dispatch(completeTool({ hash: data, toolId: String(txn.id) }));
+          dispatch(addTxn({txHash: data, network: txn.metadata?.network}));
         }
         // dispatch(eraseLatestToolOutput());
       },
@@ -246,6 +255,7 @@ const TransactionForm = ({
         args: txn?.transaction?.args || [],
       });
     } else {
+      console.log('triggerd man', txn)
       sendTransaction({
         to: txn?.transaction?.to as Address,
         value: BigInt(txn?.transaction?.value || "0"),
@@ -274,14 +284,18 @@ const TransactionForm = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="p-4 border rounded-2xl border-white/10 bg-white/5 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Participants</p>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/50">
+        {/* Participants Card */}
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent p-4 backdrop-blur-sm transition-all hover:border-white/20">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" />
+              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Participants</p>
+            </div>
+            <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
               Identity
             </span>
           </div>
-          <div className="grid gap-3 mt-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="min-w-0 col-span-full">
               <TextInput
                 disabled={true}
@@ -317,14 +331,18 @@ const TransactionForm = ({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0A0D19] via-[#0F1322] to-[#06080F] p-4 shadow-[0_20px_60px_rgba(4,6,14,0.8)]">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Call Configuration</p>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/50">
-              Parameters
+        {/* Call Configuration Card */}
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0A0D19] via-[#0F1322] to-[#06080F] p-4 shadow-[0_20px_60px_rgba(4,6,14,0.8)] transition-all hover:border-white/20">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.5)]" />
+              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Configuration</p>
+            </div>
+            <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
+              Params
             </span>
           </div>
-          <div className="grid gap-3 mt-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {txn?.transaction?.functionName && (
               <div className="min-w-0">
                 <GetInputComponent
@@ -353,15 +371,17 @@ const TransactionForm = ({
       </div>
 
       {showArgs && (
-        <div className="p-4 border rounded-2xl border-white/10 bg-white/5">
-          <div className="flex flex-col gap-1">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Arguments</p>
-            <span className="text-sm text-white/70">
-              {txn?.transaction?.args?.length || 0} parameter
-              {txn?.transaction?.args?.length === 1 ? "" : "s"} detected
+        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
+              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Arguments</p>
+            </div>
+            <span className="text-[10px] font-medium text-white/40">
+              {txn?.transaction?.args?.length || 0} INPUT{txn?.transaction?.args?.length === 1 ? "" : "S"}
             </span>
           </div>
-          <div className="grid gap-3 mt-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {hasComponentArgs
               ? complexArgs.map((_, index) => {
                   const argType = txn?.metadata?.types?.args?.[index] || "default";
@@ -400,15 +420,37 @@ const TransactionForm = ({
       )}
 
       {!hideExecuteButton && (
-        <div className="p-4 border rounded-2xl border-white/10 bg-gradient-to-r from-white/5 via-transparent to-white/5">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent p-4 backdrop-blur-sm transition-all hover:border-white/20">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/50">Execution</p>
-              <p className="mt-1 text-sm text-white/70">
-                {isWrongNetwork ? "Switch to the Sei base chain to continue" : "Validate the call data above before executing on-chain."}
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.5)]" />
+                <p className="text-xs font-medium uppercase tracking-widest text-white/60">Execution</p>
+              </div>
+              <p className="text-sm text-white/40">
+                {isWrongNetwork
+                  ? "Switch to a supported chain to continue"
+                  : isWrongTxnNetwork
+                    ? `Switch to ${txnChain?.name} to execute this transaction`
+                    : "Validate the call data above before executing on-chain."}
               </p>
             </div>
-            {(txn?.status === StatusEnum.PENDING || !txn?.status) &&
+            {/* Switch Chain button when transaction is on different network */}
+            {isWrongTxnNetwork &&
+              (txn?.status === StatusEnum.PENDING || !txn?.status) &&
+              !isExecuting &&
+              !isWrongNetwork && (
+              <button
+                onClick={handleSwitchChain}
+                className="flex items-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-6 py-3 text-sm font-semibold text-orange-200 shadow-[0_0_25px_rgba(249,115,22,0.25)] transition hover:opacity-95"
+              >
+                <ArrowLeftRight size={16} />
+                Switch to {txnChain?.name}
+              </button>
+            )}
+            {/* Execute button when on correct network */}
+            {!isWrongTxnNetwork &&
+              (txn?.status === StatusEnum.PENDING || !txn?.status) &&
               !isExecuting &&
               !isWrongNetwork && (
               <button

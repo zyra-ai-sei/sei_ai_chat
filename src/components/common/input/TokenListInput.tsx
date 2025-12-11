@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { Token } from "@/redux/tokenData/reducer";
+import { Token, selectTokensByChain } from "@/redux/tokenData/reducer";
+import { useChainId } from "wagmi";
 
 const TokenListInput = ({
   title,
@@ -23,8 +24,10 @@ const TokenListInput = ({
   onChange: (value: string) => void;
   className?: string;
 }) => {
-  // Your token selection logic here
-  const tokenList = useAppSelector((state) => state.tokenData.list);
+  // Get current chain ID from wagmi
+  const chainId = useChainId();
+  // Get tokens for the current chain
+  const tokenList = useAppSelector(selectTokensByChain(chainId));
 
   const [currentToken, setCurrentToken] = useState<null|Token>(null);
 

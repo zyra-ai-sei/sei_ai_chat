@@ -33,7 +33,7 @@ const TransactionResponseBox = () => {
   const prevChatsCountRef = useRef(0);
 
   useEffect(() => {
-    dispatch(getChatHistory());
+    dispatch(getChatHistory({}));
   }, [token, address]);
 
   // Memoize chat count to avoid unnecessary re-renders

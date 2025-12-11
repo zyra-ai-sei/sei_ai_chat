@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { getTransactions } from "@/redux/transactionData/action";
+import { getOrders } from "@/redux/orderData/action";
 import {
   ArrowDownToLine,
   ArrowUpRight,
@@ -37,15 +38,21 @@ const Transactions = () => {
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightHash = searchParams.get("highlight");
-  const { transactions, loading } = useAppSelector(
+  const { transactions, loading: transactionsLoading } = useAppSelector(
     (state) => state.transactionData || { transactions: [], loading: false }
   );
+  const { orders, loading: ordersLoading } = useAppSelector(
+    (state) => state.orderData || { orders: [], loading: false }
+  );
 
+  const [viewMode, setViewMode] = useState<"transactions" | "orders">("transactions");
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<"recent" | "value">("recent");
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const loading = viewMode === "transactions" ? transactionsLoading : ordersLoading;
 
   const handleExportCSV = () => {
     if (!transactions || transactions.length === 0) {
@@ -84,7 +91,22 @@ useEffect(() => {
   if (!transactions || transactions.length === 0) {
     dispatch(getTransactions());
   }
-}, [dispatch, transactions]);
+  if (!orders || orders.length === 0) {
+    dispatch(getOrders());
+  }
+}, [dispatch, transactions, orders]);
+
+  // Poll orders API every 30 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      dispatch(getOrders());
+    }, 30000); // 30 seconds
+
+    // Cleanup function to clear interval on unmount
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [dispatch]);
 
   // Clear highlight after 3 seconds
   useEffect(() => {
@@ -100,49 +122,78 @@ useEffect(() => {
     setCurrentPage(1);
   }, [activeFilter, query, sortKey, pageSize, transactions.length]);
 
-  const filteredTransactions = useMemo(() => {
-    let list = [...transactions];
+  const filteredData = useMemo(() => {
+    let list: any[] = viewMode === "transactions" ? [...transactions] : [...orders];
 
     if (activeFilter !== "all") {
-      list = list.filter((txn: any) => {
-        const normalized = normalizeStatus(txn.status);
-        if (activeFilter === "failed") {
-          return normalized === "failed" || normalized === "error";
+      list = list.filter((item: any) => {
+        if (viewMode === "transactions") {
+          const normalized = normalizeStatus(item.status);
+          if (activeFilter === "failed") {
+            return normalized === "failed" || normalized === "error";
+          }
+          return normalized === activeFilter;
+        } else {
+          // Handle orders
+          if (activeFilter === "success") {
+            return item.status === "COMPLETED";
+          } else if (activeFilter === "failed") {
+            return item.status === "FAILED";
+          } else if (activeFilter === "pending") {
+            return item.status === "OPEN";
+          }
+          return false;
         }
-        return normalized === activeFilter;
       });
     }
 
     if (query.trim()) {
       const lower = query.trim().toLowerCase();
-      list = list.filter(
-        (txn) =>
-          txn.hash?.toLowerCase().includes(lower) ||
-          txn.to?.toLowerCase().includes(lower) ||
-          txn.from?.toLowerCase().includes(lower) ||
-          txn.token?.toLowerCase().includes(lower)
-      );
+      if (viewMode === "transactions") {
+        list = list.filter(
+          (txn: any) =>
+            txn.hash?.toLowerCase().includes(lower) ||
+            txn.to?.toLowerCase().includes(lower) ||
+            txn.from?.toLowerCase().includes(lower) ||
+            txn.token?.toLowerCase().includes(lower)
+        );
+      } else {
+        list = list.filter(
+          (order: any) =>
+            order.orderId?.toString().includes(lower) ||
+            order.maker?.toLowerCase().includes(lower) ||
+            order.txHash?.toLowerCase().includes(lower) ||
+            order.txHashCreated?.toLowerCase().includes(lower)
+        );
+      }
     }
 
     if (sortKey === "recent") {
       list.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        (a: any, b: any) => {
+          const aTime = viewMode === "transactions" ? a.timestamp : (a.lastUpdated || a.createdAt);
+          const bTime = viewMode === "transactions" ? b.timestamp : (b.lastUpdated || b.createdAt);
+          return new Date(bTime).getTime() - new Date(aTime).getTime();
+        }
       );
     } else {
-      list.sort((a, b) => toSeiValue(b.value) - toSeiValue(a.value));
+      if (viewMode === "transactions") {
+        list.sort((a: any, b: any) => toSeiValue(b.value) - toSeiValue(a.value));
+      } else {
+        list.sort((a: any, b: any) => Number(b.srcAmount || 0) - Number(a.srcAmount || 0));
+      }
     }
 
     return list;
-  }, [transactions, activeFilter, query, sortKey]);
+  }, [viewMode, transactions, orders, activeFilter, query, sortKey]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredTransactions.length / pageSize)
+    Math.ceil(filteredData.length / pageSize)
   );
   const safePage = Math.min(currentPage, totalPages);
   const pageStart = (safePage - 1) * pageSize;
-  const paginatedTransactions = filteredTransactions.slice(
+  const paginatedData = filteredData.slice(
     pageStart,
     pageStart + pageSize
   );
@@ -154,24 +205,42 @@ useEffect(() => {
   }, [currentPage, totalPages]);
 
   const stats = useMemo(() => {
-    const totalValue = transactions.reduce(
-      (acc: any, txn: any) => acc + Number(txn.value || 0),
-      0
-    );
-    const successCount = transactions.filter(
-      (txn) => normalizeStatus(txn.status) === "success"
-    ).length;
-    const failedCount = transactions.filter((txn) =>
-      ["failed", "error"].includes(normalizeStatus(txn.status))
-    ).length;
+    const data = viewMode === "transactions" ? transactions : orders;
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    if (viewMode === "transactions") {
+      successCount = data.filter(
+        (item: any) => normalizeStatus(item.status) === "success"
+      ).length;
+      failedCount = data.filter((item: any) =>
+        ["failed", "error"].includes(normalizeStatus(item.status))
+      ).length;
+    } else {
+      successCount = data.filter(
+        (item: any) => item.status === "COMPLETED"
+      ).length;
+      failedCount = data.filter((item: any) =>
+        item.status === "FAILED"
+      ).length;
+    }
+
+    let totalValue = 0;
+    if (viewMode === "transactions") {
+      totalValue = transactions.reduce(
+        (acc: any, txn: any) => acc + Number(txn.value || 0),
+        0
+      );
+    }
 
     return {
-      total: transactions.length,
+      total: data.length,
       success: successCount,
       failed: failedCount,
       totalValue,
     };
-  }, [transactions]);
+  }, [viewMode, transactions, orders]);
 
   return (
     <div className="min-h-screen w-full bg-[#05060E] text-white">
@@ -197,7 +266,7 @@ useEffect(() => {
               <div className="flex items-center gap-3 text-4xl font-semibold text-white">
                 {stats.total}
                 <span className="text-base font-medium text-white/60">
-                  txns tracked
+                  {viewMode === "transactions" ? "txns tracked" : "orders tracked"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm text-white/70">
@@ -208,13 +277,15 @@ useEffect(() => {
                 <span>Failed</span>
                 <span className="text-rose-400">{stats.failed}</span>
               </div>
-              <div className="flex items-center justify-between text-sm text-white/70">
-                <span>Total volume</span>
-                <span className="font-semibold text-white">
-                  {formatTokenValue(stats.totalValue)}{" "}
-                  {transactions[0]?.token || "SEI"}
-                </span>
-              </div>
+              {viewMode === "transactions" && (
+                <div className="flex items-center justify-between text-sm text-white/70">
+                  <span>Total volume</span>
+                  <span className="font-semibold text-white">
+                    {formatTokenValue(stats.totalValue)}{" "}
+                    {transactions[0]?.token || "SEI"}
+                  </span>
+                </div>
+              )}
               <button onClick={handleExportCSV} className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
                 <ArrowDownToLine size={16} /> Export CSV
               </button>
@@ -224,7 +295,29 @@ useEffect(() => {
 
         <div className="flex flex-col gap-4 rounded-3xl border border-white/5 bg-black/40 p-6 shadow-[0_12px_60px_rgba(3,3,5,0.45)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <h2 className="text-xl font-semibold">History</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-semibold">History</h2>
+              <div className="flex items-center gap-1 p-1 text-sm border rounded-full border-white/10 bg-white/5 text-white/60">
+                <button
+                  onClick={() => setViewMode("transactions")}
+                  className={cn(
+                    "flex-1 rounded-full px-4 py-1.5 text-sm leading-none whitespace-nowrap",
+                    viewMode === "transactions" && "bg-white text-black"
+                  )}
+                >
+                  Transactions
+                </button>
+                <button
+                  onClick={() => setViewMode("orders")}
+                  className={cn(
+                    "flex-1 rounded-full px-4 py-1.5 text-sm leading-none whitespace-nowrap",
+                    viewMode === "orders" && "bg-white text-black"
+                  )}
+                >
+                  Orders
+                </button>
+              </div>
+            </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative w-full sm:w-72">
                 <Search
@@ -234,7 +327,11 @@ useEffect(() => {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by address or hash"
+                  placeholder={
+                    viewMode === "transactions"
+                      ? "Search by address or hash"
+                      : "Search by order ID or maker address"
+                  }
                   className="w-full h-10 py-2 pl-10 pr-4 text-sm text-white border rounded-full border-white/10 bg-white/5 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                 />
               </div>
@@ -284,25 +381,50 @@ useEffect(() => {
           </div>
 
           <div className="w-full border rounded-2xl border-white/5 bg-black/30">
-            <div className="grid grid-cols-12 gap-4 border-b border-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-white/50">
-              <span className="col-span-4">Hash</span>
-              <span className="col-span-3">Type</span>
-              <span className="col-span-2">Value</span>
-              <span className="col-span-2">Status</span>
-              <span className="col-span-1 text-right">Time</span>
-            </div>
-            <div className="w-full divide-y divide-white/5">
-              {loading && <LoadingState />}
-              {!loading && filteredTransactions.length === 0 && <EmptyState />}
-              {!loading &&
-                paginatedTransactions.map((txn, idx) => (
-                  <Row
-                    key={txn.hash || `${idx}-${txn.timestamp}`}
-                    txn={txn}
-                    isHighlighted={txn.hash === highlightHash}
-                  />
-                ))}
-            </div>
+            {viewMode === "transactions" ? (
+              <>
+                <div className="grid grid-cols-12 gap-4 border-b border-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-white/50">
+                  <span className="col-span-4">Hash</span>
+                  <span className="col-span-3">Type</span>
+                  <span className="col-span-2">Value</span>
+                  <span className="col-span-2">Status</span>
+                  <span className="col-span-1 text-right">Time</span>
+                </div>
+                <div className="w-full divide-y divide-white/5">
+                  {loading && <LoadingState />}
+                  {!loading && filteredData.length === 0 && <EmptyState />}
+                  {!loading &&
+                    paginatedData.map((txn: any, idx) => (
+                      <TransactionRow
+                        key={txn.hash || `${idx}-${txn.timestamp}`}
+                        txn={txn}
+                        isHighlighted={txn.hash === highlightHash}
+                      />
+                    ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-12 gap-4 border-b border-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-white/50">
+                  <span className="col-span-2">Order ID</span>
+                  <span className="col-span-4">Maker</span>
+                  <span className="col-span-2">Amount</span>
+                  <span className="col-span-2">Status</span>
+                  <span className="col-span-2 text-right">Last Updated</span>
+                </div>
+                <div className="w-full divide-y divide-white/5">
+                  {loading && <LoadingState />}
+                  {!loading && filteredData.length === 0 && <EmptyState />}
+                  {!loading &&
+                    paginatedData.map((order: any, idx) => (
+                      <OrderRow
+                        key={order._id || `${idx}-${order.orderId}`}
+                        order={order}
+                      />
+                    ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex flex-col gap-4 pt-4 border-t border-white/5 md:flex-row md:items-center md:justify-between">
@@ -357,7 +479,7 @@ useEffect(() => {
   );
 };
 
-const Row = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
+const TransactionRow = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
   const rowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -415,6 +537,80 @@ const Row = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
         </div>
         <div className="col-span-1 text-xs text-right text-white/50">
           {formatTime(txn.timestamp)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const OrderRow = ({ order }: { order: any }) => {
+  const formatAmount = (amount: string) => {
+    if (!amount) return "0";
+    const num = Number(amount) / 1e18;
+    return num.toFixed(6);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "text-emerald-400";
+      case "OPEN":
+        return "text-blue-400";
+      case "FAILED":
+        return "text-rose-400";
+      default:
+        return "text-white/70";
+    }
+  };
+
+  return (
+    <div className="grid items-center w-full">
+      <div className="grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm">
+        <div className="col-span-2">
+          <p className="font-mono text-white">#{order.orderId}</p>
+        </div>
+        <div className="col-span-4">
+          <div className="flex items-center gap-2">
+            <p className="font-mono text-white">{formatAddress(order.maker)}</p>
+            {order.txHashCreated && (
+              <a
+                href={`https://seitrace.com/tx/${order.txHashCreated}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/40 hover:text-[#7cabf9] transition-colors"
+                title="View on Seitrace"
+              >
+                <ExternalLink size={14} />
+              </a>
+            )}
+          </div>
+          {order.fills && order.fills.length > 0 && (
+            <p className="text-xs text-white/50">
+              {order.fills.length} fill{order.fills.length > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+        <div className="col-span-2 text-white/80">
+          {order.srcAmount ? (
+            <div>
+              <p className="font-semibold">{formatAmount(order.srcAmount)}</p>
+              <p className="text-xs text-white/50">
+                {order.percentFilled ? `${order.percentFilled}% filled` : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="font-semibold">
+              {order.filledAmount ? formatAmount(order.filledAmount) : "—"}
+            </p>
+          )}
+        </div>
+        <div className="col-span-2">
+          <span className={cn("font-semibold capitalize", getStatusColor(order.status))}>
+            {order.status}
+          </span>
+        </div>
+        <div className="col-span-2 text-xs text-right text-white/50">
+          {formatTime(order.lastUpdated || order.createdAt)}
         </div>
       </div>
     </div>

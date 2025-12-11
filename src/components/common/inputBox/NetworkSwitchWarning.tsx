@@ -1,6 +1,7 @@
 import { useSwitchChain } from "wagmi";
 import SwapIcon from "@/assets/chat/swap.svg?react";
 import { useEffect, useState } from "react";
+import { DEFAULT_CHAIN } from "@/config/chains";
 
 interface NetworkSwitchWarningProps {
   shouldBlink?: boolean;
@@ -27,13 +28,13 @@ const NetworkSwitchWarning = ({ shouldBlink = false }: NetworkSwitchWarningProps
       <div className="flex items-center gap-3">
         <SwapIcon className="w-[40px] h-[40px] text-yellow-500" />
         <span className="text-sm font-medium text-yellow-200">
-          Wrong Network - Please switch to Sei Network
+          Wrong Network - Please switch to {DEFAULT_CHAIN.name} Network
         </span>
       </div>
       <button
         onClick={() => {
           switchChain?.({
-            chainId: Number(import.meta.env?.VITE_BASE_CHAIN_ID),
+            chainId: DEFAULT_CHAIN.chainId,
           });
         }}
         className="px-4 py-2 text-sm font-semibold text-black transition-colors bg-yellow-500 rounded-lg hover:bg-yellow-600"

@@ -3,6 +3,7 @@ import globalDataReducer from "./globalData/reducer";
 import SocketReducer from "./socket/reducer";
 import chatDataReducer from "./chatData/reducer";
 import transactionReducer from "./transactionData/reducer";
+import orderReducer from "./orderData/reducer";
 import tokenReducer from "./tokenData/reducer";
 import tokenVisualizationReducer from "./tokenVisualization/reducer";
 import portfolioReducer from "./portfolioData/reducer";
@@ -15,6 +16,7 @@ export const rootReducers = combineReducers({
   globalData: globalDataReducer,
   chatData: chatDataReducer,
   transactionData: transactionReducer,
+  orderData: orderReducer,
   tokenData: tokenReducer,
   tokenVisualization: tokenVisualizationReducer,
   portfolioData: portfolioReducer,

@@ -1,15 +1,16 @@
 import { wagmiConfig } from "@/config/wagmiConfig";
-import { TokenList } from "@/constants/token";
 import { formatBalance } from "@/utility/formatBalance";
 import { useEffect, useState } from "react";
 import { Address, erc20Abi } from "viem";
 import { readContract } from "viem/actions";
-import { useAccount, useBalance, useReadContracts } from "wagmi";
+import { useAccount, useBalance, useReadContracts, useChainId } from "wagmi";
 import ContractIcon from "@/assets/tokens/contract.svg?react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import TooltipCustom from "../common/tooltip";
 import seiIcon from "@/assets/tokens/sei.png";
 import { SeiToken } from "@/constants/token";
+import { useAppSelector } from "@/hooks/useRedux";
+import { selectTokensByChain } from "@/redux/tokenData/reducer";
 
 
 const ORACLE_PRECOMPILE_ADDRESS: `0x${string}` =
@@ -70,6 +71,10 @@ export const ORACLE_PRECOMPILE_ABI = [
 
 const Assets = () => {
   const { address, chain } = useAccount();
+  const chainId = useChainId();
+  // Get tokens for the current chain from Redux
+  const TokenList = useAppSelector(selectTokensByChain(chainId));
+
   const [updatedTokenList, setUpdatedTokenList] = useState<any[]>([]);
   const [nativeTokenData, setNativeTokenData] = useState<any>(null);
   const [exchangeRates, setExchangeRates] = useState<

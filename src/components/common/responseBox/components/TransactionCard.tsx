@@ -1,10 +1,21 @@
 import React from "react";
 import { ToolOutput } from "@/redux/chatData/reducer";
 import { StatusEnum } from "@/enum/status.enum";
-import { ChevronDown, ChevronUp, Play, Zap, ExternalLink } from "lucide-react";
+import {
+  ChevronDown,
+  Play,
+  Zap,
+  ExternalLink,
+  ArrowLeftRight,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Layers,
+} from "lucide-react";
 import TransactionForm from "./TransactionForm";
 import { useTransactionNavigation } from "@/contexts/TransactionNavigationContext";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { getChainByIdentifier } from "@/config/chains";
 
 interface TransactionCardProps {
   txn: ToolOutput;
@@ -17,6 +28,67 @@ interface TransactionCardProps {
   onExecuteTransaction: () => void;
   onSimulateTransaction: () => void;
 }
+
+const StatusBadge = ({ status }: { status: StatusEnum | undefined }) => {
+  if (status === StatusEnum.SUCCESS) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium shadow-[0_0_8px_-2px_rgba(16,185,129,0.3)]">
+        <CheckCircle2 size={10} className="text-emerald-400" />
+        <span>Completed</span>
+      </div>
+    );
+  }
+  if (status === StatusEnum.ERROR || status === StatusEnum.SIMULATION_FAILED) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-medium shadow-[0_0_8px_-2px_rgba(239,68,68,0.3)]">
+        <XCircle size={10} />
+        <span>{status === StatusEnum.SIMULATION_FAILED ? "Sim Failed" : "Failed"}</span>
+      </div>
+    );
+  }
+  if (status === StatusEnum.SIMULATION_SUCCESS) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium shadow-[0_0_8px_-2px_rgba(16,185,129,0.3)]">
+        <CheckCircle2 size={10} className="text-emerald-400" />
+        <span>Sim Passed</span>
+      </div>
+    );
+  }
+  if (status === StatusEnum.PENDING || status === StatusEnum.SIMULATING) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium animate-pulse">
+        <div className="w-2 h-2 rounded-full bg-blue-400" />
+        <span>{status === StatusEnum.SIMULATING ? "Simulating..." : "Executing..."}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-400 text-[10px] font-medium">
+      <div className="w-2 h-2 rounded-full bg-slate-500" />
+      <span>Pending</span>
+    </div>
+  );
+};
+
+const ActionButton = ({ onClick, variant = "primary", children, icon: Icon, className = "", disabled = false }: any) => {
+  const variants: any = {
+    primary: "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-[0_0_12px_-3px_rgba(124,58,237,0.4)] border border-violet-500/50",
+    secondary: "bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/50 hover:border-slate-600",
+    ghost: "bg-transparent hover:bg-slate-800/30 text-slate-400 hover:text-slate-200",
+    disabled: "bg-slate-800/30 text-slate-500 border border-slate-700/30 cursor-not-allowed",
+  };
+
+  return (
+    <button 
+      onClick={onClick} 
+      disabled={disabled}
+      className={`flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-medium transition-all duration-300 active:scale-95 ${disabled ? variants.disabled : variants[variant]} ${className}`}
+    >
+      {Icon && <Icon size={12} />}
+      {children}
+    </button>
+  );
+};
 
 const TransactionCard: React.FC<TransactionCardProps> = ({
   txn,
@@ -33,6 +105,19 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   const txnId = `txn-${chatIndex}-${index}`;
   const isHighlighted = highlightedTransaction === txnId;
   const { chain } = useAccount();
+  const currentChainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  // Check if transaction network matches current chain
+  const networkLabel = txn?.metadata?.network;
+  const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+  const isWrongNetwork = txnChain && txnChain.chainId !== currentChainId;
+
+  const handleSwitchChain = () => {
+    if (txnChain) {
+      switchChain({ chainId: txnChain.chainId });
+    }
+  };
 
   // Get explorer URL for transaction hash
   const getExplorerUrl = (hash: string) => {
@@ -44,284 +129,132 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     return `https://seitrace.com/tx/${hash}`;
   };
 
-  // Truncate hash for display
-  const truncateHash = (hash: string) => {
-    if (hash.length <= 16) return hash;
-    return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
-  };
-
-  const getStatusColor = () => {
-    switch (txn.status) {
-      case StatusEnum.SUCCESS:
-        return {
-          border: "border-[#2AF598]/60",
-          bg: "bg-gradient-to-tr from-[#2AF598]/20 to-[#009EFD]/20",
-          dot: "bg-[#2AF598]",
-        };
-      case StatusEnum.ERROR:
-        return {
-          border: "border-red-500",
-          bg: "bg-red-500/10",
-          dot: "bg-red-500",
-        };
-      case StatusEnum.PENDING:
-        return {
-          border: "border-blue-500",
-          bg: "bg-blue-500/10",
-          dot: "bg-blue-500 animate-pulse",
-        };
-      case StatusEnum.SIMULATING:
-        return {
-          border: "border-yellow-500",
-          bg: "bg-yellow-500/10",
-          dot: "bg-yellow-500 animate-pulse",
-        };
-      case StatusEnum.SIMULATION_SUCCESS:
-        return {
-          border: "border-[#2AF598]/60",
-          bg: "bg-gradient-to-tr from-[#2AF598]/20 to-[#009EFD]/20",
-          dot: "bg-[#2AF598]",
-        };
-      case StatusEnum.SIMULATION_FAILED:
-        return {
-          border: "border-orange-500",
-          bg: "bg-orange-500/10",
-          dot: "bg-orange-500",
-        };
-      case StatusEnum.IDLE:
-      default:
-        return {
-          border: "border-white/20",
-          bg: "bg-white/5",
-          dot: "bg-white/40",
-        };
-    }
-  };
-
-  const getStatusText = () => {
-    switch (txn.status) {
-      case StatusEnum.SUCCESS:
-        return "Completed";
-      case StatusEnum.ERROR:
-        return "Failed";
-      case StatusEnum.PENDING:
-        return "Executing...";
-      case StatusEnum.SIMULATING:
-        return "Simulating...";
-      case StatusEnum.SIMULATION_SUCCESS:
-        return "Simulation Passed";
-      case StatusEnum.SIMULATION_FAILED:
-        return "Simulation Failed";
-      case StatusEnum.IDLE:
-      default:
-        return "Ready";
-    }
-  };
-
-  const statusColors = getStatusColor();
-  const statusText = getStatusText();
   const functionLabel = txn?.transaction?.functionName || "Contract Call";
-  const networkLabel = chain?.name;
   const actionCount = txn?.transaction?.args?.length || 0;
+  const isFailed = txn.status === StatusEnum.ERROR || txn.status === StatusEnum.SIMULATION_FAILED;
+  const isCompleted = txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.SIMULATION_SUCCESS;
 
   return (
     <div
       id={txnId}
-      className={`relative overflow-hidden rounded-[20px] border px-6 py-6 shadow-[0_20px_45px_rgba(1,12,23,0.9)] transition-all duration-500 ${
-        isHighlighted
-          ? "border-blue-500/60 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.3)]"
-          : "border-white/10"
-      }`}
+      className={`
+      relative rounded-lg transition-all duration-300 group
+      bg-[#0a0b0f] border border-white/5 hover:border-white/10
+      ${isFailed ? 'shadow-[inset_0_0_15px_-10px_rgba(239,68,68,0.15)]' : ''}
+      ${isCompleted ? 'shadow-[inset_0_0_15px_-10px_rgba(16,185,129,0.15)]' : ''}
+      ${isHighlighted ? 'border-violet-500/50 shadow-[0_0_20px_rgba(124,58,237,0.2)]' : ''}
+    `}
     >
-      <div className="relative z-10 flex flex-col gap-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex min-w-[220px] flex-1 flex-col">
-            <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-              #{index + 1} • {functionLabel}{" "}
-            </p>
+      {/* Decorative left border accent */}
+      <div className={`absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full transition-colors duration-300 
+        ${isFailed ? 'bg-red-500/60 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 
+          isCompleted ? 'bg-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 
+          isWrongNetwork ? 'bg-amber-500/60' : 'bg-slate-700'}`} 
+      />
+
+      <div className="relative py-2 px-3 pl-5 flex flex-col lg:flex-row lg:items-center gap-2">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="text-[10px] font-mono text-slate-600">
+            #{String(index + 1).padStart(2, '0')}
           </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1 text-[12px] uppercase tracking-[0.15em] text-white/70">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-              {networkLabel}
+          
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <h4 className="text-[11px] font-bold text-slate-200 tracking-wider uppercase truncate">
+              {functionLabel}
+            </h4>
+            
+            <div className="flex items-center gap-2 text-[10px]">
+              <span className="flex items-center gap-1 text-slate-400 px-1.5 py-px rounded bg-slate-800/40 border border-slate-700/30">
+                <Layers size={8} /> {networkLabel}
+              </span>
+              {isWrongNetwork && (
+                <span className="flex items-center gap-1 text-amber-400">
+                  <AlertTriangle size={8} /> Wrong Chain
+                </span>
+              )}
             </div>
-            <div
-              className={`flex items-center gap-2 rounded-full border px-3 py-1 text-white/50 text-[11px] uppercase tracking-[0.15em] ${statusColors.border} ${statusColors.bg}`}
-            >
-              <div className={`h-2 w-2 rounded-full ${statusColors.dot}`} />
-              {statusText}
-            </div>
-            <button
-              aria-label={
-                isExpanded ? "Collapse transaction" : "Expand transaction"
-              }
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto mt-1 lg:mt-0 pl-2 lg:pl-0 border-t lg:border-t-0 border-white/5 pt-2 lg:pt-0">
+          
+          <StatusBadge status={txn.status} />
+
+          <div className="flex items-center gap-1.5">
+            {isWrongNetwork && !isCurrentlyExecuting && !isCurrentlySimulating && (
+              <ActionButton variant="primary" icon={ArrowLeftRight} onClick={handleSwitchChain} className="!py-0.5 !px-2 !h-6">
+                Switch
+              </ActionButton>
+            )}
+            
+            {!isWrongNetwork && !isCurrentlyExecuting && !isCurrentlySimulating && (
+              <>
+                {(txn?.status === StatusEnum.IDLE || !txn?.status || txn?.status === StatusEnum.SIMULATION_SUCCESS || txn?.status === StatusEnum.SIMULATION_FAILED) && (
+                  <>
+                    <ActionButton variant="secondary" icon={Zap} onClick={onSimulateTransaction} className="!py-0.5 !px-2 !h-6">
+                      Simulate
+                    </ActionButton>
+                    <ActionButton variant="primary" icon={Play} onClick={onExecuteTransaction} className="!py-0.5 !px-2 !h-6">
+                      Execute
+                    </ActionButton>
+                  </>
+                )}
+                
+                {txn?.status === StatusEnum.SUCCESS && txn.txHash && (
+                  <a 
+                    href={getExplorerUrl(txn.txHash)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-violet-400 transition-colors px-1.5"
+                  >
+                    View Tx <ExternalLink size={8} />
+                  </a>
+                )}
+              </>
+            )}
+
+            <button 
               onClick={onToggleExpanded}
-              className="flex items-center justify-center text-white transition border rounded-full h-9 w-9 border-white/15 bg-white/10 hover:border-white/40"
+              className="p-1 text-slate-600 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors"
             >
-              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={12} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
-
-        {isExpanded && (
-          <div className="grid gap-4 p-4 text-xs border rounded-2xl border-white/5 bg-white/5 text-white/60 sm:grid-cols-3">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/40">
-                From
-              </p>
-              <p className="mt-1 font-mono text-sm text-white break-all">
-                {txn?.transaction?.from || "0x—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/40">
-                To / Contract
-              </p>
-              <p className="mt-1 font-mono text-sm text-white break-all">
-                {txn?.transaction?.to || txn?.transaction?.address || "0x—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/40">
-                Args
-              </p>
-              <p className="mt-1 text-sm text-white">
-                {actionCount} parameter{actionCount === 1 ? "" : "s"}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {isExpanded && (
-          <div className="p-4 border rounded-2xl border-white/5 bg-white/5">
-            <TransactionForm
-              txn={txn}
-              txnIndex={index}
-              chatIndex={chatIndex}
-              isExecuting={isCurrentlyExecuting}
-              hideExecuteButton={true}
-            />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-3 lg:flex-row">
-          {/* Simulation passed state */}
-          {txn?.status === StatusEnum.SIMULATION_SUCCESS &&
-            !isCurrentlySimulating &&
-            !isCurrentlyExecuting && (
-              <button
-                onClick={onSimulateTransaction}
-                disabled
-                className="flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium border rounded-full border-[#2AF598]/50 bg-gradient-to-tr from-[#2AF598]/25 to-[#009EFD]/25 text-[#2AF598]"
-              >
-                <span>✓ Simulation Passed</span>
-              </button>
-            )}
-
-          {/* Simulation failed state */}
-          {txn?.status === StatusEnum.SIMULATION_FAILED &&
-            !isCurrentlySimulating &&
-            !isCurrentlyExecuting && (
-              <button
-                onClick={onSimulateTransaction}
-                className="group flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium transition-all border rounded-full border-orange-500/30 bg-orange-500/5 text-orange-300/90 hover:border-orange-500/50 hover:bg-orange-500/10"
-              >
-                <Zap
-                  size={12}
-                  className="transition-transform group-hover:scale-110"
-                />
-                <span>Retry Simulation</span>
-              </button>
-            )}
-
-          {/* Simulate button for IDLE state only */}
-          {(txn?.status === StatusEnum.IDLE || !txn?.status) &&
-            !isCurrentlySimulating &&
-            !isCurrentlyExecuting && (
-              <button
-                onClick={onSimulateTransaction}
-                className="group flex flex-1 items-center justify-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 px-4 py-1.5 text-xs font-medium text-yellow-300/80 transition-all hover:border-yellow-500/40 hover:bg-yellow-500/10 hover:text-yellow-200"
-              >
-                <Zap
-                  size={12}
-                  className="transition-transform group-hover:scale-110"
-                />
-                <span>Simulate</span>
-              </button>
-            )}
-
-          {/* Success state - show txHash link instead of execute button */}
-          {txn?.status === StatusEnum.SUCCESS &&
-            !isCurrentlyExecuting &&
-            !isCurrentlySimulating && (
-              txn.txHash ? (
-                <a
-                  href={getExplorerUrl(txn.txHash)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center flex-1 gap-2 px-4 py-1.5 text-xs font-medium rounded-full  bg-gradient-to-tr from-[#2AF598]/25 to-[#009EFD]/25 text-[#2AF598] hover:border-[#2AF598]/70 hover:from-[#2AF598]/30 hover:to-[#009EFD]/30 transition-all"
-                  title={txn.txHash}
-                >
-                  <span>✓ View Transaction</span>
-                  <span className="font-mono text-[10px] text-[#2AF598]/70">{truncateHash(txn.txHash)}</span>
-                  <ExternalLink size={12} />
-                </a>
-              ) : (
-                <button
-                  disabled
-                  className="flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium border rounded-full border-[#2AF598]/50 bg-gradient-to-tr from-[#2AF598]/25 to-[#009EFD]/25 text-[#2AF598]"
-                >
-                  <span>✓ Executed</span>
-                </button>
-              )
-            )}
-
-          {/* Error state for execute button */}
-          {txn?.status === StatusEnum.ERROR &&
-            !isCurrentlyExecuting &&
-            !isCurrentlySimulating && (
-              <button
-                disabled
-                className="flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium border rounded-full border-red-500/30 bg-red-500/5 text-red-300/90 cursor-not-allowed"
-              >
-                <span>✕ Failed</span>
-              </button>
-            )}
-
-          {/* Default execute button for IDLE, SIMULATION_SUCCESS, SIMULATION_FAILED */}
-          {(txn?.status === StatusEnum.IDLE ||
-            txn?.status === StatusEnum.SIMULATION_SUCCESS ||
-            txn?.status === StatusEnum.SIMULATION_FAILED ||
-            !txn?.status) &&
-            !isCurrentlyExecuting &&
-            !isCurrentlySimulating && (
-              <button
-                onClick={onExecuteTransaction}
-                className="group flex flex-1 items-center justify-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/5 px-4 py-1.5 text-xs font-medium text-blue-300/80 transition-all hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200"
-              >
-                <Play
-                  size={12}
-                  className="transition-transform group-hover:scale-110"
-                />
-                <span>Execute</span>
-              </button>
-            )}
-
-          {isCurrentlySimulating && (
-            <div className="flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium border rounded-full border-yellow-500/30 bg-yellow-500/5 text-yellow-300/90">
-              <div className="w-3 h-3 border-2 border-yellow-400 rounded-full animate-spin border-t-transparent" />
-              <span>Simulating...</span>
-            </div>
-          )}
-
-          {isCurrentlyExecuting && (
-            <div className="flex items-center justify-center flex-1 gap-1.5 px-4 py-1.5 text-xs font-medium border rounded-full border-blue-500/30 bg-blue-500/5 text-blue-300/90">
-              <div className="w-3 h-3 border-2 border-blue-400 rounded-full animate-spin border-t-transparent" />
-              <span>Executing...</span>
-            </div>
-          )}
-        </div>
       </div>
+
+      {isExpanded && (
+        <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+          <div className="overflow-hidden">
+            <div className="mx-3 mb-2 p-3 rounded-lg bg-[#050505]/40 border border-white/5">
+              <div className="grid grid-cols-2 gap-3 text-[10px] font-mono mb-3">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-slate-500 uppercase tracking-wider text-[9px]">Origin</span>
+                  <span className="text-slate-300 truncate">{txn?.transaction?.from || "0x—"}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-slate-500 uppercase tracking-wider text-[9px]">Target</span>
+                  <span className="text-slate-300 truncate">{txn?.transaction?.to || txn?.transaction?.address || "0x—"}</span>
+                </div>
+                <div className="col-span-2 pt-2 border-t border-white/5 flex gap-4">
+                  <span className="text-slate-500">Args: <span className="text-slate-400">{actionCount}</span></span>
+                  <span className="text-slate-500">Value: <span className="text-slate-400">{txn?.transaction?.value ? `${txn.transaction.value} wei` : "0"}</span></span>
+                </div>
+              </div>
+              
+              <div className="pt-2 border-t border-white/5">
+                <TransactionForm
+                  txn={txn}
+                  txnIndex={index}
+                  chatIndex={chatIndex}
+                  isExecuting={isCurrentlyExecuting}
+                  hideExecuteButton={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
