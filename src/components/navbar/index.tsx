@@ -46,7 +46,7 @@ const Navbar = () => {
   const { isConnected, address } = useAccount();
   const dispatch = useAppDispatch();
 
-  const { data: seiBalance } = useBalance({
+  const { data: nativeBalance } = useBalance({
     address: address as Address,
   });
 
@@ -143,12 +143,12 @@ const Navbar = () => {
                 {/* Balance Display */}
                 <div className="flex flex-col gap-1">
                   <span className="text-white text-[36px] font-semibold leading-tight">
-                    {seiBalance
+                    {nativeBalance
                       ? parseFloat(
-                          formatUnits(seiBalance.value, seiBalance.decimals)
-                        ).toFixed(2)
+                          formatUnits(nativeBalance.value, nativeBalance.decimals)
+                        ).toPrecision(6)
                       : "0.00"}{" "}
-                    <span className="text-white/40">SEI</span>
+                    <span className="text-white/40">{nativeBalance?.symbol}</span>
                   </span>
                 </div>
 
@@ -245,7 +245,7 @@ const Navbar = () => {
               <div className="flex flex-col gap-1">
                 <button
                   onClick={() => {
-                    dispatch(clearChat());
+                    dispatch(clearChat({}));
                     navigate("/chat");
                   }}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer w-full text-left"

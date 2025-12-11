@@ -1,6 +1,8 @@
 import React from "react";
-import { Play } from "lucide-react";
+import { Play, ArrowLeftRight } from "lucide-react";
 import { ToolOutput } from "@/redux/chatData/reducer";
+import { useChainId, useSwitchChain } from "wagmi";
+import { getChainByIdentifier } from "@/config/chains";
 
 interface ExecuteAllButtonProps {
   executionState: {
@@ -22,6 +24,25 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
   const totalTxns = orderedTxns.length;
   const completedCount = executionState.completedCount || 0;
   const currentIndex = executionState.currentIndex !== null ? executionState.currentIndex + 1 : completedCount;
+  const currentChainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  // Check if any transaction requires a different network
+  const txnRequiringSwitch = orderedTxns.find((txn) => {
+    const networkLabel = txn?.metadata?.network;
+    const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+    return txnChain && txnChain.chainId !== currentChainId;
+  });
+
+  const handleSwitchChain = () => {
+    if (txnRequiringSwitch) {
+      const networkLabel = txnRequiringSwitch.metadata.network;
+      const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+      if (txnChain) {
+        switchChain({ chainId: txnChain.chainId });
+      }
+    }
+  };
   
   // Executing state
   if (executionState.isExecuting) {
@@ -55,26 +76,47 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
     return (
       <button
         disabled
-        className="flex items-center gap-1.5 rounded-full border border-[#2AF598]/50 bg-gradient-to-tr from-[#2AF598]/25 to-[#009EFD]/25 px-4 py-1.5 text-xs font-medium text-[#2AF598]"
+        className="flex items-center gap-1.5 rounded-xl border border-emerald-500 bg-emerald-600 px-4 py-2 text-xs font-medium text-white shadow-[0_0_12px_-3px_rgba(16,185,129,0.4)]"
       >
         <span>✓ {completedCount}/{totalTxns}</span>
       </button>
     );
   }
   
+  // Show Switch Chain button if any transaction requires different network
+  if (txnRequiringSwitch && !executionState.isExecuting) {
+    const networkLabel = txnRequiringSwitch.metadata.network;
+    const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+
+    return (
+      <button
+        onClick={handleSwitchChain}
+        disabled={orderedTxns.length === 0}
+        className={`group flex items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-medium transition-all ${
+          orderedTxns.length === 0
+            ? "cursor-not-allowed border-white/10 bg-white/[0.02] text-white/30"
+            : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-[0_0_12px_-3px_rgba(124,58,237,0.4)] border border-violet-500/50"
+        }`}
+      >
+        <ArrowLeftRight size={14} className={orderedTxns.length === 0 ? "" : "group-hover:scale-110 transition-transform"} />
+        <span>Switch to {txnChain?.name}</span>
+      </button>
+    );
+  }
+
   // Default executable state
   return (
     <button
       onClick={onExecuteAll}
       disabled={orderedTxns.length === 0}
-      className={`group flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-medium transition-all ${
+      className={`group flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-medium transition-all duration-300 ${
         orderedTxns.length === 0
           ? "cursor-not-allowed border-white/10 bg-white/[0.02] text-white/30"
-          : "border-blue-500/20 bg-blue-500/5 text-blue-300/80 hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200"
+          : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-[0_0_12px_-3px_rgba(124,58,237,0.4)] border border-violet-500/50"
       }`}
     >
-      <Play size={12} className={orderedTxns.length === 0 ? "" : "group-hover:scale-110 transition-transform"} />
-      <span>Execute all</span>
+      <Play size={14} className={orderedTxns.length > 0 ? "fill-current group-hover:text-white" : ""} />
+      <span>Execute All</span>
     </button>
   );
 };

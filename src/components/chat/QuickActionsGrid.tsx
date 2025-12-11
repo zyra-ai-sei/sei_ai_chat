@@ -1,7 +1,9 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { streamChatPrompt } from "@/redux/chatData/action";
-import { Token } from "@/redux/tokenData/reducer";
+import { Token, selectTokensByChain } from "@/redux/tokenData/reducer";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { useChainId } from "wagmi";
 
 // --- 1. Reusable UI Helpers (Inputs/Selects) ---
 const Input = ({ placeholder, value, onChange, type = "text" }: any) => (
@@ -83,30 +85,54 @@ const SwapForm = ({
   onCommit: (s: string) => void;
   tokens: Token[];
 }) => {
-  const [src, setSrc] = useState("");
-  const [dst, setDst] = useState("");
-  const [val, setVal] = useState("");
+  const [src, setSrc] = useState(tokens[0].symbol || "");
+  const [dst, setDst] = useState(tokens[1].symbol || "");
+  const [val, setVal] = useState("1");
   const [time, setTime] = useState("10m");
+
+  const handleSwap = () => {
+    const temp = src;
+    setSrc(dst);
+    setDst(temp);
+  };
 
   const handleSubmit = () => {
     if (!val) return;
     onCommit(`swap ${val} ${src} with ${dst} with time duration ${time}`);
   };
 
+  // Filter options to prevent selecting the same token
+  const srcOptions = tokens
+    .filter((token) => token.symbol !== dst)
+    .map((token) => token.symbol);
+  const dstOptions = tokens
+    .filter((token) => token.symbol !== src)
+    .map((token) => token.symbol);
+
   return (
     <div className="flex flex-col w-full gap-2">
       <div className="flex items-center gap-2">
-        <Select
-          options={tokens.map((token) => token.symbol)}
-          value={src}
-          onChange={setSrc}
-        />
-        <span className="text-xs text-gray-400">to</span>
-        <Select
-          options={tokens.map((token) => token.symbol)}
-          value={dst}
-          onChange={setDst}
-        />
+        <Select options={srcOptions} value={src} onChange={setSrc} />
+        <button
+          onClick={handleSwap}
+          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          aria-label="Swap tokens"
+        >
+          <svg
+            className="w-4 h-4 text-purple-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+        </button>
+        <Select options={dstOptions} value={dst} onChange={setDst} />
       </div>
       <div className="flex gap-2">
         <Input
@@ -127,6 +153,92 @@ const SwapForm = ({
   );
 };
 
+const SimulateForm = ({
+  onCommit,
+  tokens,
+}: {
+  onCommit: (s: string) => void;
+  tokens: Token[];
+}) => {
+  const [token, setToken] = useState("ETH");
+  const [strategy, setStrategy] = useState("DCA");
+  const [frequency, setFrequency] = useState("weekly");
+  const [period, setPeriod] = useState("30");
+  const [investment, setInvestment] = useState("200");
+
+  const handleSubmit = () => {
+    if (!period || !investment) return;
+    onCommit(
+      `Simulate a ${frequency} dollar-cost averaging (DCA) strategy for ${token} over a ${period}-day period with a total investment of $${investment}.`
+    );
+  };
+
+  return (
+    <div className="flex flex-col w-full gap-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Token
+          </label>
+          <Select
+            options={tokens.map((token) => token.symbol)}
+            value={token}
+            onChange={setToken}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Strategy
+          </label>
+          <Select
+            options={["DCA"]}
+            value={strategy}
+            onChange={setStrategy}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Frequency
+          </label>
+          <Select
+            options={["daily", "weekly", "monthly"]}
+            value={frequency}
+            onChange={setFrequency}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Period (days)
+          </label>
+          <Input
+            type="number"
+            placeholder="30"
+            value={period}
+            onChange={setPeriod}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Total Investment ($)
+        </label>
+        <Input
+          type="number"
+          placeholder="200"
+          value={investment}
+          onChange={setInvestment}
+        />
+      </div>
+      <button
+        onClick={handleSubmit}
+        className="mt-1 w-full py-1.5 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors"
+      >
+        Simulate Strategy
+      </button>
+    </div>
+  );
+};
+
 const MarketForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   const tokens = ["BTC", "ETH", "USDT", "USDC"];
 
@@ -136,7 +248,7 @@ const MarketForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
         <button
           key={t}
           onClick={() => onCommit(`I want detailed market analysis of ${t}`)}
-          className="px-3 py-2 text-xs font-medium text-gray-300 transition-all border rounded border-white/20 hover:bg-green-500/20 hover:border-green-500 hover:text-green-400"
+          className="px-3 py-2 text-xs font-medium text-gray-300 transition-all border rounded border-white/20 hover:bg-purple-500/20 hover:border-purple-500 hover:text-purple-400"
         >
           {t}
         </button>
@@ -145,21 +257,212 @@ const MarketForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   );
 };
 
+const ExecuteStrategiesForm = ({
+  onCommit,
+  tokens,
+}: {
+  onCommit: (s: string) => void;
+  tokens: Token[];
+}) => {
+  const orderTypes = [
+    "Spot Market Order",
+    "Spot Limit Order",
+    "TWAP Market (DCA)",
+    "TWAP Limit"
+  ];
+
+  const [orderType, setOrderType] = useState(orderTypes[0]);
+  const [srcToken, setSrcToken] = useState(tokens[0]?.symbol || "USDC");
+  const [dstToken, setDstToken] = useState(tokens[1]?.symbol || "SEI");
+  const [totalAmount, setTotalAmount] = useState("");
+  const [chunkAmount, setChunkAmount] = useState("");
+  const [limitPrice, setLimitPrice] = useState("");
+  const [fillDelay, setFillDelay] = useState("10");
+  const [delayUnit, setDelayUnit] = useState("minutes");
+
+  const handleSubmit = () => {
+    if (!totalAmount) return;
+
+    let prompt = "";
+
+    switch (orderType) {
+      case "Spot Market Order":
+        prompt = `Create a spot market order to swap ${totalAmount} ${srcToken} for ${dstToken} immediately at any price. Execute the entire amount in one transaction with srcAmount=${totalAmount}, srcBidAmount=${totalAmount}, dstMinAmount=1 (accept any price), and fillDelay=0.`;
+        break;
+
+      case "Spot Limit Order":
+        if (!limitPrice) return;
+        prompt = `Create a spot limit order to swap ${totalAmount} ${srcToken} for ${dstToken} only if I receive at least ${limitPrice} ${dstToken} per ${srcToken}. Execute the entire amount in one transaction with srcAmount=${totalAmount}, srcBidAmount=${totalAmount}, dstMinAmount=${limitPrice}, and fillDelay=0.`;
+        break;
+
+      case "TWAP Market (DCA)":
+        if (!chunkAmount || !fillDelay) return;
+        const delaySeconds = delayUnit === "minutes" ? parseInt(fillDelay) * 60 : parseInt(fillDelay) * 3600;
+        prompt = `Create a TWAP market order (DCA) to swap a total of ${totalAmount} ${srcToken} for ${dstToken} in chunks of ${chunkAmount} ${srcToken} each, with ${fillDelay} ${delayUnit} between trades. Accept market price for each chunk with srcAmount=${totalAmount}, srcBidAmount=${chunkAmount}, dstMinAmount=1 (market price), and fillDelay=${delaySeconds} seconds.`;
+        break;
+
+      case "TWAP Limit":
+        if (!chunkAmount || !limitPrice || !fillDelay) return;
+        const delaySecondsLimit = delayUnit === "minutes" ? parseInt(fillDelay) * 60 : parseInt(fillDelay) * 3600;
+        prompt = `Create a TWAP limit order to swap a total of ${totalAmount} ${srcToken} for ${dstToken} in chunks of ${chunkAmount} ${srcToken} each, with ${fillDelay} ${delayUnit} between trades. Only execute if each chunk receives at least ${limitPrice} ${dstToken} per ${srcToken}. Set srcAmount=${totalAmount}, srcBidAmount=${chunkAmount}, dstMinAmount=${limitPrice} per chunk, and fillDelay=${delaySecondsLimit} seconds.`;
+        break;
+    }
+
+    onCommit(prompt);
+  };
+
+  const isTWAP = orderType.includes("TWAP");
+  const isLimit = orderType.includes("Limit");
+
+  return (
+    <div className="flex flex-col w-full gap-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Order Type
+        </label>
+        <Select options={orderTypes} value={orderType} onChange={setOrderType} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            From
+          </label>
+          <Select
+            options={tokens.map((t) => t.symbol)}
+            value={srcToken}
+            onChange={setSrcToken}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            To
+          </label>
+          <Select
+            options={tokens.filter((t) => t.symbol !== srcToken).map((t) => t.symbol)}
+            value={dstToken}
+            onChange={setDstToken}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Total Amount
+        </label>
+        <Input
+          type="number"
+          placeholder="1000"
+          value={totalAmount}
+          onChange={setTotalAmount}
+        />
+      </div>
+
+      {isTWAP && (
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Chunk Size
+          </label>
+          <Input
+            type="number"
+            placeholder="100"
+            value={chunkAmount}
+            onChange={setChunkAmount}
+          />
+        </div>
+      )}
+
+      {isLimit && (
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            Min Output Per {isTWAP ? "Chunk" : "Trade"}
+          </label>
+          <Input
+            type="number"
+            placeholder={isTWAP ? "100" : "2000"}
+            value={limitPrice}
+            onChange={setLimitPrice}
+          />
+        </div>
+      )}
+
+      {isTWAP && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+              Delay Between Trades
+            </label>
+            <Input
+              type="number"
+              placeholder="10"
+              value={fillDelay}
+              onChange={setFillDelay}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+              Unit
+            </label>
+            <Select
+              options={["minutes", "hours"]}
+              value={delayUnit}
+              onChange={setDelayUnit}
+            />
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        className="mt-1 w-full py-1.5 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors"
+      >
+        Execute Strategy
+      </button>
+    </div>
+  );
+};
+
 // --- 3. The Main Card Component ---
 
-const ActionCard = ({ title, desc, icon, type, onAction, tokens }: any) => {
-  // We use CSS group-hover for the visibility toggle, but we keep the logical structure here
+const ActionCard = ({
+  title,
+  desc,
+  icon,
+  type,
+  onAction,
+  tokens,
+  isHovered,
+  onHover,
+}: any) => {
+  const isExpandable = type === "simulate" || type === "strategies";
+
   return (
-    <div className="group relative h-48 w-full rounded-xl border border-white/10 bg-white/5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:border-purple-500/50 overflow-hidden">
+    <motion.div
+      layout
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+      className={`group relative w-full rounded-xl border border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:border-purple-500/50 overflow-hidden ${
+        isExpandable && isHovered ? "row-span-2 z-20" : "row-span-1"
+      }`}
+    >
       {/* State 1: Default View (Visible by default, hidden on hover) */}
-      <div className="absolute inset-0 flex flex-col items-start p-6 transition-opacity duration-300 opacity-100 pointer-events-none group-hover:opacity-0 group-hover:pointer-events-none">
+      <div
+        className={`absolute inset-0 flex flex-col items-start p-6 transition-opacity duration-[1000ms] ease-in-out ${
+          isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         <div className="p-3 mb-4 text-white rounded-lg bg-black/20">{icon}</div>
         <h3 className="mb-1 text-lg font-semibold text-white">{title}</h3>
         <p className="text-sm leading-relaxed text-gray-400">{desc}</p>
       </div>
 
       {/* State 2: Hover View (Hidden by default, visible on hover) */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 transition-opacity duration-300 opacity-0 bg-black/80 backdrop-blur-sm group-hover:opacity-100">
+      <div
+        className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-6 transition-opacity duration-[1000ms] ease-in-out bg-black/80 backdrop-blur-sm ${
+          isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
         <h4 className="mb-3 text-sm font-bold tracking-wider text-white uppercase">
           {title}
         </h4>
@@ -168,19 +471,15 @@ const ActionCard = ({ title, desc, icon, type, onAction, tokens }: any) => {
           <TransferForm onCommit={onAction} tokens={tokens} />
         )}
         {type === "swap" && <SwapForm onCommit={onAction} tokens={tokens} />}
+        {type === "simulate" && (
+          <SimulateForm onCommit={onAction} tokens={tokens} />
+        )}
         {type === "market" && <MarketForm onCommit={onAction} />}
-
-        {/* Fallback for Bridge or others without special forms */}
-        {type === "simple" && (
-          <button
-            onClick={() => onAction(title)}
-            className="px-4 py-2 text-sm text-white rounded-md bg-white/10 hover:bg-white/20"
-          >
-            Click to Initialize
-          </button>
+        {type === "strategies" && (
+          <ExecuteStrategiesForm onCommit={onAction} tokens={tokens} />
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -188,7 +487,9 @@ const ActionCard = ({ title, desc, icon, type, onAction, tokens }: any) => {
 
 const QuickActionsGrid = () => {
   const dispatch = useAppDispatch();
-  const tokenList = useAppSelector((state) => state.tokenData.list);
+  const chainId = useChainId();
+  const tokenList = useAppSelector(selectTokensByChain(chainId));
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const handleAction = (resultString: string) => {
     console.log(`OUTPUT FOR LLM: ${resultString}`);
@@ -198,6 +499,26 @@ const QuickActionsGrid = () => {
   };
 
   const actions = [
+    {
+      type: "strategies",
+      title: "Execute Strategies",
+      desc: "Create market, limit, or DCA orders with precision.",
+      icon: (
+        <svg
+          className="w-6 h-6 text-orange-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      ),
+    },
     {
       type: "swap",
       title: "Swap Tokens",
@@ -219,9 +540,9 @@ const QuickActionsGrid = () => {
       ),
     },
     {
-      type: "simple", // Keeping Bridge simple for now as requested
-      title: "Bridge Assets",
-      desc: "Move funds between Ethereum and Sei.",
+      type: "simulate",
+      title: "Simulate Strategies",
+      desc: "Run strategy simulations and view projections.",
       icon: (
         <svg
           className="w-6 h-6 text-blue-400"
@@ -291,13 +612,15 @@ const QuickActionsGrid = () => {
         </p>
       </div>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2 auto-rows-[12rem] grid-flow-dense">
         {actions.map((action, index) => (
           <ActionCard
             key={index}
             {...action}
             onAction={handleAction}
             tokens={tokenList}
+            isHovered={hoveredIndex === index}
+            onHover={(hover: boolean) => setHoveredIndex(hover ? index : null)}
           />
         ))}
       </div>

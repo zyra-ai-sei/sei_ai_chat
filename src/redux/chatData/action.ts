@@ -34,12 +34,13 @@ export const streamChatPrompt = createAsyncThunk<
     prompt: string;
     messageType?: MessageTypeEnum;
     abortSignal?: AbortSignal;
+    network?: string;
   },
   { state: IRootState }
 >(
   "chatData/streamChatPrompt",
   async (
-    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal },
+    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal, network = "sei" },
     { dispatch, getState }
   ) => {
     const state = getState();
@@ -47,12 +48,14 @@ export const streamChatPrompt = createAsyncThunk<
 
     if (!token) throw new Error("Missing auth token");
 
+    console.log('chain chain chain',network)
+
     const controller = new AbortController();
     abortSignal?.addEventListener("abort", () => controller.abort(), {
       once: true,
     });
     console.log("prompt:::", prompt);
-    const params = new URLSearchParams({ prompt, messageType });
+    const params = new URLSearchParams({ prompt, messageType, network });
 
     // Add prompt to chat and show response (same for both human and system messages)
     dispatch(addPrompt(prompt));
@@ -279,14 +282,14 @@ export const eraseLatestToolOutputThunk = createAsyncThunk<
 // Thunk to send prompt and handle response
 export const sendChatPrompt = createAsyncThunk<
   void,
-  { prompt: string },
+  { prompt: string; network?: string },
   { state: IRootState }
->("chatData/sendChatPrompt", async ({ prompt }, { dispatch, getState }) => {
+>("chatData/sendChatPrompt", async ({ prompt, network = "sei" }, { dispatch, getState }) => {
   // Add prompt to chat list
   dispatch(addPrompt(prompt));
   const index = getState().chatData.chats.length - 1;
   try {
-    const response = await axiosInstance.post("/llm/chat", { prompt });
+    const response = await axiosInstance.post(`/llm/chat?network=${network}`, { prompt });
     const apiData = response?.data;
     if (apiData?.status === 200 && apiData?.data) {
       const chat = apiData.data.chat || "";
@@ -323,11 +326,11 @@ export const sendChatPrompt = createAsyncThunk<
 
 export const getChatHistory = createAsyncThunk<
   void,
-  void,
+  { network?: string },
   { state: IRootState }
->("chatData/getChatHistory", async (_, { dispatch, getState }) => {
+>("chatData/getChatHistory", async ({ network = "sei" } = {}, { dispatch, getState }) => {
   try {
-    const response = await axiosInstance.get("/llm/getChatHistory");
+    const response = await axiosInstance.get(`/llm/getChatHistory?network=${network}`);
     const apiData = response?.data;
     if (apiData?.status === 200 && apiData?.data) {
       const data = apiData?.data?.items;
@@ -574,11 +577,11 @@ export const getChatHistory = createAsyncThunk<
 
 export const initializePrompt = createAsyncThunk<
   void,
-  void,
+  { network?: string },
   { state: IRootState }
->("chatData/initializePrompt", async (_, { dispatch }) => {
+>("chatData/initializePrompt", async ({ network = "sei" } = {}, { dispatch }) => {
   try {
-    const response = await axiosInstance.post("/llm/init");
+    const response = await axiosInstance.post(`/llm/init?network=${network}`,);
     const apiData = response?.data;
     if (apiData?.status === 200 && apiData?.data) {
       const sessionId = apiData.data.sessionId;
@@ -591,35 +594,15 @@ export const initializePrompt = createAsyncThunk<
   }
 });
 
-export const completeTool = createAsyncThunk<
-  void,
-  { toolId: string; hash: string },
-  { state: IRootState }
->("chatData/completeTool", async ({ toolId, hash }) => {
-  try {
-    const response = await axiosInstance.post("/llm/completeTool", {
-      toolId,
-      hash,
-    });
-    const apiData = response?.data;
-    if (apiData?.success) {
-      console.log(`Tool ${toolId} marked as completed`);
-    } else {
-      console.error(`Failed to mark tool ${toolId} as completed`);
-    }
-  } catch (err) {
-    console.error(`Error completing tool ${toolId}:`, err);
-  }
-});
-
 export const abortTool = createAsyncThunk<
   void,
-  { toolId: string },
+  { toolId: string; network?: string },
   { state: IRootState }
->("chatData/abortTool", async ({ toolId }) => {
+>("chatData/abortTool", async ({ toolId, network = "sei" }) => {
   try {
     const response = await axiosInstance.post("/llm/abortTool", {
       toolId,
+      network,
     });
     const apiData = response?.data;
     if (apiData?.success) {
@@ -632,13 +615,13 @@ export const abortTool = createAsyncThunk<
   }
 });
 
-export const clearChat = createAsyncThunk<void, void, { state: IRootState }>(
+export const clearChat = createAsyncThunk<void, { network?: string }, { state: IRootState }>(
   "chatData/clearChat",
-  async (_, { dispatch }) => {
+  async ({ network = "sei" } = {}, { dispatch }) => {
     try {
-      await axiosInstance.get("/llm/clearChat");
+      await axiosInstance.get(`/llm/clearChat?network=${network}`);
       dispatch(resetChat());
-      dispatch(initializePrompt());
+      dispatch(initializePrompt({ network }));
     } catch (err) {
       console.error("Error clearing chat:", err);
       // Still reset the local state even if API fails
@@ -653,13 +636,14 @@ export const updateMessageState = createAsyncThunk<
     executionId: string;
     executionState: "completed" | "failed";
     txnHash?: string;
+    network?: string;
   },
   { state: IRootState }
 >(
   "chatData/updateMessageState",
-  async ({ executionId, executionState, txnHash }) => {
+  async ({ executionId, executionState, txnHash, network = "sei" }) => {
     try {
-      const response = await axiosInstance.post("/llm/updateMessageState", {
+      const response = await axiosInstance.post(`/llm/updateMessageState?network=${network}`, {
         executionId,
         executionState,
         ...(txnHash && { txnHash }),
