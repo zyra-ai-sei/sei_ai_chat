@@ -99,7 +99,7 @@ function App() {
   return (
     <PrivyProvider
       appId={appId}
-      clientId="client-WY6U3qRxiCB95Vypz1gry7kafRKGoM6HsYCYdAuxpeSUm"
+      clientId={import.meta.env?.VITE_BASE_PIRVY_CLIENT_ID}
       config={{
         embeddedWallets: {
           ethereum: {
