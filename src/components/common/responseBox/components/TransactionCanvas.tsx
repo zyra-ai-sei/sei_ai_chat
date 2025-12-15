@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { useSendTransaction, useWriteContract, useChainId } from "wagmi";
+import { useSendTransaction, useWriteContract, useChainId, useAccount } from "wagmi";
 import ExecuteAllButton from "./ExecuteAllButton";
 import SimulateAllButton from "./SimulateAllButton";
 import TransactionCard from "./TransactionCard";
@@ -27,6 +27,7 @@ const TransactionCanvas = ({
   const dispatch = useAppDispatch();
   const chats = useAppSelector((state) => state.chatData.chats);
   const chainId = useChainId();
+  const {address} = useAccount();
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
@@ -233,6 +234,7 @@ const TransactionCanvas = ({
                         executionState: "completed",
                         txnHash: data as string,
                         network: txn.metadata?.network,
+                        address:address!
                       })
                     );
                   }
@@ -260,6 +262,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "failed",
                         network: txn?.metadata?.network,
+                        address:address!
                       })
                     );
                   }
@@ -306,6 +309,7 @@ const TransactionCanvas = ({
                         executionState: "completed",
                         txnHash: data as string,
                         network: txn.metadata?.network,
+                        address:address!
                       })
                     );
                   }
@@ -333,6 +337,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "failed",
                         network: txn?.metadata?.network,
+                        address:address!
                       })
                     );
                   }
@@ -406,6 +411,7 @@ const TransactionCanvas = ({
                   executionState: "completed",
                   txnHash: data as string,
                   network: txn?.metadata?.network,
+                  address:address!
                 })
               );
             }
@@ -429,6 +435,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "failed",
                   network: txn.metadata.network,
+                  address:address!
                 })
               );
             }
@@ -436,7 +443,6 @@ const TransactionCanvas = ({
         }
       );
     } else {
-      console.log("fucker", txn);
       sendTransaction(
         {
           to: txn.transaction!.to as Address,
@@ -462,6 +468,7 @@ const TransactionCanvas = ({
                   executionState: "completed",
                   txnHash: data as string,
                   network: txn.metadata.network,
+                  address:address!
                 })
               );
             }
@@ -485,6 +492,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "failed",
                   network: txn?.metadata?.network,
+                  address:address!
                 })
               );
             }
@@ -687,7 +695,7 @@ const TransactionCanvas = ({
       <div className="relative group rounded-xl bg-[#0d0d10] border border-white/5 p-[1px] shadow-xl">
         <div className="absolute -top-[1px] left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="px-4 py-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div className="flex flex-col justify-between gap-2 mb-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400">
                 <Activity size={14} />

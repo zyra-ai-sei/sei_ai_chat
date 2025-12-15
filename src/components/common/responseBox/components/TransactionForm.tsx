@@ -255,7 +255,6 @@ const TransactionForm = ({
         args: txn?.transaction?.args || [],
       });
     } else {
-      console.log('triggerd man', txn)
       sendTransaction({
         to: txn?.transaction?.to as Address,
         value: BigInt(txn?.transaction?.value || "0"),
@@ -289,7 +288,7 @@ const TransactionForm = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" />
-              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Participants</p>
+              <p className="text-xs font-medium tracking-widest uppercase text-white/60">Participants</p>
             </div>
             <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
               Identity
@@ -336,7 +335,7 @@ const TransactionForm = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.5)]" />
-              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Configuration</p>
+              <p className="text-xs font-medium tracking-widest uppercase text-white/60">Configuration</p>
             </div>
             <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
               Params
@@ -375,7 +374,7 @@ const TransactionForm = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
-              <p className="text-xs font-medium uppercase tracking-widest text-white/60">Arguments</p>
+              <p className="text-xs font-medium tracking-widest uppercase text-white/60">Arguments</p>
             </div>
             <span className="text-[10px] font-medium text-white/40">
               {txn?.transaction?.args?.length || 0} INPUT{txn?.transaction?.args?.length === 1 ? "" : "S"}
@@ -425,7 +424,7 @@ const TransactionForm = ({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.5)]" />
-                <p className="text-xs font-medium uppercase tracking-widest text-white/60">Execution</p>
+                <p className="text-xs font-medium tracking-widest uppercase text-white/60">Execution</p>
               </div>
               <p className="text-sm text-white/40">
                 {isWrongNetwork

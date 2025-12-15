@@ -7,6 +7,7 @@ export interface DefiState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  cachedAddress: string | null;
 }
 
 const initialState: DefiState = {
@@ -15,6 +16,7 @@ const initialState: DefiState = {
   isLoading: false,
   error: null,
   lastUpdated: null,
+  cachedAddress: null,
 };
 
 function computeChainSummaries(protocols: DefiProtocol[]): DefiChainSummary[] {
@@ -61,10 +63,12 @@ export const defiDataSlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     },
-    setDefiData: (state, action: PayloadAction<DefiProtocol[]>) => {
-      state.protocols = action.payload;
-      state.chainSummaries = computeChainSummaries(action.payload);
+    setDefiData: (state, action: PayloadAction<{protocols: DefiProtocol[], address: string}>) => {
+      const { protocols, address } = action.payload;
+      state.protocols = protocols;
+      state.chainSummaries = computeChainSummaries(protocols);
       state.lastUpdated = Date.now();
+      state.cachedAddress = address;
       state.isLoading = false;
       state.error = null;
     },
@@ -72,6 +76,7 @@ export const defiDataSlice = createSlice({
       state.protocols = [];
       state.chainSummaries = [];
       state.lastUpdated = null;
+      state.cachedAddress = null;
       state.error = null;
     },
   },

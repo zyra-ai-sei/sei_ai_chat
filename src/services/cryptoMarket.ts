@@ -47,12 +47,10 @@ const getCachedData = (
   const cached = marketDataCache.get(cacheKey);
 
   if (cached && isCacheValid(cached.timestamp)) {
-    console.log(`[Cache] HIT for ${cacheKey} (age: ${Math.round((Date.now() - cached.timestamp) / 1000)}s)`);
     return cached.data;
   }
 
   if (cached) {
-    console.log(`[Cache] EXPIRED for ${cacheKey}`);
     marketDataCache.delete(cacheKey);
   } else {
     console.log(`[Cache] MISS for ${cacheKey}`);
@@ -66,7 +64,6 @@ const getCachedData = (
  */
 export const clearMarketDataCache = (): void => {
   marketDataCache.clear();
-  console.log("[Cache] CLEARED all market data cache");
 };
 
 /**
@@ -75,7 +72,6 @@ export const clearMarketDataCache = (): void => {
 export const clearCachedEntry = (coinId: string, timeframe: string): void => {
   const cacheKey = getCacheKey(coinId, timeframe);
   marketDataCache.delete(cacheKey);
-  console.log(`[Cache] CLEARED ${cacheKey}`);
 };
 
 /**
@@ -101,8 +97,6 @@ export const fetchCryptoMarketData = async (
       console.log(`[API Service] Force refresh requested for ${coinId}_${timeframe}`);
     }
 
-    console.log(`[API Service] Fetching ${coinId} for ${timeframe} from API...`);
-
     const response = await axiosInstance.get<any>(
       "/crypto/market-data",
       {
@@ -113,14 +107,7 @@ export const fetchCryptoMarketData = async (
       }
     );
 
-    console.log(`[API Service] Raw response:`, response.data.data.data);
-    console.log(`[API Service] Response structure:`, {
-      success: response.data.data.success,
-      dataPoints: response.data.data.data?.dataPoints,
-      hasChartData: !!response.data.data.data?.chartData,
-      chartDataLength: response.data.data.data?.chartData?.length,
-      sampleData: response.data.data.data?.chartData?.[0],
-    });
+   
 
     // Cache successful responses
     if (response.data.success && response.data.data?.chartData) {

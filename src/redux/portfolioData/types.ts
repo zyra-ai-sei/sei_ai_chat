@@ -74,6 +74,7 @@ export interface PortfolioState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  cachedAddress: string | null;
 }
 
 // Chain ID to name mapping

@@ -14,7 +14,6 @@ export const runLumpSumSimulation = async (
   params: LumpSumSimulationParams
 ): Promise<LumpSumApiResponse> => {
   try {
-    console.log(`[Lump Sum API] Running simulation for ${params.coin}...`, params);
 
     const response = await axiosInstance.post<{
       success: boolean;
@@ -22,11 +21,7 @@ export const runLumpSumSimulation = async (
       message?: string;
     }>("/strategies-api/v1/strategies/lump-sum/simulate", params);
 
-    console.log(`[Lump Sum API] Simulation completed successfully:`, {
-      total_investment: response.data.data?.summary?.total_investment,
-      tokens_bought: response.data.data?.summary?.tokens_bought,
-      return_pct: response.data.data?.summary?.return_pct,
-    });
+   
 
     return {
       success: response.data.success,

@@ -8,12 +8,14 @@ export const { setOrders, resetOrders, setLoading, addOrder } =
 
 export const getOrders = createAsyncThunk<
   void,
-  void,
+  {
+    address: string,
+  },
   { state: IRootState }
->("orderData/getOrders", async (_, { dispatch }) => {
+>("orderData/getOrders", async ( {address}, { dispatch }) => {
   try {
     dispatch(setLoading());
-    const result = await axiosInstance.get("/orders");
+    const result = await axiosInstance.get(`/orders?address=${address}`);
     const apiData = result?.data;
 
     if (apiData?.status === 200 && apiData?.data?.data) {

@@ -13,6 +13,7 @@ interface FetchSummaryOptions {
   onSuccessCb?: () => void;
   onFailureCb?: (error: string) => void;
   forceRefresh?: boolean; // Force refresh even if data is cached
+  address: string;
 }
 
 // Cache duration: 5 minutes
@@ -29,17 +30,18 @@ export const fetchPortfolioSummary = createAsyncThunk<
   FetchSummaryOptions | void,
   { state: IRootState }
 >("portfolioData/fetchSummary", async (options, { dispatch, getState }) => {
-  const { onSuccessCb, onFailureCb, forceRefresh } = options || {};
+  const { onSuccessCb, onFailureCb, forceRefresh, address } = options || {};
 
   try {
     // Check if we have cached data
     const state = getState();
-    const { lastUpdated, items } = state.portfolioSummary;
+    const { lastUpdated, items, cachedAddress } = state.portfolioSummary;
     
-    // If we have fresh data and not forcing refresh, skip the API call
+    // If we have fresh data, same address, and not forcing refresh, skip the API call
     if (
       !forceRefresh &&
       lastUpdated &&
+      cachedAddress === address &&
       Date.now() - lastUpdated < CACHE_DURATION &&
       items.length > 0
     ) {
@@ -51,12 +53,12 @@ export const fetchPortfolioSummary = createAsyncThunk<
     dispatch(setSummaryLoading(true));
 
     const response = await axiosInstance.get<PortfolioSummaryApiResponse>(
-      "/portfolio/summary"
+      `/portfolio/summary?address=${address}`
     );
 
     if (response?.data?.status === 200 && Array.isArray(response?.data?.data?.items)) {
       const items = response.data.data.items;
-      dispatch(setSummaryData(items));
+      dispatch(setSummaryData({ items, address }));
 
       if (onSuccessCb) {
         onSuccessCb();

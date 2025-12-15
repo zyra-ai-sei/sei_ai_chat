@@ -1,22 +1,13 @@
 import "./index.scss";
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { useAccount, useDisconnect } from "wagmi";
 import { useEffect, useRef, useState } from "react";
-import {
-  fetchUserData,
-  resetGlobalData,
-  validateToken,
-} from "@/redux/globalData/action";
+
 import ChatBox from "@/components/chat/chatBox";
 import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 import { TransactionNavigationProvider } from "@/contexts/TransactionNavigationContext";
 
 function Chat() {
   // Select only token to avoid re-renders when other globalData properties change
-  const token = useAppSelector((state) => state?.globalData?.data?.token);
-  const dispatch = useAppDispatch();
-  const { isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+
 
   const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
   const [isDragging, setIsDragging] = useState(false);
@@ -62,28 +53,7 @@ function Chat() {
     };
   }, [isDragging]);
 
-  useEffect(() => {
-    if (!token || !isConnected) {
-      return;
-    }
 
-    dispatch(
-      fetchUserData({
-        setUserData: () => {},
-      })
-    );
-    dispatch(
-      validateToken({
-        onSuccessCb: () => {},
-        onFailureCb: () => {
-          disconnect();
-          dispatch(resetGlobalData());
-        },
-      })
-    );
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
 
   return (
     <TransactionNavigationProvider>

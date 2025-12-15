@@ -8,6 +8,7 @@ interface FetchDefiOptions {
   onSuccessCb?: () => void;
   onFailureCb?: (error: string) => void;
   forceRefresh?: boolean; // Force refresh even if data is cached
+  address: string;
 }
 
 // Cache duration: 5 minutes
@@ -24,17 +25,18 @@ export const fetchDefiPositions = createAsyncThunk<
   FetchDefiOptions | void,
   { state: IRootState }
 >("portfolioData/fetchDefiPositions", async (options, { dispatch, getState }) => {
-  const { onSuccessCb, onFailureCb, forceRefresh } = options || {};
+  const { onSuccessCb, onFailureCb, forceRefresh, address } = options || {};
 
   try {
     // Check if we have cached data
     const state = getState();
-    const { lastUpdated, protocols } = state.defiData;
+    const { lastUpdated, protocols, cachedAddress } = state.defiData;
     
-    // If we have fresh data and not forcing refresh, skip the API call
+    // If we have fresh data, same address, and not forcing refresh, skip the API call
     if (
       !forceRefresh &&
       lastUpdated &&
+      cachedAddress === address &&
       Date.now() - lastUpdated < CACHE_DURATION &&
       protocols.length > 0
     ) {
@@ -45,11 +47,11 @@ export const fetchDefiPositions = createAsyncThunk<
 
     dispatch(setDefiLoading(true));
     const response = await axiosInstance.get<DefiApiResponse>(
-      "/portfolio/defiPositions"
+      `/portfolio/defiPositions?address=${address}`
     );
     if (response?.data?.status === 200 && response?.data?.data?.items) {
       const protocols: DefiProtocol[] = response.data.data.items;
-      dispatch(setDefiData(protocols));
+      dispatch(setDefiData({ protocols, address }));
       if (onSuccessCb) onSuccessCb();
     } else {
       const errorMsg = "Invalid response format from defiPositions API";

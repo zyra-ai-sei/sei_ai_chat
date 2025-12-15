@@ -402,13 +402,7 @@ export const useApprove = (
     doCheckApprove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenAddress, tokenInputAmount, spender]);
-  // console.log({
-  //     loaded,
-  //     needToApprove,
-  //     checkApprove,
-  //     send: sendApprove,
-  //     sendAndShareData: sendAndShareDataForApprove,
-  // });
+
 
   return {
     loaded,

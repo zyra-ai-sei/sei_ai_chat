@@ -3,7 +3,8 @@ import { streamChatPrompt } from "@/redux/chatData/action";
 import { Token, selectTokensByChain } from "@/redux/tokenData/reducer";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useChainId } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
+import { getChainById } from "@/config/chains";
 
 // --- 1. Reusable UI Helpers (Inputs/Selects) ---
 const Input = ({ placeholder, value, onChange, type = "text" }: any) => (
@@ -488,14 +489,15 @@ const ActionCard = ({
 const QuickActionsGrid = () => {
   const dispatch = useAppDispatch();
   const chainId = useChainId();
+  const {address} = useAccount();
+  const network = getChainById(chainId);
   const tokenList = useAppSelector(selectTokensByChain(chainId));
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const handleAction = (resultString: string) => {
-    console.log(`OUTPUT FOR LLM: ${resultString}`);
     // TODO: Connect this to your chat input state
     // setInput(resultString);
-    dispatch(streamChatPrompt({ prompt: resultString }));
+    dispatch(streamChatPrompt({ prompt: resultString, address:address!, network: network?.id }));
   };
 
   const actions = [

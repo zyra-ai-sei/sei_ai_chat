@@ -21,7 +21,6 @@ const PriceChart: React.FC<PriceChartProps> = ({
 
   const { points, minValue, maxValue, dataPoints } = useMemo(() => {
     if (!data || data.length === 0) {
-      console.log('[PriceChart] No data provided');
       return {
         points: "",
         minValue: 0,
@@ -31,12 +30,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
       };
     }
 
-    console.log('[PriceChart] Processing data:', {
-      dataLength: data.length,
-      dataType,
-      firstPoint: data[0],
-      lastPoint: data[data.length - 1]
-    });
+   
 
     // Get values based on dataType
     const values = data.map(([_, price, marketCap]) =>
@@ -60,8 +54,6 @@ const PriceChart: React.FC<PriceChartProps> = ({
     const min = Math.min(...validValues);
     const max = Math.max(...validValues);
     const range = max - min;
-
-    console.log('[PriceChart] Value range:', { min, max, range });
 
     // Chart dimensions - responsive
     const width = 1000;

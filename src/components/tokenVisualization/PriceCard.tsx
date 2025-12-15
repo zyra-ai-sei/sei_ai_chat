@@ -49,13 +49,7 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
   const chartData = useMemo(() => {
     const data = token?.chart?.prices || [];
 
-    console.log("[PriceCard] Chart data from Redux:", {
-      hasChartObject: !!token?.chart,
-      hasPricesArray: !!token?.chart?.prices,
-      dataLength: data.length,
-      timePeriod,
-      dataType,
-    });
+   
 
     if (data.length === 0) {
       console.warn("[PriceCard] No chart data available!");
@@ -78,31 +72,13 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
     });
 
     if (!isValidFormat) {
-      console.error(
-        "[PriceCard] Data format validation failed! Expected: [timestamp, price, marketCap][]"
-      );
+      
       return [];
     }
 
     // Filter data based on selected timeframe (using latest timestamp as reference)
 
     const filteredData = data;
-
-    console.log("[PriceCard] Filtered Chart Data:", {
-      dataType,
-      timePeriod,
-      originalLength: data.length,
-      filteredLength: filteredData.length,
-      firstPoint: filteredData[0],
-      lastPoint: filteredData[filteredData.length - 1],
-      format: "[timestamp, price, marketCap]",
-      dateRange:
-        filteredData.length > 0
-          ? `${new Date(filteredData[0][0]).toLocaleDateString()} to ${new Date(filteredData[filteredData.length - 1][0]).toLocaleDateString()}`
-          : "No data",
-      samplePrice: filteredData[0]?.[1],
-      sampleMarketCap: filteredData[0]?.[2],
-    });
 
     return filteredData;
   }, [token?.chart?.prices, dataType, timePeriod, token?.chart]);

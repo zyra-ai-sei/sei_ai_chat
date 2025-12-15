@@ -22,6 +22,7 @@ export interface PortfolioSummaryState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  cachedAddress: string | null;
 }
 
 // Computed summary statistics

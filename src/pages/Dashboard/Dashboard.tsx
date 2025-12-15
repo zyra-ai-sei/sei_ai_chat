@@ -34,9 +34,12 @@ import {
 
 import ChainDropdown from "./components/ChainDropdown";
 import { defiToAssetCategories } from "./utils/defiDashboard.utils";
+import { add } from "lodash";
+import { useAccount } from "wagmi";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
+  const {address} = useAccount();
 
   // Portfolio data from Redux
   const totalUsdBalance = useAppSelector(selectTotalUsdBalance);
@@ -76,10 +79,10 @@ const Dashboard = () => {
   // Fetch portfolio, DeFi, and summary data on mount
   // These will use cached data if available (< 5 minutes old)
   useEffect(() => {
-    dispatch(fetchPortfolioBalance());
-    dispatch(fetchDefiPositions());
-    dispatch(fetchPortfolioSummary());
-  }, [dispatch]);
+    dispatch(fetchPortfolioBalance({address:address!}));
+    dispatch(fetchDefiPositions({address:address!}));
+    dispatch(fetchPortfolioSummary({address:address!}));
+  }, [dispatch,address]);
 
   // Portfolio stats for PortfolioValueCard
   const portfolioStats = {

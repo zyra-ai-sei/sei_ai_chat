@@ -21,6 +21,7 @@ import {
 import { StatusBadge } from "./components/StatusBadge";
 import { EmptyState } from "./components/EmptyState";
 import { LoadingState } from "./components/LoadingState";
+import { useAccount } from "wagmi";
 
 const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ");
@@ -44,15 +45,19 @@ const Transactions = () => {
   const { orders, loading: ordersLoading } = useAppSelector(
     (state) => state.orderData || { orders: [], loading: false }
   );
+  const { address } = useAccount();
 
-  const [viewMode, setViewMode] = useState<"transactions" | "orders">("transactions");
+  const [viewMode, setViewMode] = useState<"transactions" | "orders">(
+    "transactions"
+  );
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<"recent" | "value">("recent");
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const loading = viewMode === "transactions" ? transactionsLoading : ordersLoading;
+  const loading =
+    viewMode === "transactions" ? transactionsLoading : ordersLoading;
 
   const handleExportCSV = () => {
     if (!transactions || transactions.length === 0) {
@@ -63,43 +68,43 @@ const Transactions = () => {
 
     const csvRows: string[] = [];
 
-    csvRows.push(headers.join(','));
+    csvRows.push(headers.join(","));
 
     for (const row of transactions) {
       const values = headers.map((header) => {
         const val = (row as any)[header]; // cast to any to allow dynamic indexing
         // Escape quotes within the string and wrap in quotes to handle commas within data
-        const escaped = ('' + val).replace(/"/g, '\\"');
+        const escaped = ("" + val).replace(/"/g, '\\"');
         return `"${escaped}"`;
       });
-      csvRows.push(values.join(','));
+      csvRows.push(values.join(","));
     }
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', 'transactions.csv');
+    link.setAttribute("download", "transactions.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }
+  };
 
-useEffect(() => {
-  if (!transactions || transactions.length === 0) {
-    dispatch(getTransactions());
-  }
-  if (!orders || orders.length === 0) {
-    dispatch(getOrders());
-  }
-}, [dispatch, transactions, orders]);
+  useEffect(() => {
+    if (!transactions || transactions.length === 0) {
+      dispatch(getTransactions());
+    }
+    if (!orders || orders.length === 0) {
+      dispatch(getOrders({ address:address! }));
+    }
+  }, [dispatch]);
 
   // Poll orders API every 30 seconds
   useEffect(() => {
     const intervalId = setInterval(() => {
-      dispatch(getOrders());
+      dispatch(getOrders({ address:address! }));
     }, 30000); // 30 seconds
 
     // Cleanup function to clear interval on unmount
@@ -123,7 +128,8 @@ useEffect(() => {
   }, [activeFilter, query, sortKey, pageSize, transactions.length]);
 
   const filteredData = useMemo(() => {
-    let list: any[] = viewMode === "transactions" ? [...transactions] : [...orders];
+    let list: any[] =
+      viewMode === "transactions" ? [...transactions] : [...orders];
 
     if (activeFilter !== "all") {
       list = list.filter((item: any) => {
@@ -169,34 +175,37 @@ useEffect(() => {
     }
 
     if (sortKey === "recent") {
-      list.sort(
-        (a: any, b: any) => {
-          const aTime = viewMode === "transactions" ? a.timestamp : (a.lastUpdated || a.createdAt);
-          const bTime = viewMode === "transactions" ? b.timestamp : (b.lastUpdated || b.createdAt);
-          return new Date(bTime).getTime() - new Date(aTime).getTime();
-        }
-      );
+      list.sort((a: any, b: any) => {
+        const aTime =
+          viewMode === "transactions"
+            ? a.timestamp
+            : a.lastUpdated || a.createdAt;
+        const bTime =
+          viewMode === "transactions"
+            ? b.timestamp
+            : b.lastUpdated || b.createdAt;
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
+      });
     } else {
       if (viewMode === "transactions") {
-        list.sort((a: any, b: any) => toSeiValue(b.value) - toSeiValue(a.value));
+        list.sort(
+          (a: any, b: any) => toSeiValue(b.value) - toSeiValue(a.value)
+        );
       } else {
-        list.sort((a: any, b: any) => Number(b.srcAmount || 0) - Number(a.srcAmount || 0));
+        list.sort(
+          (a: any, b: any) =>
+            Number(b.srcAmount || 0) - Number(a.srcAmount || 0)
+        );
       }
     }
 
     return list;
   }, [viewMode, transactions, orders, activeFilter, query, sortKey]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredData.length / pageSize)
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const pageStart = (safePage - 1) * pageSize;
-  const paginatedData = filteredData.slice(
-    pageStart,
-    pageStart + pageSize
-  );
+  const paginatedData = filteredData.slice(pageStart, pageStart + pageSize);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -221,9 +230,7 @@ useEffect(() => {
       successCount = data.filter(
         (item: any) => item.status === "COMPLETED"
       ).length;
-      failedCount = data.filter((item: any) =>
-        item.status === "FAILED"
-      ).length;
+      failedCount = data.filter((item: any) => item.status === "FAILED").length;
     }
 
     let totalValue = 0;
@@ -266,7 +273,9 @@ useEffect(() => {
               <div className="flex items-center gap-3 text-4xl font-semibold text-white">
                 {stats.total}
                 <span className="text-base font-medium text-white/60">
-                  {viewMode === "transactions" ? "txns tracked" : "orders tracked"}
+                  {viewMode === "transactions"
+                    ? "txns tracked"
+                    : "orders tracked"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm text-white/70">
@@ -286,7 +295,10 @@ useEffect(() => {
                   </span>
                 </div>
               )}
-              <button onClick={handleExportCSV} className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20">
+              <button
+                onClick={handleExportCSV}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-white transition rounded-full bg-white/10 hover:bg-white/20"
+              >
                 <ArrowDownToLine size={16} /> Export CSV
               </button>
             </div>
@@ -479,7 +491,13 @@ useEffect(() => {
   );
 };
 
-const TransactionRow = ({ txn, isHighlighted }: { txn: any; isHighlighted?: boolean }) => {
+const TransactionRow = ({
+  txn,
+  isHighlighted,
+}: {
+  txn: any;
+  isHighlighted?: boolean;
+}) => {
   const rowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -565,7 +583,7 @@ const OrderRow = ({ order }: { order: any }) => {
 
   return (
     <div className="grid items-center w-full">
-      <div className="grid grid-cols-12 items-center gap-4 px-6 py-5 text-sm">
+      <div className="grid items-center grid-cols-12 gap-4 px-6 py-5 text-sm">
         <div className="col-span-2">
           <p className="font-mono text-white">#{order.orderId}</p>
         </div>
@@ -586,7 +604,7 @@ const OrderRow = ({ order }: { order: any }) => {
           </div>
           {order.fills && order.fills.length > 0 && (
             <p className="text-xs text-white/50">
-              {order.fills.length} fill{order.fills.length > 1 ? 's' : ''}
+              {order.fills.length} fill{order.fills.length > 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -605,7 +623,12 @@ const OrderRow = ({ order }: { order: any }) => {
           )}
         </div>
         <div className="col-span-2">
-          <span className={cn("font-semibold capitalize", getStatusColor(order.status))}>
+          <span
+            className={cn(
+              "font-semibold capitalize",
+              getStatusColor(order.status)
+            )}
+          >
             {order.status}
           </span>
         </div>

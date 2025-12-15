@@ -17,6 +17,7 @@ export interface IGlobalData {
   buyTokenReminder?: BuyTokenReminderEnum;
   isConnectButtonClicked: boolean;
   isNetworkSwitchWarningTriggered: boolean;
+  currentWallet?: string;
 }
 
 export interface IGlobalReducerState {

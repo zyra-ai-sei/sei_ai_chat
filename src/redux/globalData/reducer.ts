@@ -20,7 +20,8 @@ const userDetails = getLocalStorageData(LocalStorageIdEnum.USER_DETAILS, {
   hash: "",
   photo_url: "",
   username: "",
-  buyTokenReminder: BuyTokenReminderEnum?.NotSet
+  buyTokenReminder: BuyTokenReminderEnum?.NotSet,
+  currentWallet: undefined
 });
 
 export const initialState: IGlobalReducerState = {
@@ -44,6 +45,7 @@ export const initialState: IGlobalReducerState = {
     buyTokenReminder: BuyTokenReminderEnum?.NotSet,
     isConnectButtonClicked: false,
     isNetworkSwitchWarningTriggered: false,
+    currentWallet: userDetails?.currentWallet,
   },
 };
 
@@ -69,7 +71,8 @@ export const globalDataSlice = createSlice({
         hash: payload.hash,
         photo_url: payload.photo_url,
         username: payload.username,
-        buyTokenReminder: payload?.buyTokenReminder
+        buyTokenReminder: payload?.buyTokenReminder,
+        currentWallet: payload?.currentWallet
       });
 
       if (payload.isDarkModeEnabled) {
@@ -128,6 +131,7 @@ export const globalDataSlice = createSlice({
           buyTokenReminder: BuyTokenReminderEnum?.NotSet,
           isConnectButtonClicked: false,
           isNetworkSwitchWarningTriggered: false,
+          currentWallet: undefined,
         },
       };
     },
@@ -146,7 +150,8 @@ export const globalDataSlice = createSlice({
         hash: "",
         photo_url: "",
         username: "",
-        buyTokenReminder: BuyTokenReminderEnum?.NotSet
+        buyTokenReminder: BuyTokenReminderEnum?.NotSet,
+        currentWallet: undefined
       });
 
       return {
@@ -170,6 +175,7 @@ export const globalDataSlice = createSlice({
           buyTokenReminder: BuyTokenReminderEnum?.NotSet,
           isConnectButtonClicked: false,
           isNetworkSwitchWarningTriggered: false,
+          currentWallet: undefined,
         },
       };
     },

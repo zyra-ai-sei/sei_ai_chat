@@ -185,7 +185,6 @@ const Assets = () => {
     getCurrentPrices();
   }, []);
 
-  console.log("your token balances", data, chain?.name);
 
   return (
     <div className="flex-col flex-shrink-0 hidden gap-4 p-4 scrollbar-none lg:flex ">

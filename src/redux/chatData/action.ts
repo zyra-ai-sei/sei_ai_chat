@@ -35,12 +35,13 @@ export const streamChatPrompt = createAsyncThunk<
     messageType?: MessageTypeEnum;
     abortSignal?: AbortSignal;
     network?: string;
+    address: string;
   },
   { state: IRootState }
 >(
   "chatData/streamChatPrompt",
   async (
-    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal, network = "sei" },
+    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal, network = "sei", address },
     { dispatch, getState }
   ) => {
     const state = getState();
@@ -48,14 +49,12 @@ export const streamChatPrompt = createAsyncThunk<
 
     if (!token) throw new Error("Missing auth token");
 
-    console.log('chain chain chain',network)
 
     const controller = new AbortController();
     abortSignal?.addEventListener("abort", () => controller.abort(), {
       once: true,
     });
-    console.log("prompt:::", prompt);
-    const params = new URLSearchParams({ prompt, messageType, network });
+    const params = new URLSearchParams({ prompt, messageType, network, address });
 
     // Add prompt to chat and show response (same for both human and system messages)
     dispatch(addPrompt(prompt));
@@ -111,15 +110,9 @@ export const streamChatPrompt = createAsyncThunk<
               });
             } else if (payload.type === "data" && payload.data_output) {
               const data = payload.data_output;
-              console.log("data output payload", data);
               // Check if this is DCA simulation data
               if (data.type === "DCA_Simulation" || data.summary) {
-                console.log("[StreamChat] Received DCA simulation data:", {
-                  total_investment: data.summary.total_investment,
-                  buy_count: data.summary.buy_count,
-                  return_pct: data.summary.return_pct,
-                });
-
+            
                 hasReceivedResponse = true;
 
                 // Store DCA data directly in chat response as data_output
@@ -130,11 +123,7 @@ export const streamChatPrompt = createAsyncThunk<
                   })
                 );
               } else if (data.type === "crypto_market_data") {
-                console.log("[StreamChat] Received crypto market data:", {
-                  coinId: data.coinId,
-                  timeframe: data.timeframe,
-                  dataPoints: data.dataPoints,
-                });
+               
 
                 // Dispatch chart data to token visualization
                 if (data.chartData && Array.isArray(data.chartData)) {
@@ -294,7 +283,6 @@ export const sendChatPrompt = createAsyncThunk<
     if (apiData?.status === 200 && apiData?.data) {
       const chat = apiData.data.chat || "";
       const tools = apiData.data.tools;
-      console.log("these are the tools", tools);
       let tool_outputs = [];
       if (tools) {
         for (let i = 0; i < tools.length; i++) {
@@ -305,7 +293,6 @@ export const sendChatPrompt = createAsyncThunk<
             tool_outputs.push(tools[i].tool_output);
         }
       }
-      console.log("tool output sendchat", tool_outputs);
 
       dispatch(
         setResponse({
@@ -326,15 +313,14 @@ export const sendChatPrompt = createAsyncThunk<
 
 export const getChatHistory = createAsyncThunk<
   void,
-  { network?: string },
+  { network?: string, address:string },
   { state: IRootState }
->("chatData/getChatHistory", async ({ network = "sei" } = {}, { dispatch, getState }) => {
+>("chatData/getChatHistory", async ({ network = "sei", address }, { dispatch, getState }) => {
   try {
-    const response = await axiosInstance.get(`/llm/getChatHistory?network=${network}`);
+    const response = await axiosInstance.get(`/llm/getChatHistory?network=${network}&address=${address}`);
     const apiData = response?.data;
     if (apiData?.status === 200 && apiData?.data) {
       const data = apiData?.data?.items;
-      console.log("chatHistory", data);
       if (data && data.length > 0) {
         // Clear existing chats first
         dispatch(resetChat());
@@ -342,12 +328,7 @@ export const getChatHistory = createAsyncThunk<
         let currentChatIndex = -1;
         for (let i = 0; i < data.length; i++) {
           const message = data[i];
-          console.log(JSON.stringify(message, null, 2));
-          console.log(
-            "processing message",
-            message["type"],
-            message["content"]
-          );
+        
           const formattedMessage = formatLLMResponse(message);
           if (formattedMessage?.type == LLMResponseEnum.HUMANMESSAGE) {
             dispatch(addPrompt(formattedMessage.content));
@@ -412,23 +393,14 @@ export const getChatHistory = createAsyncThunk<
 
               // Check if this is DCA simulation data
               if (formattedMessage.data_output.type === "DCA_Simulation") {
-                console.log("[getChatHistory] Received DCA simulation data:", {
-                  total_investment: formattedMessage.data_output.summary?.total_investment,
-                  buy_count: formattedMessage.data_output.summary?.buy_count,
-                  return_pct: formattedMessage.data_output.summary?.return_pct,
-                });
+                
 
                 // Store DCA data directly
                 updatedResponse.data_output = formattedMessage.data_output;
               }
               // Check if this is Lump Sum simulation data
               else if (formattedMessage.data_output.type === "lump_sum_strategy") {
-                console.log("[getChatHistory] Received Lump Sum simulation data:", {
-                  total_investment: formattedMessage.data_output.summary?.total_investment,
-                  buy_price: formattedMessage.data_output.summary?.buy_price,
-                  tokens_bought: formattedMessage.data_output.summary?.tokens_bought,
-                  return_pct: formattedMessage.data_output.summary?.return_pct,
-                });
+                
 
                 // Store Lump Sum data directly
                 updatedResponse.data_output = formattedMessage.data_output;
@@ -575,24 +547,6 @@ export const getChatHistory = createAsyncThunk<
   }
 });
 
-export const initializePrompt = createAsyncThunk<
-  void,
-  { network?: string },
-  { state: IRootState }
->("chatData/initializePrompt", async ({ network = "sei" } = {}, { dispatch }) => {
-  try {
-    const response = await axiosInstance.post(`/llm/init?network=${network}`,);
-    const apiData = response?.data;
-    if (apiData?.status === 200 && apiData?.data) {
-      const sessionId = apiData.data.sessionId;
-      dispatch(addSessionId(sessionId));
-    } else {
-      dispatch(resetChat());
-    }
-  } catch (err) {
-    dispatch(resetChat());
-  }
-});
 
 export const abortTool = createAsyncThunk<
   void,
@@ -606,7 +560,6 @@ export const abortTool = createAsyncThunk<
     });
     const apiData = response?.data;
     if (apiData?.success) {
-      console.log(`Tool ${toolId} marked as aborted`);
     } else {
       console.error(`Failed to mark tool ${toolId} as aborted`);
     }
@@ -615,13 +568,12 @@ export const abortTool = createAsyncThunk<
   }
 });
 
-export const clearChat = createAsyncThunk<void, { network?: string }, { state: IRootState }>(
+export const clearChat = createAsyncThunk<void, { network?: string, address:string }, { state: IRootState }>(
   "chatData/clearChat",
-  async ({ network = "sei" } = {}, { dispatch }) => {
+  async ({ network = "sei", address }, { dispatch }) => {
     try {
-      await axiosInstance.get(`/llm/clearChat?network=${network}`);
+      await axiosInstance.get(`/llm/clearChat?network=${network}&address=${address}`);
       dispatch(resetChat());
-      dispatch(initializePrompt({ network }));
     } catch (err) {
       console.error("Error clearing chat:", err);
       // Still reset the local state even if API fails
@@ -637,13 +589,14 @@ export const updateMessageState = createAsyncThunk<
     executionState: "completed" | "failed";
     txnHash?: string;
     network?: string;
+    address: string;
   },
   { state: IRootState }
 >(
   "chatData/updateMessageState",
-  async ({ executionId, executionState, txnHash, network = "sei" }) => {
+  async ({ executionId, executionState, txnHash, network = "sei", address }) => {
     try {
-      const response = await axiosInstance.post(`/llm/updateMessageState?network=${network}`, {
+      const response = await axiosInstance.post(`/llm/updateMessageState?network=${network}&address=${address}`, {
         executionId,
         executionState,
         ...(txnHash && { txnHash }),

@@ -42,9 +42,14 @@ const SignatureVerificationPopup = () => {
       // setError(err?.message ? err?.message : "Error in signing the message");
     }
   };
+  
   useEffect(() => {
-    handleVerification();
+    // Only auto-verify if user doesn't have a token yet
+    if (!globalData?.token) {
+      handleVerification();
+    }
   }, []);
+  
   return (
     <div className="flex flex-col w-full gap-4 p-4 border border-white/10 rounded-3xl backdrop-blur-2xl ">
       <div className="text-[24px] text-white">Verify Your Account</div>

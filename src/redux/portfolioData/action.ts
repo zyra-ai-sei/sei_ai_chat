@@ -16,6 +16,7 @@ interface FetchPortfolioOptions {
   onSuccessCb?: () => void;
   onFailureCb?: (error: string) => void;
   forceRefresh?: boolean; // Force refresh even if data is cached
+  address:string
 }
 
 // Cache duration: 5 minutes
@@ -40,17 +41,18 @@ export const fetchPortfolioBalance = createAsyncThunk<
   FetchPortfolioOptions | void,
   { state: IRootState }
 >("portfolioData/fetchBalance", async (options, { dispatch, getState }) => {
-  const { onSuccessCb, onFailureCb, forceRefresh } = options || {};
+  const { onSuccessCb, onFailureCb, forceRefresh, address } = options || {};
 
   try {
     // Check if we have cached data
     const state = getState();
-    const { lastUpdated, tokens } = state.portfolioData;
+    const { lastUpdated, tokens, cachedAddress } = state.portfolioData;
     
-    // If we have fresh data and not forcing refresh, skip the API call
+    // If we have fresh data, same address, and not forcing refresh, skip the API call
     if (
       !forceRefresh &&
       lastUpdated &&
+      cachedAddress === address &&
       Date.now() - lastUpdated < CACHE_DURATION &&
       tokens.length > 0
     ) {
@@ -62,12 +64,12 @@ export const fetchPortfolioBalance = createAsyncThunk<
     dispatch(setPortfolioLoading(true));
 
     const response = await axiosInstance.get<PortfolioApiResponse>(
-      "/portfolio/totalBalance"
+      `/portfolio/totalBalance?address=${address}`
     );
 
     if (response?.data?.status === 200 && response?.data?.data?.items) {
       const tokens = response.data.data.items;
-      dispatch(setPortfolioData(tokens));
+      dispatch(setPortfolioData({ tokens, address }));
 
       if (onSuccessCb) {
         onSuccessCb();
@@ -103,5 +105,5 @@ export const refreshPortfolioBalance = createAsyncThunk<
   dispatch(clearPortfolioData());
 
   // Then fetch fresh data with force refresh flag
-  await dispatch(fetchPortfolioBalance({ ...options, forceRefresh: true }));
+  await dispatch(fetchPortfolioBalance({ ...options, forceRefresh: true,  }));
 });

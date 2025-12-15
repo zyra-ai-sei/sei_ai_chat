@@ -1,4 +1,3 @@
-import { WagmiProvider } from "wagmi";
 import "./App.css";
 import RouterConfig from "./router.config";
 import "@/scss/index.scss";
@@ -10,9 +9,10 @@ import { useEffect, useState } from "react";
 import CookiePopup from "@/components/popups/cookie";
 import Cookies from "js-cookie";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {ParallaxProvider} from 'react-scroll-parallax'
-
-const queryClient = new QueryClient()
+import { ParallaxProvider } from "react-scroll-parallax";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { WagmiProvider as PrivyWagmiProvider } from "@privy-io/wagmi";
+const queryClient = new QueryClient();
 
 function App() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,7 +24,6 @@ function App() {
   const [isCookiePopupOpen, setCookiePopupOpen] = useState(
     !cookieValue || !cookieValue.necessary
   );
-
 
   const deletePerformanceCookies = () => {
     const cookies = document.cookie.split("; ");
@@ -95,28 +94,41 @@ function App() {
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCookiePopupOpen, cookieValue]);
+  const appId = import.meta.env?.VITE_BASE_PRIVY_APP_ID;
 
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <PrivyProvider
+      appId={appId}
+      clientId="client-WY6U3qRxiCB95Vypz1gry7kafRKGoM6HsYCYdAuxpeSUm"
+      config={{
+        embeddedWallets: {
+          ethereum: {
+            createOnLogin: "all-users",
+          },
+        },
+        appearance: {
+          theme: "dark",
+          landingHeader: "Connect to Zyra",
+        },
+      }}
+    >
       <QueryClientProvider client={queryClient}>
-        <ParallaxProvider>
+        <PrivyWagmiProvider config={wagmiConfig}>
+          <ParallaxProvider>
+            <RouterConfig />
 
-
-        <RouterConfig />
-
-        <CookiePopup
-          isCenterAlignPopupOpen={isCookiePopupOpen}
-          setIsCenterAlignPopupOpen={setCookiePopupOpen}
-          />
-
+            <CookiePopup
+              isCenterAlignPopupOpen={isCookiePopupOpen}
+              setIsCenterAlignPopupOpen={setCookiePopupOpen}
+            />
           </ParallaxProvider>
+        </PrivyWagmiProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </PrivyProvider>
   );
 }
 
 const RootApp = () => {
-  // console.log("Navigator::", navigator, "URL::", process.env.PUBLIC_URL);
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {

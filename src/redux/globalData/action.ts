@@ -409,7 +409,6 @@ export const updateRating = createAsyncThunk<
         const errorMessage =
           response?.data?.data?.error ||
           "Something went wrong, please try again";
-        console.log(response?.data?.data?.error, response?.data);
         if (onFailureCb) {
           onFailureCb(errorMessage);
         }
@@ -451,7 +450,6 @@ export const updateUserReferral = createAsyncThunk<
         const errorMessage =
           response?.data?.data?.error ||
           "Something went wrong, please try again";
-        console.log(response?.data?.data?.error, response?.data);
         if (onFailureCb) {
           onFailureCb(errorMessage);
         }

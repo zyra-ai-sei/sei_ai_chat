@@ -42,7 +42,6 @@ function RouterConfig() {
   useEffect(() => {
     // Listen for the PWA installation event
     const handleAppInstalled = () => {
-      console.log("PWA was installed");
       if (typeof window.gtag !== "undefined") {
         window.gtag("event", "PWA Installed", {
           event_category: "Engagement",

@@ -3,13 +3,14 @@ import { getChatHistory } from "@/redux/chatData/action";
 import React, { useEffect, useRef, useMemo } from "react";
 import TransactionCanvas from "./components/TransactionCanvas";
 import TransactionLoader from "@/assets/chat/transactionLoader.png";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import TokenVisualization from "@/components/tokenVisualization/TokenVisualization";
 import QuickActionsGrid from "@/components/chat/QuickActionsGrid";
 import DcaSimulationPanel from "@/components/strategy/DcaSimulationPanel";
 import LumpSumSimulationPanel from "@/components/strategy/LumpSumSimulationPanel";
 import { DcaResponse } from "@/types/dca";
 import { LumpSumResponse } from "@/types/lumpsum";
+import { getChainById } from "@/config/chains";
 
 // Helper function to check if data is DCA simulation data
 const isDcaData = (data: any): data is DcaResponse => {
@@ -25,9 +26,7 @@ const isDcaData = (data: any): data is DcaResponse => {
     "average_buy_price" in data.summary &&
     "total_tokens" in data.summary
   );
-  if (isDca) {
-    console.log("[TransactionResponseBox] Detected DCA data");
-  }
+  
   return isDca;
 };
 
@@ -47,9 +46,7 @@ const isLumpSumData = (data: any): data is LumpSumResponse => {
     !("average_buy_price" in data.summary) &&
     !("total_tokens" in data.summary)
   );
-  if (isLumpSum) {
-    console.log("[TransactionResponseBox] Detected Lump Sum data");
-  }
+
   return isLumpSum;
 };
 
@@ -61,9 +58,12 @@ const TransactionResponseBox = () => {
   const dispatch = useAppDispatch();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevChatsCountRef = useRef(0);
+  const chainId = useChainId();
+  const network = getChainById(chainId)
 
   useEffect(() => {
-    dispatch(getChatHistory({}));
+    if(address)
+    dispatch(getChatHistory({address:address!, network: network?.id}));
   }, [token, address]);
 
   // Memoize chat count to avoid unnecessary re-renders
@@ -93,7 +93,6 @@ const TransactionResponseBox = () => {
         (chat) => (chat.response.tool_outputs || chat.response.data_output)
       ) && (
         <>
-        {console.log("[TransactionResponseBox] No transaction or data output found in chats. Rendering QuickActionsGrid.",chats)}
           <QuickActionsGrid/>
         </>
       )}
@@ -139,10 +138,8 @@ const TransactionResponseBox = () => {
                 {chat?.response?.data_output && (
                   <div className="mt-4">
                     {(() => {
-                      console.log(`[TransactionResponseBox] Rendering data_output for chat ${idx}:`, chat.response.data_output);
 
                       if (isDcaData(chat.response.data_output)) {
-                        console.log(`[TransactionResponseBox] Rendering DCA Panel for chat ${idx}`);
                         return (
                           <DcaSimulationPanel
                             data={chat.response.data_output}
@@ -151,7 +148,6 @@ const TransactionResponseBox = () => {
                           />
                         );
                       } else if (isLumpSumData(chat.response.data_output)) {
-                        console.log(`[TransactionResponseBox] Rendering Lump Sum Panel for chat ${idx}`);
                         return (
                           <LumpSumSimulationPanel
                             data={chat.response.data_output}
@@ -160,7 +156,6 @@ const TransactionResponseBox = () => {
                           />
                         );
                       } else {
-                        console.log(`[TransactionResponseBox] Rendering TokenVisualization for chat ${idx}`);
                         return <TokenVisualization data={chat.response.data_output} chatIndex={idx} />;
                       }
                     })()}

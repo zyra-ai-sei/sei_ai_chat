@@ -6,6 +6,7 @@ const initialState: PortfolioSummaryState = {
   isLoading: false,
   error: null,
   lastUpdated: null,
+  cachedAddress: null,
 };
 
 export const portfolioSummarySlice = createSlice({
@@ -19,15 +20,18 @@ export const portfolioSummarySlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     },
-    setSummaryData: (state, action: PayloadAction<PortfolioSummaryItem[]>) => {
-      state.items = action.payload;
+    setSummaryData: (state, action: PayloadAction<{items: PortfolioSummaryItem[], address: string}>) => {
+      const { items, address } = action.payload;
+      state.items = items;
       state.lastUpdated = Date.now();
+      state.cachedAddress = address;
       state.isLoading = false;
       state.error = null;
     },
     clearSummaryData: (state) => {
       state.items = [];
       state.lastUpdated = null;
+      state.cachedAddress = null;
       state.error = null;
     },
   },

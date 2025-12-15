@@ -26,6 +26,7 @@ const initialState: PortfolioState = {
   isLoading: false,
   error: null,
   lastUpdated: null,
+  cachedAddress: null,
 };
 
 // Helper function to compute total USD balance from tokens
@@ -140,8 +141,8 @@ export const portfolioDataSlice = createSlice({
     },
 
     // Set portfolio data from API response
-    setPortfolioData: (state, action: PayloadAction<PortfolioToken[]>) => {
-      const tokens = action.payload;
+    setPortfolioData: (state, action: PayloadAction<{tokens: PortfolioToken[], address: string}>) => {
+      const { tokens, address } = action.payload;
 
       // Store raw tokens
       state.tokens = tokens;
@@ -162,6 +163,7 @@ export const portfolioDataSlice = createSlice({
 
       // Update metadata
       state.lastUpdated = Date.now();
+      state.cachedAddress = address;
       state.isLoading = false;
       state.error = null;
     },
@@ -175,6 +177,7 @@ export const portfolioDataSlice = createSlice({
       state.tokenShares = [];
       state.chainBalances = [];
       state.lastUpdated = null;
+      state.cachedAddress = null;
       state.error = null;
     },
   },
