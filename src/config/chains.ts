@@ -3,12 +3,18 @@
  * This file contains all chain-related constants used across the application
  */
 
+import Sei from "@/assets/chains/sei.svg";
+import Arbitrum from "@/assets/chains/arbitrum.svg";
+import Ethereum from "@/assets/chains/eth.svg";
+import Base from "@/assets/chains/base.svg";
+import Polygon from "@/assets/chains/pol.svg";
+
 export const SUPPORTED_CHAINS = [
-  { id: "sei", name: "Sei", chainId: 1329 },
-  { id: "ethereum", name: "Ethereum", chainId: 1 },
-  { id: "arbitrum", name: "Arbitrum", chainId: 42161 },
-  { id: "base", name: "Base", chainId: 8453 },
-  { id: "polygon", name: "Polygon", chainId: 137 },
+  { id: "sei", name: "Sei", chainId: 1329, logo: Sei },
+  { id: "ethereum", name: "Ethereum", chainId: 1, logo: Ethereum },
+  { id: "arbitrum", name: "Arbitrum", chainId: 42161, logo: Arbitrum },
+  { id: "base", name: "Base", chainId: 8453, logo: Base },
+  { id: "polygon", name: "Polygon", chainId: 137, logo: Polygon },
 ] as const;
 
 /**

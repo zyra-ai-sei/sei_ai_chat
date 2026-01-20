@@ -3,8 +3,10 @@ import { setGlobalData } from "@/redux/globalData/action";
 import { axiosInstance } from "@/services/axios";
 import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 
 const SignatureVerificationPopup = () => {
+  const { authenticated } = usePrivy();
   const { signMessageAsync } = useSignMessage();
   const { address } = useAccount();
   const dispatch = useAppDispatch();
@@ -13,30 +15,9 @@ const SignatureVerificationPopup = () => {
 
   const handleVerification = async () => {
     try {
-      setPending(true);
-      // setError(null);
-      const nonceResponse = await axiosInstance.get("/auth/login");
+    
 
-      const nonce = nonceResponse.data.data.message;
-
-      const signedMessage = await signMessageAsync({ message: nonce });
-
-
-      const response = await axiosInstance.post("/auth/login", {
-        signedMessage: signedMessage,
-        address: address,
-        message: nonce,
-      });
-      if (response?.data?.data?.token) {
-        dispatch(
-          setGlobalData({
-            ...globalData,
-            token: response.data.data.token,
-          })
-        );
-        setPending(false);
-        // setError(null);
-      }
+  
     } catch (err: any) {
       setPending(false);
       // setError(err?.message ? err?.message : "Error in signing the message");
@@ -45,7 +26,7 @@ const SignatureVerificationPopup = () => {
   
   useEffect(() => {
     // Only auto-verify if user doesn't have a token yet
-    if (!globalData?.token) {
+    if (!authenticated) {
       handleVerification();
     }
   }, []);

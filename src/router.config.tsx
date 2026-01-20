@@ -34,7 +34,7 @@ function RouterConfig() {
       address?.toLowerCase() !== eoaAddress.toLowerCase()
     ) {
       disconnect();
-      dispatch(setGlobalData({ ...globalData, token: "", eoaAddress: "" }));
+      dispatch(setGlobalData({ ...globalData, eoaAddress: "" }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);

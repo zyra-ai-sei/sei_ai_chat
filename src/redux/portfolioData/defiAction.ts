@@ -51,7 +51,7 @@ export const fetchDefiPositions = createAsyncThunk<
     );
     if (response?.data?.status === 200 && response?.data?.data?.items) {
       const protocols: DefiProtocol[] = response.data.data.items;
-      dispatch(setDefiData({ protocols, address }));
+      dispatch(setDefiData({ protocols, address: address as string }));
       if (onSuccessCb) onSuccessCb();
     } else {
       const errorMsg = "Invalid response format from defiPositions API";
@@ -68,7 +68,7 @@ export const fetchDefiPositions = createAsyncThunk<
 
 export const refreshDefiPositions = createAsyncThunk<
   void,
-  FetchDefiOptions | void,
+  FetchDefiOptions,
   { state: IRootState }
 >("portfolioData/refreshDefiPositions", async (options, { dispatch }) => {
   dispatch(clearDefiData());

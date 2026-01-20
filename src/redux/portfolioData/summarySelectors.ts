@@ -3,7 +3,7 @@ import { RootState } from "../rootreducers";
 import { PortfolioSummaryState, PortfolioSummaryStats } from "./summaryTypes";
 
 const selectSummaryState = (state: RootState): PortfolioSummaryState =>
-  state.portfolioSummary;
+  state.portfolioSummaryData;
 
 export const selectSummaryItems = createSelector(
   [selectSummaryState],

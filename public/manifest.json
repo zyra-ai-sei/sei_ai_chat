@@ -9,28 +9,28 @@
     "description": "I am a simple vite app",
     "icons": [
       {
-        "src": "/pwa/logo192.png",
+        "src": "/icon.png",
         "sizes": "192x192",
         "type": "image/png",
-        "purpose": "favicon"
+        "purpose": "any"
       },
       {
-        "src": "/pwa/logo512.png",
+        "src": "/icon.png",
         "sizes": "512x512",
         "type": "image/png",
-        "purpose": "favicon"
+        "purpose": "any"
       },
       {
-        "src": "/pwa/logo180.png",
+        "src": "/icon.png",
         "sizes": "180x180",
         "type": "image/png",
-        "purpose": "apple touch icon"
+        "purpose": "any"
       },
       {
-        "src": "/pwa/logo512.png",
+        "src": "/icon.png",
         "sizes": "512x512",
         "type": "image/png",
-        "purpose": "any maskable"
+        "purpose": "maskable"
       }
     ],
     "theme_color": "#171717",

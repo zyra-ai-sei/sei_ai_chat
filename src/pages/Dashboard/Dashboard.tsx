@@ -9,7 +9,8 @@ import {
   PortfolioPerformanceSection,
   YieldPerformanceChart,
   StatCard,
-  ChainPerformanceCard,
+  WalletWatcher,
+  OrderWatcherCard,
 } from "./components";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import {
@@ -34,12 +35,13 @@ import {
 
 import ChainDropdown from "./components/ChainDropdown";
 import { defiToAssetCategories } from "./utils/defiDashboard.utils";
-import { add } from "lodash";
 import { useAccount } from "wagmi";
+import TradingSummaryCard from "./components/TradingSummaryCard";
+import { getOrders } from "@/redux/orderData/action";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const {address} = useAccount();
+  const { address, isConnected } = useAccount();
 
   // Portfolio data from Redux
   const totalUsdBalance = useAppSelector(selectTotalUsdBalance);
@@ -79,10 +81,13 @@ const Dashboard = () => {
   // Fetch portfolio, DeFi, and summary data on mount
   // These will use cached data if available (< 5 minutes old)
   useEffect(() => {
-    dispatch(fetchPortfolioBalance({address:address!}));
-    dispatch(fetchDefiPositions({address:address!}));
-    dispatch(fetchPortfolioSummary({address:address!}));
-  }, [dispatch,address]);
+    if (isConnected) {
+      dispatch(fetchPortfolioBalance({ address: address! }));
+      dispatch(fetchDefiPositions({ address: address! }));
+      dispatch(fetchPortfolioSummary({ address: address! }));
+      dispatch(getOrders({ address: address! }));
+    }
+  }, [dispatch, address]);
 
   // Portfolio stats for PortfolioValueCard
   const portfolioStats = {
@@ -123,49 +128,15 @@ const Dashboard = () => {
             Overview of your portfolio and performance
           </p>
         </div>
+        
+        {/* Background glow*/}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/5 blur-[120px] pointer-events-none" />
 
         {/* Stats Cards Row */}
         <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
           <PortfolioValueCard data={portfolioStats} />
           {/* Trading Summary from portfolio/summary API */}
-          <StatCard title="Trading Summary">
-            <div className="flex items-start justify-between w-full">
-              {summaryLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border border-white/20 border-t-[#2AF598] rounded-full animate-spin"></div>
-                  <span className="text-white/60">Loading...</span>
-                </div>
-              ) : summaryError ? (
-                <span className="text-red-400">{summaryError}</span>
-              ) : summaryStats.totalTrades > 0 ? (
-                <>
-                  <div>
-                    <p className="text-2xl font-semibold tracking-tight text-transparent bg-gradient-to-r from-white to-white/60 bg-clip-text">
-                      {summaryStats.totalTrades}
-                    </p>
-                    <p className={`text-sm font-medium mt-1 ${
-                      summaryStats.totalRealizedProfitUsd >= 0 ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      P&L: ${summaryStats.totalRealizedProfitUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="text-xs leading-4 text-right text-white/60">
-                    <p>Total Trades</p>
-                    <p className="mt-1">
-                      {summaryStats.chainCount} chain{summaryStats.chainCount !== 1 ? 's' : ''} active
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center w-full gap-2">
-                  <div className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center">
-                    <span className="text-xl text-white/40">📈</span>
-                  </div>
-                  <span className="text-sm text-white/40">No trading data</span>
-                </div>
-              )}
-            </div>
-          </StatCard>
+          <TradingSummaryCard />
           <ChainBalanceCard
             chainBalances={chainBalances}
             isLoading={isLoading}
@@ -178,16 +149,21 @@ const Dashboard = () => {
             totalChains={chainBalances.length}
           />
         </div>
+       
 
-        {/* Chain Performance Overview */}
-        <div className="mb-6">
-          <ChainPerformanceCard summaryData={summaryItems} />
+        {/* Wallet Watcher Section */}
+        <div className="mb-8">
+          <WalletWatcher />
+        </div>
+
+        {/* Strategy Orders Section */}
+        <div className="mb-8">
+          <OrderWatcherCard />
         </div>
 
         {/* Asset Allocation Section (DeFi) */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-         
             {defiChainIds.length > 1 && (
               <ChainDropdown
                 chainIds={defiChainIds}
@@ -244,13 +220,13 @@ const Dashboard = () => {
           ) : (
             <div className="relative">
               <div className="absolute top-6 right-2">
-              {defiChainIds.length > 0 && (
-                <ChainDropdown
-                chainIds={defiChainIds}
-                selectedChainId={selectedDefiChainId}
-                onSelect={setSelectedDefiChainId}
-                />
-              )}
+                {defiChainIds.length > 0 && (
+                  <ChainDropdown
+                    chainIds={defiChainIds}
+                    selectedChainId={selectedDefiChainId}
+                    onSelect={setSelectedDefiChainId}
+                  />
+                )}
               </div>
               <YieldPerformanceChart
                 data={(() => {

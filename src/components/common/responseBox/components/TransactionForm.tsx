@@ -36,10 +36,9 @@ const TransactionForm = ({
   const { address } = useAccount();
   const dispatch = useAppDispatch();
   const globalData = useAppSelector((state) => state?.globalData?.data);
-  const { token } = globalData || {};
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const isWrongNetwork = Boolean(token && !isSupportedChainId(chainId));
+  const isWrongNetwork = Boolean(!isSupportedChainId(chainId));
 
   // Check if transaction network matches current chain
   const networkLabel = txn?.metadata?.network;
@@ -68,7 +67,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn({txHash: data, network: txn.metadata.network}));
+          dispatch(addTxn({txHash: data, network: txn.metadata.network, address:address as string}));
         }
         // dispatch(eraseLatestToolOutput());
       },
@@ -118,7 +117,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn({txHash: data, network: txn.metadata?.network}));
+          dispatch(addTxn({txHash: data, network: txn.metadata?.network,address:address as string}));
         }
         // dispatch(eraseLatestToolOutput());
       },

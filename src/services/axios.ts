@@ -1,6 +1,3 @@
-import { LocalStorageIdEnum } from "@/enum/utility.enum";
-
-import { getLocalStorage } from "@/utility/localStorage";
 import axios from "axios";
 
 const API_BASE_URL = "/api";
@@ -13,14 +10,34 @@ export const axiosInstance = axios.create({
   timeout:230000
 });
 
+let tokenFetcher: (() => Promise<string | null>) | null = null;
+
+/**
+ * Injects a dynamic token fetcher (e.g. from Privy) into the axios instance.
+ * This allows the interceptor to always get a fresh token before each request.
+ */
+export const setTokenFetcher = (fetcher: () => Promise<string | null>) => {
+  tokenFetcher = fetcher;
+};
+
+
+
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = getLocalStorage(LocalStorageIdEnum.USER_DETAILS)?.token;
+  async (config) => {
+   let token = null;
+
+    // Try to get a fresh token from the dynamic fetcher first
+    if (tokenFetcher) {
+      try {
+        token = await tokenFetcher();
+      } catch (e) {
+        console.error("Error fetching dynamic token:", e);
+      }
+    }
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     // const isEoaModeEnabled = getLocalStorage(
     //   LocalStorageIdEnum?.USER_DETAILS
     // )?.isEoaEnabled;

@@ -8,8 +8,8 @@ import {
   EventSourceMessage,
 } from "@microsoft/fetch-event-source";
 import { formatLLMResponse } from "@/utility/formatLLMResponse";
+import { dataOutputFormatters } from "@/utility/chatDataFormatters";
 import { LLMResponseEnum } from "@/enum/llm.enum";
-import { setTokenVisualization } from "../tokenVisualization/action";
 import { MessageTypeEnum } from "@/enum/messageType.enum";
 // Use the native AbortController instead of the package
 // import {AbortController} from 'abort-controller'
@@ -36,17 +36,15 @@ export const streamChatPrompt = createAsyncThunk<
     abortSignal?: AbortSignal;
     network?: string;
     address: string;
+    token: string;
   },
   { state: IRootState }
 >(
   "chatData/streamChatPrompt",
   async (
-    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal, network = "sei", address },
+    { prompt, messageType = MessageTypeEnum.HUMAN, abortSignal, network = "sei", address, token },
     { dispatch, getState }
   ) => {
-    const state = getState();
-    const token = state.globalData?.data?.token;
-
     if (!token) throw new Error("Missing auth token");
 
 
@@ -74,6 +72,7 @@ export const streamChatPrompt = createAsyncThunk<
           Accept: "text/event-stream",
         },
         signal: controller.signal,
+        openWhenHidden: true, // Prevent stream restart on tab switch
         onmessage: (event: EventSourceMessage) => {
           if (!event.data) return;
           try {
@@ -110,112 +109,17 @@ export const streamChatPrompt = createAsyncThunk<
               });
             } else if (payload.type === "data" && payload.data_output) {
               const data = payload.data_output;
-              // Check if this is DCA simulation data
-              if (data.type === "DCA_Simulation" || data.summary) {
-            
-                hasReceivedResponse = true;
-
-                // Store DCA data directly in chat response as data_output
-                dispatch(
-                  updateResponse({
-                    index: chatIndex,
-                    response: { data_output: data },
-                  })
-                );
-              } else if (data.type === "crypto_market_data") {
-               
-
-                // Dispatch chart data to token visualization
-                if (data.chartData && Array.isArray(data.chartData)) {
-                  // Map the CoinGecko API response to our frontend format
-                  const marketData = data.market_data || {};
-                  const tickers = data.tickers || [];
-                  const topTicker = tickers[0] || {};
-
-                  const tokenData = {
-                    id: data.coinId || data.id,
-                    symbol: data.symbol || data.coinId.toUpperCase(),
-                    name:
-                      data.name ||
-                      data.coinId.charAt(0).toUpperCase() +
-                        data.coinId.slice(1),
-                    image: {
-                      thumb:
-                        data.image?.thumb ||
-                        `https://assets.coingecko.com/coins/images/1/thumb/${data.coinId}.png`,
-                      large:
-                        data.image?.large ||
-                        `https://assets.coingecko.com/coins/images/1/large/${data.coinId}.png`,
-                    },
-                    categories: data.categories || [],
-                    market: {
-                      price_usd:
-                        marketData.current_price?.usd ||
-                        data.chartData[data.chartData.length - 1][1],
-                      price_change_1h:
-                        marketData.price_change_percentage_1h_in_currency
-                          ?.usd || 0,
-                      price_change_24h:
-                        marketData.price_change_percentage_24h_in_currency
-                          ?.usd || 0,
-                      price_change_7d:
-                        marketData.price_change_percentage_7d_in_currency
-                          ?.usd || 0,
-                      price_change_30d:
-                        marketData.price_change_percentage_30d_in_currency
-                          ?.usd || 0,
-                      high_24h:
-                        marketData.high_24h?.usd ||
-                        Math.max(...data.chartData.map((d: any) => d[1])),
-                      low_24h:
-                        marketData.low_24h?.usd ||
-                        Math.min(...data.chartData.map((d: any) => d[1])),
-                      ath_usd:
-                        marketData.ath?.usd ||
-                        Math.max(...data.chartData.map((d: any) => d[1])),
-                      ath_change_pct:
-                        marketData.ath_change_percentage?.usd || 0,
-                      ath_date:
-                        marketData.ath_date?.usd || new Date().toISOString(),
-                      market_cap:
-                        marketData.market_cap?.usd ||
-                        data.chartData[data.chartData.length - 1][2],
-                      market_cap_rank: marketData.market_cap_rank || 0,
-                      volume_24h: marketData.total_volume?.usd || 0,
-                      circulating_supply: marketData.circulating_supply || 0,
-                      max_supply: marketData.max_supply || 0,
-                      supply_pct_mined:
-                        marketData.max_supply > 0
-                          ? marketData.circulating_supply /
-                            marketData.max_supply
-                          : 0,
-                    },
-                    chart: {
-                      prices: data.chartData,
-                    },
-                    sentiment: {
-                      positive_pct: data.sentiment_votes_up_percentage || 50,
-                      negative_pct: data.sentiment_votes_down_percentage || 50,
-                      watchlist_count: data.watchlist_portfolio_users || 0,
-                    },
-                    liquidity: {
-                      top_exchange: topTicker.market?.name || "N/A",
-                      last_traded_price:
-                        topTicker.last || marketData.current_price?.usd || 0,
-                      volume_on_top_exchange: topTicker.volume || 0,
-                      spread_pct: topTicker.bid_ask_spread_percentage || 0,
-                      trust_score: topTicker.trust_score || "white",
-                    },
-                  };
-
-                  // Store in token visualization
-                  dispatch(setTokenVisualization(tokenData));
-
-                  // Also store in chat response as data_output
+              const dataType = data.type || (data.summary ? "DCA_SIMULATION" : "");
+              
+              const formatter = dataOutputFormatters[dataType];
+              if (formatter) {
+                const formattedData = formatter(data);
+                if (formattedData) {
+                  hasReceivedResponse = true;
                   dispatch(
                     updateResponse({
                       index: chatIndex,
-                      response: { data_output: tokenData },
+                      response: { data_output: formattedData },
                     })
                   );
                 }
@@ -327,217 +231,52 @@ export const getChatHistory = createAsyncThunk<
 
         let currentChatIndex = -1;
         for (let i = 0; i < data.length; i++) {
-          const message = data[i];
-        
-          const formattedMessage = formatLLMResponse(message);
-          if (formattedMessage?.type == LLMResponseEnum.HUMANMESSAGE) {
+          const formattedMessage = formatLLMResponse(data[i]);
+          if (!formattedMessage) continue;
+
+          if (formattedMessage.type === LLMResponseEnum.HUMANMESSAGE) {
             dispatch(addPrompt(formattedMessage.content));
             currentChatIndex = getState().chatData.chats.length - 1;
-          } 
-          else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE && formattedMessage.tool_output) {
-            if (currentChatIndex >= 0) {
-              const currentChat = getState().chatData.chats[currentChatIndex];
-              const existingResponse = currentChat?.response || {
-                chat: "",
-                tool_outputs: [],
-              };
-              let updatedResponse = { ...existingResponse };
+            continue;
+          }
 
-              const existingToolOutputs = updatedResponse.tool_outputs || [];
-              updatedResponse.tool_outputs = [
-                ...existingToolOutputs,
-                ...formattedMessage.tool_output,
-              ];
+          if (currentChatIndex < 0) continue;
 
-              // Only append content if it's a non-empty string
-              const contentToAdd =
-                typeof formattedMessage.content === "string"
-                  ? formattedMessage.content
-                  : "";
-              const existingChat =
-                typeof updatedResponse.chat === "string"
-                  ? updatedResponse.chat
-                  : "";
-              updatedResponse.chat =
-                existingChat + (contentToAdd ? " " + contentToAdd : "");
-              
+          const currentChat = getState().chatData.chats[currentChatIndex];
+          const existingResponse = currentChat?.response || { chat: "", tool_outputs: [] };
+          let updatedResponse = { ...existingResponse };
 
-              dispatch(
-                setResponse({
-                  index: currentChatIndex,
-                  response: updatedResponse,
-                })
-              );
+          // Handle Text Content
+          const contentToAdd = typeof formattedMessage.content === "string" ? formattedMessage.content : "";
+          if (contentToAdd) {
+            updatedResponse.chat = (updatedResponse.chat || "") + (updatedResponse.chat ? " " : "") + contentToAdd;
+          }
+
+          // Handle Tool Outputs
+          if (formattedMessage.tool_output) {
+            updatedResponse.tool_outputs = [
+              ...(updatedResponse.tool_outputs || []),
+              ...formattedMessage.tool_output,
+            ];
+          }
+
+          // Handle Data Outputs
+          if (formattedMessage.data_output) {
+            const data = formattedMessage.data_output;
+            const dataType = data.type || (data.summary ? "DCA_SIMULATION" : "");
+            const formatter = dataOutputFormatters[dataType];
+            if (formatter) {
+              const formattedData = formatter(data);
+              if (formattedData) updatedResponse.data_output = formattedData;
             }
           }
-           else if (formattedMessage?.type == LLMResponseEnum.TOOLMESSAGE && formattedMessage.data_output) {
-            if (currentChatIndex >= 0) {
-              const currentChat = getState().chatData.chats[currentChatIndex];
-              const existingResponse = currentChat?.response || {
-                chat: "",
-                tool_outputs: [],
-              };
-              let updatedResponse = { ...existingResponse };
-          
-              // Only append content if it's a non-empty string
-              const contentToAdd =
-                typeof formattedMessage.content === "string"
-                  ? formattedMessage.content
-                  : "";
-              const existingChat =
-                typeof updatedResponse.chat === "string"
-                  ? updatedResponse.chat
-                  : "";
-              updatedResponse.chat =
-                existingChat + (contentToAdd ? " " + contentToAdd : "");
 
-              // Check if this is DCA simulation data
-              if (formattedMessage.data_output.type === "DCA_Simulation") {
-                
-
-                // Store DCA data directly
-                updatedResponse.data_output = formattedMessage.data_output;
-              }
-              // Check if this is Lump Sum simulation data
-              else if (formattedMessage.data_output.type === "lump_sum_strategy") {
-                
-
-                // Store Lump Sum data directly
-                updatedResponse.data_output = formattedMessage.data_output;
-              }
-              // Check if any tool output is crypto market data
-              else if (formattedMessage.data_output.type === "crypto_market_data" && formattedMessage.data_output.chartData) {
-                  // Map the CoinGecko API response to our frontend format
-                  const marketData = formattedMessage.data_output.market_data || {};
-                  const tickers = formattedMessage.data_output.tickers || [];
-                  const topTicker = tickers[0] || {};
-
-                  const tokenData = {
-                    id: formattedMessage.data_output.coinId || formattedMessage.data_output.id,
-                    symbol: formattedMessage.data_output.symbol || formattedMessage.data_output.coinId.toUpperCase(),
-                    name:
-                      formattedMessage.data_output.name ||
-                      formattedMessage.data_output.coinId.charAt(0).toUpperCase() +
-                        formattedMessage.data_output.coinId.slice(1),
-                    image: {
-                      thumb:
-                        formattedMessage.data_output.image?.thumb ||
-                        `https://assets.coingecko.com/coins/images/1/thumb/${formattedMessage.data_output.coinId}.png`,
-                      large:
-                        formattedMessage.data_output.image?.large ||
-                        `https://assets.coingecko.com/coins/images/1/large/${formattedMessage.data_output.coinId}.png`,
-                    },
-                    categories: formattedMessage.data_output.categories || [],
-                    market: {
-                      price_usd:
-                        marketData.current_price?.usd ||
-                        formattedMessage.data_output.chartData[formattedMessage.data_output.chartData.length - 1][1],
-                      price_change_1h:
-                        marketData.price_change_percentage_1h_in_currency
-                          ?.usd || 0,
-                      price_change_24h:
-                        marketData.price_change_percentage_24h_in_currency
-                          ?.usd || 0,
-                      price_change_7d:
-                        marketData.price_change_percentage_7d_in_currency
-                          ?.usd || 0,
-                      price_change_30d:
-                        marketData.price_change_percentage_30d_in_currency
-                          ?.usd || 0,
-                      high_24h:
-                        marketData.high_24h?.usd ||
-                        Math.max(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
-                      low_24h:
-                        marketData.low_24h?.usd ||
-                        Math.min(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
-                      ath_usd:
-                        marketData.ath?.usd ||
-                        Math.max(...formattedMessage.data_output.chartData.map((d: any) => d[1])),
-                      ath_change_pct:
-                        marketData.ath_change_percentage?.usd || 0,
-                      ath_date:
-                        marketData.ath_date?.usd || new Date().toISOString(),
-                      market_cap:
-                        marketData.market_cap?.usd ||
-                        formattedMessage.data_output.chartData[formattedMessage.data_output.chartData.length - 1][2],
-                      market_cap_rank: marketData.market_cap_rank || 0,
-                      volume_24h: marketData.total_volume?.usd || 0,
-                      circulating_supply: marketData.circulating_supply || 0,
-                      max_supply: marketData.max_supply || 0,
-                      supply_pct_mined:
-                        marketData.max_supply > 0
-                          ? marketData.circulating_supply /
-                            marketData.max_supply
-                          : 0,
-                    },
-                    chart: {
-                      prices: formattedMessage.data_output.chartData,
-                    },
-                    sentiment: {
-                      positive_pct: formattedMessage.data_output.sentiment_votes_up_percentage || 50,
-                      negative_pct: formattedMessage.data_output.sentiment_votes_down_percentage || 50,
-                      watchlist_count: formattedMessage.data_output.watchlist_portfolio_users || 0,
-                    },
-                    liquidity: {
-                      top_exchange: topTicker.market?.name || "N/A",
-                      last_traded_price:
-                        topTicker.last || marketData.current_price?.usd || 0,
-                      volume_on_top_exchange: topTicker.volume || 0,
-                      spread_pct: topTicker.bid_ask_spread_percentage || 0,
-                      trust_score: topTicker.trust_score || "white",
-                    },
-                  };
-                  updatedResponse.data_output = tokenData;
-                  // Also dispatch to token visualization store when loading from history
-                  dispatch(setTokenVisualization(tokenData));
-                }
-              
-
-              dispatch(
-                setResponse({
-                  index: currentChatIndex,
-                  response: updatedResponse,
-                })
-              );
-            }
-          }
-          else if (
-            formattedMessage?.type == LLMResponseEnum.AIMESSAGE ||
-            formattedMessage?.type == LLMResponseEnum.AIMESSAGECHUNK
-          ) {
-            if (currentChatIndex >= 0) {
-              const currentChat = getState().chatData.chats[currentChatIndex];
-              const existingResponse = currentChat?.response || {
-                chat: "",
-                tool_outputs: [],
-              };
-              let updatedResponse = { ...existingResponse };
-
-              // Ensure we're working with strings and add a space between consecutive AI messages
-              const existingChat =
-                typeof updatedResponse.chat === "string"
-                  ? updatedResponse.chat
-                  : "";
-              const contentToAdd =
-                typeof formattedMessage.content === "string"
-                  ? formattedMessage.content
-                  : "";
-
-              // Add space between messages if both exist
-              if (existingChat && contentToAdd) {
-                updatedResponse.chat = existingChat + " " + contentToAdd;
-              } else {
-                updatedResponse.chat = existingChat + contentToAdd;
-              }
-
-              dispatch(
-                setResponse({
-                  index: currentChatIndex,
-                  response: updatedResponse,
-                })
-              );
-            }
-          }
+          dispatch(
+            setResponse({
+              index: currentChatIndex,
+              response: updatedResponse,
+            })
+          );
         }
       }
     }

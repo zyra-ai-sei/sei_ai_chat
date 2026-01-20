@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { resetGlobalData } from "@/redux/globalData/action";
+import { setTokenFetcher } from "@/services/axios";
 import { useLogout, usePrivy } from "@privy-io/react-auth";
 import { useEffect } from "react";
 import { useDisconnect } from "wagmi";
@@ -10,23 +11,13 @@ const DefaultAppLayout = ({
 }: {
   MainContentComponent: any;
 }) => {
-  const { getAccessToken } = usePrivy();
-  const globalData = useAppSelector((data) => data.globalData.data);
-  const dispatch = useAppDispatch();
-  const { disconnectAsync } = useDisconnect();
-  const { logout } = useLogout();
+    const { getAccessToken, logout, user } = usePrivy();
 
   useEffect(() => {
-    const checkTokenExpiry = async () => {
-      const latestToken = await getAccessToken();
-      if (globalData.token != latestToken) {
-        dispatch(resetGlobalData());
-        await disconnectAsync();
-        await logout();
-      }
-    };
-    checkTokenExpiry();
-  }, []);
+    // 1. Set the dynamic token fetcher for Axios
+    // This ensures every request gets a fresh 24h token from Privy
+    setTokenFetcher(getAccessToken);
+  }, [getAccessToken]);
   return (
     <>
       <Navbar />

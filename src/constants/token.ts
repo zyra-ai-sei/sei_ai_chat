@@ -17,7 +17,6 @@ export const UsdcToken: IToken = {
   localName: "USDC",
   nameOnChain: "USDC",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 export const UsdcnToken: IToken = {
@@ -30,7 +29,6 @@ export const UsdcnToken: IToken = {
   localName: "USDC.N",
   nameOnChain: "USDC.N",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 
@@ -44,7 +42,6 @@ export const UsdtToken: IToken = {
   localName: "USDT",
   nameOnChain: "USDT",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdtIcon,
 };
 
@@ -58,7 +55,6 @@ export const WseiToken: IToken = {
   localName: "WSEI",
   nameOnChain: "WSEI",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: seiIcon,
 };
 export const WbtcToken: IToken = {
@@ -71,7 +67,6 @@ export const WbtcToken: IToken = {
   localName: "WBTC",
   nameOnChain: "WBTC",
   native: false,
-  divisor: BigInt(10 ** 8),
   imageUrl: wbtcIcon,
 };
 export const WethToken: IToken = {
@@ -84,7 +79,6 @@ export const WethToken: IToken = {
   localName: "WETC",
   nameOnChain: "WETC",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: wethIcon,
 };
 
@@ -98,7 +92,6 @@ export const SeiToken: IToken = {
   localName:"SEI",
   nameOnChain:"SEI",
   native: true,
-  divisor: BigInt(10 ** 18),
   imageUrl: seiIcon
 }
 
@@ -113,7 +106,6 @@ export const EthWethToken: IToken = {
   localName: "WETH",
   nameOnChain: "Wrapped Ether",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: wethIcon,
 };
 
@@ -127,7 +119,6 @@ export const EthUsdcToken: IToken = {
   localName: "USDC",
   nameOnChain: "USD Coin",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 
@@ -141,7 +132,6 @@ export const EthUsdtToken: IToken = {
   localName: "USDT",
   nameOnChain: "Tether USD",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdtIcon,
 };
 
@@ -155,7 +145,6 @@ export const EthWbtcToken: IToken = {
   localName: "WBTC",
   nameOnChain: "Wrapped Bitcoin",
   native: false,
-  divisor: BigInt(10 ** 8),
   imageUrl: wbtcIcon,
 };
 
@@ -170,7 +159,6 @@ export const PolygonWmaticToken: IToken = {
   localName: "WMATIC",
   nameOnChain: "Wrapped Matic",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: seiIcon, // Using placeholder, update with MATIC icon if available
 };
 
@@ -184,7 +172,6 @@ export const PolygonUsdcToken: IToken = {
   localName: "USDC",
   nameOnChain: "USD Coin",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 
@@ -198,7 +185,6 @@ export const PolygonUsdtToken: IToken = {
   localName: "USDT",
   nameOnChain: "Tether USD",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdtIcon,
 };
 
@@ -212,7 +198,6 @@ export const PolygonWethToken: IToken = {
   localName: "WETH",
   nameOnChain: "Wrapped Ether",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: wethIcon,
 };
 
@@ -227,7 +212,6 @@ export const ArbitrumWethToken: IToken = {
   localName: "WETH",
   nameOnChain: "Wrapped Ether",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: wethIcon,
 };
 
@@ -241,7 +225,6 @@ export const ArbitrumUsdcToken: IToken = {
   localName: "USDC",
   nameOnChain: "USD Coin",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 
@@ -255,7 +238,6 @@ export const ArbitrumUsdtToken: IToken = {
   localName: "USDT",
   nameOnChain: "Tether USD",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdtIcon,
 };
 
@@ -270,7 +252,6 @@ export const BaseWethToken: IToken = {
   localName: "WETH",
   nameOnChain: "Wrapped Ether",
   native: false,
-  divisor: BigInt(10 ** 18),
   imageUrl: wethIcon,
 };
 
@@ -284,7 +265,6 @@ export const BaseUsdcToken: IToken = {
   localName: "USDC",
   nameOnChain: "USD Coin",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdcIcon,
 };
 
@@ -298,7 +278,6 @@ export const BaseUsdtToken: IToken = {
   localName: "USDT",
   nameOnChain: "Bridged Tether USD",
   native: false,
-  divisor: BigInt(10 ** 6),
   imageUrl: usdtIcon,
 };
 
@@ -312,7 +291,6 @@ export const BaseWbtcToken: IToken = {
   localName: "WBTC",
   nameOnChain: "Wrapped BTC",
   native: false,
-  divisor: BigInt(10 ** 8),
   imageUrl: wbtcIcon,
 };
 

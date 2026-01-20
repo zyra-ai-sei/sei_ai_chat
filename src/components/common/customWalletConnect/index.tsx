@@ -37,7 +37,7 @@ const WalletConnectModal = () => {
   return (
     <div className="p-[1px] bg-gradient-to-r from-[#7CABF9] to-[#B37AE8] rounded-[24px]">
       <div className="flex flex-col items-center gap-4 p-[24px] rounded-[24px] bg-[#18171C]">
-        {isConnected && <SignatureVerification />}
+     
         <div className="text-[24px] text-white w-full">Connect Your Wallet</div>
         <div className="rounded-[12px] overflow-hidden w-full">
           {connectors.map((connector, idx) => (

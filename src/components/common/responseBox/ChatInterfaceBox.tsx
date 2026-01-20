@@ -26,12 +26,14 @@ const ChatIndicator = ({
   chatIndex,
   isLastChat,
   hasDataOutput,
+  dataOutputType,
 }: {
   hasChat: boolean;
   toolOutputsLength: number;
   chatIndex: number;
   isLastChat: boolean;
   hasDataOutput: boolean;
+  dataOutputType?: string;
 }) => {
   const [textIndex, setTextIndex] = useState(0);
   const { scrollToTransaction, scrollToDataOutput } = useTransactionNavigation();
@@ -90,9 +92,20 @@ const ChatIndicator = ({
         )}
         
         {hasDataOutput && (
-          <button onClick={handleDataClick} className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-emerald-400/70">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Data
+          <button
+            onClick={handleDataClick}
+            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.3em] transition-all cursor-pointer ${
+              dataOutputType === "tweets"
+                ? "border-blue-500/20 bg-blue-500/5 text-blue-400 hover:border-blue-400/40 hover:bg-blue-500/10"
+                : "border-emerald-500/20 bg-emerald-500/5 text-emerald-400/70 hover:border-emerald-400/40 hover:bg-emerald-500/10"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                dataOutputType === "tweets" ? "bg-blue-400" : "bg-emerald-400"
+              }`}
+            />
+            {dataOutputType === "tweets" ? "Tweets" : "Data"}
           </button>
         )}
       </div>
@@ -104,7 +117,7 @@ const ChatInterfaceBox = () => {
   const chats = useAppSelector((data) => data.chatData.chats);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevChatsCountRef = useRef(0);
-  const { scrollToTransaction } = useTransactionNavigation();
+  const { scrollToTransaction, scrollToDataOutput } = useTransactionNavigation();
 
   // Memoize chat count to avoid unnecessary re-renders
   const chatsCount = useMemo(() => chats.length, [chats.length]);
@@ -162,7 +175,7 @@ const ChatInterfaceBox = () => {
 
             return (
             <React.Fragment key={idx}>
-              <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-whi shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
+              <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-white shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
                 <p className="break-words text-white/70">{chat.prompt}</p>
               </div>
 
@@ -183,6 +196,7 @@ const ChatInterfaceBox = () => {
                     chatIndex={idx}
                     isLastChat={isLastChat}
                     hasDataOutput={hasDataOutput}
+                    dataOutputType={chat.response?.data_output?.type}
                   />
 
                   {/* Response Content */}
@@ -198,9 +212,9 @@ const ChatInterfaceBox = () => {
                     </div>
                   )}
 
-                  {chat.response?.tool_outputs?.length ? (
+                  {(chat.response?.tool_outputs?.length || (hasDataOutput && chat.response?.data_output?.type === 'tweets')) ? (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {chat.response.tool_outputs.map((tool:any, toolIdx:any) => (
+                      {chat.response.tool_outputs?.map((tool:any, toolIdx:any) => (
                         <button
                           key={`${tool.id}-${toolIdx}`}
                           onClick={() => scrollToTransaction(idx, toolIdx)}
@@ -209,6 +223,14 @@ const ChatInterfaceBox = () => {
                           {tool?.label || `Txn #${toolIdx + 1}`}
                         </button>
                       ))}
+                      {hasDataOutput && chat.response?.data_output?.type === 'tweets' && (
+                        <button
+                          onClick={() => scrollToDataOutput(idx)}
+                          className="rounded-full border border-blue-500/20 bg-blue-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-blue-400 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white cursor-pointer"
+                        >
+                          View Tweets
+                        </button>
+                      )}
                     </div>
                   ) : null}
                 </GradientBorder>

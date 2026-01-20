@@ -8,7 +8,6 @@ export interface IToken {
   localName: string;
   nameOnChain: string;
   native: boolean;
-  divisor: bigint;
   imageUrl: string;
 }
 

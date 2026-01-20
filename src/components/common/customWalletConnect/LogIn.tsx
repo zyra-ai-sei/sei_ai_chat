@@ -1,23 +1,17 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { setGlobalData } from "@/redux/globalData/action";
 import { axiosInstance } from "@/services/axios";
 import { useLogin, usePrivy, useWallets } from "@privy-io/react-auth";
 
 
 const LogIn = () => {
   const { ready, authenticated, getAccessToken } = usePrivy();
-  const globalData = useAppSelector((data) => data.globalData.data);
-  const dispatch = useAppDispatch();
+
   const { wallets } = useWallets();
   const { login } = useLogin({
-    onComplete: async ({ user }) => {
-      // Only call login API if user doesn't already have a token
-      if (globalData?.token) {
-        return;
-      }
+    onComplete: async ({ user, wasAlreadyAuthenticated }) => {
+      if (wasAlreadyAuthenticated) return;
       
       const accessToken = await getAccessToken();
-      const response = await axiosInstance.post("/auth/login", {
+      await axiosInstance.post("/auth/login", {
         userId: user.id,
         embeddedAddress: wallets.find(
           (wallet) => wallet.connectorType == "embedded"
@@ -27,19 +21,17 @@ const LogIn = () => {
         )?.address,
         token: accessToken,
       });
-
-      dispatch(setGlobalData({ ...globalData, token: accessToken || "" }));
-      // Navigate to dashboard, show welcome message, etc.
     },
 
    onError(error) {
        console.log(error)
    },
-
-    
   });
 
   const disableLogin = !ready || (ready && authenticated);
+  
+  if (!ready) return null;
+
   return (
     <button
       onClick={login}

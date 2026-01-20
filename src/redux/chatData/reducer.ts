@@ -114,15 +114,13 @@ const chatDataSlice = createSlice({
       const chatItem = state.chats[action.payload.index];
       if (!chatItem) return;
 
-      const targetResponse = chatItem.response;
-
       if (typeof action.payload.response.chat === "string") {
-        targetResponse.chat = `${targetResponse.chat || ""}${action.payload.response.chat}`;
+        chatItem.response.chat = (chatItem.response.chat || "") + action.payload.response.chat;
       }
 
       if (action.payload.response.tool_outputs?.length) {
-        const existingToolOutputs = targetResponse.tool_outputs || [];
-        targetResponse.tool_outputs = [
+        const existingToolOutputs = chatItem.response.tool_outputs || [];
+        chatItem.response.tool_outputs = [
           ...existingToolOutputs,
           ...action.payload.response.tool_outputs,
         ];
@@ -131,8 +129,8 @@ const chatDataSlice = createSlice({
         chatItem.toolOutputsLoading = false;
 
         // Initialize execution_state if it doesn't exist
-        if (!targetResponse.execution_state) {
-          targetResponse.execution_state = {
+        if (!chatItem.response.execution_state) {
+          chatItem.response.execution_state = {
             isExecuting: false,
             currentIndex: null,
             completedCount: 0,
@@ -144,7 +142,7 @@ const chatDataSlice = createSlice({
 
       // Handle data_output for crypto market data and other visualizations
       if (action.payload.response.data_output !== undefined) {
-        targetResponse.data_output = action.payload.response.data_output;
+        chatItem.response.data_output = action.payload.response.data_output;
       }
     },
     setLoading(

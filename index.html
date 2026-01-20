@@ -17,33 +17,14 @@
 
     <meta charset="UTF-8" />
 
-    <link
-      rel="icon"
-      type="image/svg+xml/x-icon"
-      href="/icon.svg"
-      sizes="32x32"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml/x-icon"
-      href="/icon.svg"
-      sizes="48x48"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml/x-icon"
-      href="/icon.svg"
-      sizes="16x16"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml/x-icon"
-      href="/icon.svg"
-      sizes="24x24"
-    />
+    <link rel="icon" type="image/png" href="/icon.png" sizes="192x192" />
+    <link rel="icon" type="image/png" href="/icon.png" sizes="48x48" />
+    <link rel="icon" type="image/png" href="/icon.png" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Zyra" />
 
     <meta
       name="viewport"
@@ -54,6 +35,22 @@
       name="description"
       content="Zyra is an AI-powered chat application that enables users to interact with an intelligent assistant for seamless crypto transactions and automated trading. Easily manage your crypto assets, execute blockchain transactions, and deploy trading bots—all through a simple chat interface. Experience the future of crypto with AI-driven insights and automation."
     />
+    <link rel="canonical" href="https://zyrachat.app" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zyrachat.app/" />
+    <meta property="og:title" content="Zyra AI | Conversational Crypto Trading & Portfolio Management" />
+    <meta property="og:description" content="AI-powered chat for seamless crypto transactions and automated trading. Manage assets and execute trades through a simple chat interface." />
+    <meta property="og:image" content="https://zyrachat.app/icon.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://zyrachat.app/" />
+    <meta property="twitter:title" content="Zyra AI | Conversational Crypto Trading & Portfolio Management" />
+    <meta property="twitter:description" content="AI-powered chat for seamless crypto transactions and automated trading. Manage assets and execute trades via chat." />
+    <meta property="twitter:image" content="https://zyrachat.app/icon.png" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -71,7 +68,22 @@
       rel="stylesheet"
     />
     <link rel="manifest" href="/manifest.json" />
-    <title>This is a cryto based AI chat application</title>
+    <title>Zyra AI | Conversational Crypto Trading & Portfolio Management</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Zyra AI",
+        "url": "https://zyrachat.app",
+        "description": "AI-powered chat application for crypto transactions and automated trading.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0"
+        }
+      }
+    </script>
   </head>
   <script
     async

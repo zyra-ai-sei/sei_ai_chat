@@ -69,7 +69,7 @@ export const fetchPortfolioBalance = createAsyncThunk<
 
     if (response?.data?.status === 200 && response?.data?.data?.items) {
       const tokens = response.data.data.items;
-      dispatch(setPortfolioData({ tokens, address }));
+      dispatch(setPortfolioData({ tokens, address : address as string }));
 
       if (onSuccessCb) {
         onSuccessCb();
@@ -98,7 +98,7 @@ export const fetchPortfolioBalance = createAsyncThunk<
  */
 export const refreshPortfolioBalance = createAsyncThunk<
   void,
-  FetchPortfolioOptions | void,
+  FetchPortfolioOptions,
   { state: IRootState }
 >("portfolioData/refresh", async (options, { dispatch }) => {
   // Clear existing data first

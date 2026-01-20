@@ -20,25 +20,23 @@ const TransactionHistory = () => {
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | string | null>(null);
   const { address } = useAccount();
-  const globalData = useAppSelector((state) => state.globalData.data);
-
 
   const handleClearChat = async () => {
-    try{
+    try {
       await axiosInstance("llm/clearChat");
-      dispatch(resetChat())
-    } catch(err){
-      console.log('err',err)
+      dispatch(resetChat());
+    } catch (err) {
+      console.log("err", err);
     }
-  }
+  };
 
   const handleRefresh = () => {
-    dispatch(getTransactions()); // Refresh transactions
+    dispatch(getTransactions({ address: address as string })); // Refresh transactions
   };
 
   useEffect(() => {
-    dispatch(getTransactions());
-  }, [address, globalData.token]);
+    dispatch(getTransactions({ address: address as string }));
+  }, [address]);
   return (
     <div className="flex flex-col justify-between flex-shrink-0 gap-4 px-4 pt-4">
       <div className="flex items-center justify-between w-full gap-3">
@@ -53,7 +51,10 @@ const TransactionHistory = () => {
           }`}
         />
       </div>
-      <button onClick={handleClearChat} className="flex items-center justify-center gap-4 p-2 border-2 rounded-full cursor-pointer border-primary-border">
+      <button
+        onClick={handleClearChat}
+        className="flex items-center justify-center gap-4 p-2 border-2 rounded-full cursor-pointer border-primary-border"
+      >
         <img src={newChatIcon} className="size-[20px]" />
         <p className="text-[16px] text-white">New chat</p>
       </button>
@@ -64,7 +65,6 @@ const TransactionHistory = () => {
               <div className="">
                 <h1 className="flex items-center gap-2 text-white">
                   {headerWalletAddressShrinker(transaction.hash)}
-                 
                 </h1>
                 {transaction.timestamp && (
                   <span className="ml-2 text-xs text-gray-400">

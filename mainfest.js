@@ -2,9 +2,9 @@ export const manifestForPlugIn = {
   registerType: "prompt",
   includeAssests: ["favicon.ico", "apple-touc-icon.png", "masked-icon.svg"],
   manifest: {
-    name: "React-vite-app",
-    short_name: "react-vite-app",
-    description: "I am a simple vite app",
+    name: "Zyra-chat-app",
+    short_name: "Zyra-chat-app",
+    description: "Zyra AI | Conversational Crypto Trading & Portfolio Management",
     icons: [
       {
         src: "/pwa/logo192.svg",

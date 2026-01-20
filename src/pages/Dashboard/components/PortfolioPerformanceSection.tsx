@@ -4,6 +4,7 @@ import { PortfolioSummaryItem } from "@/redux/portfolioData/summaryTypes";
 import { CHAIN_NAMES } from "@/redux/portfolioData/types";
 import { formatCurrency, formatPercentage } from "../utils/dashboard.utils";
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { getChainById } from "@/config/chains";
 
 interface PortfolioPerformanceSectionProps {
   summaryData: PortfolioSummaryItem[];
@@ -48,7 +49,8 @@ const PortfolioPerformanceSection = ({
             >
               {summaryData.map((item) => (
                 <option key={item.chainId} value={item.chainId} className="bg-[#1a1d24] text-white">
-                  {CHAIN_ICONS[item.chainId] || "⚪"} {CHAIN_NAMES[item.chainId] || `Chain ${item.chainId}`}
+                  <img src={getChainById(item?.chainId as number)?.logo} className="w-5 h-5"/>
+                {/* {CHAIN_NAMES[item.chainId] || `Chain ${item.chainId}`} */}
                 </option>
               ))}
             </select>

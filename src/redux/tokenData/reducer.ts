@@ -14,7 +14,6 @@ export interface Token {
   localName: string;
   nameOnChain: string;
   native: boolean;
-  divisor: BigInt;
   imageUrl: string;
 }
 

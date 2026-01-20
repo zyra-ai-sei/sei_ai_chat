@@ -6,14 +6,8 @@ import { fetchMarketChartData } from "@/redux/tokenVisualization/action";
 type DataType = "price" | "marketCap";
 type TimePeriod = "24h" | "7d" | "1m" | "3m" | "1y";
 
-const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
+const PriceCard: React.FC<{tokenData:any, chatIndex:number}> = ({tokenData, chatIndex}) => {
   const dispatch = useAppDispatch();
-  const chartLoading = useAppSelector(
-    (state) => state.tokenVisualization.chartLoading
-  );
-  const { currentToken: token } = useAppSelector(
-    (state) => state.tokenVisualization
-  );
   const [dataType, setDataType] = useState<DataType>("price");
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("7d");
 
@@ -37,19 +31,17 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
 
   // Fetch chart data when timeframe changes
   useEffect(() => {
-    if (token?.id) {
+    if (tokenData?.id) {
       dispatch(
-        fetchMarketChartData({ coinId: token?.id, timeframe: timePeriod })
+        fetchMarketChartData({ coinId: tokenData?.id, timeframe: timePeriod })
       );
     }
-  }, [timePeriod, token?.id, dispatch]);
+  }, [timePeriod, tokenData?.id, dispatch]);
 
   // Client-side filtering of chart data based on timeframe
   // This is a fallback when backend API is not available
   const chartData = useMemo(() => {
-    const data = token?.chart?.prices || [];
-
-   
+    const data = tokenData?.chart?.prices || [];
 
     if (data.length === 0) {
       console.warn("[PriceCard] No chart data available!");
@@ -57,7 +49,7 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
     }
 
     // Validate data structure
-    const isValidFormat = data.every((point, idx) => {
+    const isValidFormat = data.every((point:any, idx:number) => {
       const isValid =
         Array.isArray(point) &&
         point.length === 3 &&
@@ -81,7 +73,7 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
     const filteredData = data;
 
     return filteredData;
-  }, [token?.chart?.prices, dataType, timePeriod, token?.chart]);
+  }, [tokenData?.chart?.prices, dataType, timePeriod, tokenData?.chart]);
 
   // Get the latest price from chart data (most recent data point)
   const latestPrice = useMemo(() => {
@@ -89,8 +81,8 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
       const lastPoint = chartData[chartData.length - 1];
       return lastPoint[1]; // [timestamp, price, marketCap] - get price
     }
-    return token?.market.price_usd; // Fallback to token price if no chart data
-  }, [chartData, token?.market.price_usd]);
+    return tokenData?.market.price_usd; // Fallback to tokenData price if no chart data
+  }, [chartData, tokenData?.market.price_usd]);
 
   // Calculate 24h change from chart data
   const price24hChange = useMemo(() => {
@@ -99,8 +91,8 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
       const oldestPrice = chartData[0][1];
       return ((latestPrice - oldestPrice) / oldestPrice) * 100;
     }
-    return token?.market.price_change_24h; // Fallback
-  }, [chartData, token?.market.price_change_24h]);
+    return tokenData?.market.price_change_24h; // Fallback
+  }, [chartData, tokenData?.market.price_change_24h]);
 
   return (
     <div id={`txn-${chatIndex}`} className="relative h-fit rounded-2xl scrollbar-none border border-white/10 bg-gradient-to-br from-[#05060E]/95 via-[#0A0B15]/95 to-[#05060E]/95 p-5 shadow-[0_20px_60px_rgba(5,6,14,0.8)]">
@@ -112,12 +104,12 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
           </p>
           <div className="flex items-center gap-2">
             <img
-              src={token?.image.thumb}
-              alt={token?.name}
+              src={tokenData?.image.thumb}
+              alt={tokenData?.name}
               className="w-6 h-6 rounded-full"
             />
             <span className="text-sm font-semibold text-white/70">
-              {token?.symbol.toUpperCase()}
+              {tokenData?.symbol.toUpperCase()}
             </span>
           </div>
         </div>
@@ -221,7 +213,7 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
                 {dataType === "price" ? "Price (USD)" : "Market Cap (USD)"}
               </span>
             </div>
-            {chartLoading ? (
+            {!tokenData ? (
               <div className="flex items-center justify-center h-full">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-4 rounded-full border-blue-500/30 border-t-blue-500 animate-spin" />
@@ -250,13 +242,13 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
             </p>
             <p
               className={`text-sm font-semibold ${
-                token?.market.price_change_1h! >= 0
+                tokenData?.market.price_change_1h! >= 0
                   ? "text-emerald-400"
                   : "text-rose-400"
               }`}
             >
-              {token?.market.price_change_1h! >= 0 ? "+" : ""}
-              {token?.market.price_change_1h.toFixed(2)}%
+              {tokenData?.market.price_change_1h! >= 0 ? "+" : ""}
+              {tokenData?.market.price_change_1h.toFixed(2)}%
             </p>
           </div>
           <div className="p-3 border rounded-xl bg-white/5 border-white/5">
@@ -265,13 +257,13 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
             </p>
             <p
               className={`text-sm font-semibold ${
-                token?.market.price_change_7d!>= 0
+                tokenData?.market.price_change_7d!>= 0
                   ? "text-emerald-400"
                   : "text-rose-400"
               }`}
             >
-              {token?.market.price_change_7d! >= 0 ? "+" : ""}
-              {token?.market.price_change_7d.toFixed(2)}%
+              {tokenData?.market.price_change_7d! >= 0 ? "+" : ""}
+              {tokenData?.market.price_change_7d.toFixed(2)}%
             </p>
           </div>
           <div className="p-3 border rounded-xl bg-white/5 border-white/5">
@@ -280,13 +272,13 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
             </p>
             <p
               className={`text-sm font-semibold ${
-                token?.market.price_change_30d! >= 0
+                tokenData?.market.price_change_30d! >= 0
                   ? "text-emerald-400"
                   : "text-rose-400"
               }`}
             >
-              {token?.market.price_change_30d! >= 0 ? "+" : ""}
-              {token?.market.price_change_30d.toFixed(2)}%
+              {tokenData?.market.price_change_30d! >= 0 ? "+" : ""}
+              {tokenData?.market.price_change_30d.toFixed(2)}%
             </p>
           </div>
         </div>
@@ -295,13 +287,13 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
           <div>
             <p className="mb-1 text-xs text-white/50">24h High</p>
             <p className="text-sm font-semibold text-white/80">
-              {formatPrice(token?.market.high_24h!)}
+              {formatPrice(tokenData?.market.high_24h!)}
             </p>
           </div>
           <div className="text-right">
             <p className="mb-1 text-xs text-white/50">24h Low</p>
             <p className="text-sm font-semibold text-white/80">
-              {formatPrice(token?.market.low_24h!)}
+              {formatPrice(tokenData?.market.low_24h!)}
             </p>
           </div>
         </div>
@@ -311,24 +303,24 @@ const PriceCard: React.FC<{chatIndex:number}> = ({chatIndex}) => {
             <div>
               <p className="mb-1 text-xs text-white/50">ATH</p>
               <p className="text-sm font-semibold text-white/80">
-                {formatPrice(token?.market.ath_usd!)}
+                {formatPrice(tokenData?.market.ath_usd!)}
               </p>
             </div>
             <div className="text-right">
               <p className="mb-1 text-xs text-white/50">From ATH</p>
               <p
                 className={`text-sm font-semibold ${
-                  token?.market.ath_change_pct! >= 0
+                  tokenData?.market.ath_change_pct! >= 0
                     ? "text-emerald-400"
                     : "text-rose-400"
                 }`}
               >
-                {token?.market.ath_change_pct.toFixed(2)}%
+                {tokenData?.market.ath_change_pct.toFixed(2)}%
               </p>
             </div>
           </div>
           <p className="text-[10px] text-white/40 mt-2">
-            Reached on {formatDate(token?.market.ath_date)}
+            Reached on {formatDate(tokenData?.market.ath_date)}
           </p>
         </div>
       </div>

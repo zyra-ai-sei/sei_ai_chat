@@ -35,7 +35,7 @@ export const fetchPortfolioSummary = createAsyncThunk<
   try {
     // Check if we have cached data
     const state = getState();
-    const { lastUpdated, items, cachedAddress } = state.portfolioSummary;
+    const { lastUpdated, items, cachedAddress } = state.portfolioSummaryData;
     
     // If we have fresh data, same address, and not forcing refresh, skip the API call
     if (
@@ -58,7 +58,7 @@ export const fetchPortfolioSummary = createAsyncThunk<
 
     if (response?.data?.status === 200 && Array.isArray(response?.data?.data?.items)) {
       const items = response.data.data.items;
-      dispatch(setSummaryData({ items, address }));
+      dispatch(setSummaryData({ items, address:address as string }));
 
       if (onSuccessCb) {
         onSuccessCb();
@@ -87,7 +87,7 @@ export const fetchPortfolioSummary = createAsyncThunk<
  */
 export const refreshPortfolioSummary = createAsyncThunk<
   void,
-  FetchSummaryOptions | void,
+  FetchSummaryOptions,
   { state: IRootState }
 >("portfolioData/refreshSummary", async (options, { dispatch }) => {
   // Clear existing data first

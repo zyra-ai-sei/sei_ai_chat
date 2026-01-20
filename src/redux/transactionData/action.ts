@@ -8,11 +8,11 @@ export const { setTransactions, resetTransactions, setLoading, addTransaction } 
 
 export const addTxn = createAsyncThunk<
   void,
-  { txHash: string; network?: string },
+  { txHash: string; network?: string; address: string },
   { state: IRootState }
->("transactionData/addTxn", async ({ txHash, network = "sei" }, { dispatch }) => {
+>("transactionData/addTxn", async ({ txHash, network = "sei", address }, { dispatch }) => {
   try {
-    const result = await axiosInstance.get(`transactions/details?txHash=${txHash}&network=${network}`);
+    const result = await axiosInstance.get(`transactions/details?txHash=${txHash}&network=${network}&address=${address}`);
     const apiData = result?.data;
     if (apiData?.status === 200 && apiData?.data) {
       const cleanedData = {
@@ -39,12 +39,12 @@ export const addTxn = createAsyncThunk<
 
 export const getTransactions = createAsyncThunk<
   void,
-  void,
+  {address:string},
   { state: IRootState }
->("transactionData/getTransactions", async (_, { dispatch }) => {
+>("transactionData/getTransactions", async ({address}, { dispatch }) => {
   try {
     dispatch(setLoading());
-    const result = await axiosInstance.get("user/transactions");
+    const result = await axiosInstance.get(`user/transactions?address=${address}`);
     const apiData = result?.data;
 
     if (apiData?.status === 200 && apiData?.data) {

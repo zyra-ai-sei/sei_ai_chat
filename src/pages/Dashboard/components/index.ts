@@ -11,5 +11,6 @@ export { default as DonutChart } from "./DonutChart";
 export { default as TimePeriodToggle } from "./TimePeriodToggle";
 export { default as PortfolioPerformanceSection } from "./PortfolioPerformanceSection";
 export { default as YieldPerformanceChart } from "./YieldPerformanceChart";
-export { default as ChainPerformanceCard } from "./ChainPerformanceCard";
 export { default as PortfolioOverviewCard } from "./PortfolioOverviewCard";
+export { default as WalletWatcher } from "./WalletWatcher";
+export { default as OrderWatcherCard } from "./OrderWatcherCard";

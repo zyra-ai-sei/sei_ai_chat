@@ -35,8 +35,11 @@ const WalletSwitch = ({ size = "md", showLabel = true, className = "" }: WalletS
     }
   };
 
+  const embeddedWallet = wallets.find((w) => w.connectorType === "embedded");
+  const isEmbedded = !address || address.toLowerCase() === embeddedWallet?.address?.toLowerCase();
+
   const handleToggle = () => {
-    if (address == wallets.find((w) => w.connectorType === "embedded")?.address) {
+    if (isEmbedded) {
       switchToMetaMask();
     } else {
       switchToEmbedded();
@@ -45,16 +48,21 @@ const WalletSwitch = ({ size = "md", showLabel = true, className = "" }: WalletS
 
   // Auto-switch to saved wallet on mount
   useEffect(() => {
-    if (!globalData?.currentWallet || wallets.length === 0) return;
+    // Only run when we have all necessary data and Wagmi has initialized the account address.
+    // This prevents triggering MetaMask/other providers before the session is fully restored.
+    if (!globalData?.currentWallet || wallets.length === 0 || !address) return;
+
+    const currentWalletLower = globalData.currentWallet.toLowerCase();
+    const addressLower = address.toLowerCase();
 
     // Only switch if we're not already on the saved wallet address
-    if (address !== globalData.currentWallet) {
-      const targetWallet = wallets.find((w) => w.address === globalData.currentWallet);
+    if (addressLower !== currentWalletLower) {
+      const targetWallet = wallets.find((w) => w.address.toLowerCase() === currentWalletLower);
       if (targetWallet) {
         setActiveWallet(targetWallet);
       }
     }
-  }, [globalData?.currentWallet, wallets.length]);
+  }, [globalData?.currentWallet, wallets.length, address, setActiveWallet]);
 
   const sizeClasses = {
     sm: {
@@ -75,7 +83,6 @@ const WalletSwitch = ({ size = "md", showLabel = true, className = "" }: WalletS
   };
 
   const sizes = sizeClasses[size];
-  const isEmbedded = address == wallets.find((w) => w.connectorType === "embedded")?.address;
 
   return (
     <button

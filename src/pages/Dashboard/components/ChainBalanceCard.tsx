@@ -3,20 +3,13 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { ChainBalance, CHAIN_NAMES } from "@/redux/portfolioData";
 import { formatCurrency } from "../utils/dashboard.utils";
+import { getChainById } from "@/config/chains";
+import { motion } from "framer-motion";
 
 interface ChainBalanceCardProps {
   chainBalances: ChainBalance[];
   isLoading?: boolean;
 }
-
-// Chain icons/logos - can be replaced with actual chain logos
-const CHAIN_ICONS: Record<number, string> = {
-  1: "🔷", // Ethereum
-  137: "🟣", // Polygon
-  42161: "🔵", // Arbitrum
-  8453: "🔵", // Base
-  1329: "🔴", // SEI
-};
 
 const ChainBalanceCard = ({
   chainBalances,
@@ -52,10 +45,28 @@ const ChainBalanceCard = ({
   }
 
   return (
-    <div className="flex-1 border border-white/30 rounded-2xl p-5 flex  bg-gradient-to-r from-[#7cacf910] via-[#FFFFFF0A] to-[#FFFFFF0A] flex-col justify-between min-h-[168px]">
+    <motion.div
+      custom={2}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0, y: 20 },
+        visible: (i: any) => ({
+          opacity: 1,
+          y: 0,
+          transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
+        }),
+      }}
+      className="rounded-3xl group overflow-hidden bg-zinc-900/40 border flex flex-col gap-4 border-zinc-800 p-6 backdrop-blur-xl"
+    >
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      {" "}
       {/* Header with Dropdown */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-white/60">Chain Balance</p>
+        <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest">
+          Chain Balance
+        </p>
 
         {/* Chain Selector Dropdown */}
         <div className="relative">
@@ -63,7 +74,10 @@ const ChainBalanceCard = ({
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] transition-colors text-sm"
           >
-            <span>{CHAIN_ICONS[selectedChainId] || "⚪"}</span>
+            <img
+              src={getChainById(selectedChainId)?.logo}
+              className="h-4 w-4"
+            />
             <span className="text-white">
               {CHAIN_NAMES[selectedChainId] || `Chain ${selectedChainId}`}
             </span>
@@ -93,9 +107,11 @@ const ChainBalanceCard = ({
                       chain.chainId === selectedChainId ? "bg-white/[0.04]" : ""
                     }`}
                   >
-                    <span className="text-lg">
-                      {CHAIN_ICONS[chain.chainId] || "⚪"}
-                    </span>
+                    <img
+                      src={getChainById(chain.chainId)?.logo}
+                      className="h-4 w-4"
+                    />
+
                     <div className="flex-1">
                       <p className="text-sm font-medium text-white">
                         {chain.chainName}
@@ -114,31 +130,26 @@ const ChainBalanceCard = ({
           )}
         </div>
       </div>
-
       {/* Balance Display */}
       <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[32px] font-semibold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent tracking-tight">
+        <div className="flex flex-col gap-2">
+          <p className="text-[28px] font-semibold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent tracking-tight">
             {nativeToken
               ? `${parseFloat(nativeToken.balance_formatted).toFixed(4)} ${nativeToken.symbol}`
               : "0.00"}
           </p>
-          <p className="mt-1 text-xs text-white/60">
+          <p className="text-zinc-500 text-sm">
             {nativeToken ? formatCurrency(nativeToken.usd_value) : "$0.00"} USD
           </p>
         </div>
 
         <div className="text-xs leading-4 text-right text-white/60">
-          <p>
-            Price:{" "}
-            {nativeToken ? formatCurrency(nativeToken.usd_price) : "$0.00"}
-          </p>
           {nativeToken && nativeToken.usd_price_24hr_percent_change !== 0 && (
             <p
               className={
                 nativeToken.usd_price_24hr_percent_change >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
+                  ? "text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md text-sm"
+                  : "text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded-md text-sm"
               }
             >
               {nativeToken.usd_price_24hr_percent_change >= 0 ? "+" : ""}
@@ -147,7 +158,15 @@ const ChainBalanceCard = ({
           )}
         </div>
       </div>
-    </div>
+      <div className="mt-4 flex justify-between items-center border-t border-zinc-800 pt-4">
+        <p className="font-light tracking-wide text-zinc-500">
+          Current <span className="text-zinc-400">{nativeToken?.symbol}</span> Price:{" "}
+          <span className="text-emerald-400">
+          {nativeToken ? formatCurrency(nativeToken.usd_price) : "$0.00"}
+          </span>
+        </p>
+      </div>
+    </motion.div>
   );
 };
 

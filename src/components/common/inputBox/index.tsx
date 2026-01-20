@@ -7,6 +7,7 @@ import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import NetworkSwitchWarning from "./NetworkSwitchWarning";
 import { SUPPORTED_CHAINS, DEFAULT_CHAIN, isSupportedChainId, getChainById, getChainByIdentifier } from "@/config/chains";
 import WalletSwitch from "../WalletSwitch";
+import { usePrivy } from "@privy-io/react-auth";
 
 const InputBox = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -14,13 +15,14 @@ const InputBox = () => {
   const [selectedChain, setSelectedChain] = useState<string>(DEFAULT_CHAIN.id);
   const dispatch = useAppDispatch();
   const globalData = useAppSelector((state) => state?.globalData?.data);
-  const { token, isNetworkSwitchWarningTriggered } = globalData || {};
+  const { isNetworkSwitchWarningTriggered } = globalData || {};
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const {address} = useAccount()
+  const {authenticated, getAccessToken} = usePrivy()
   // Check if current chainId is in supported chains
   const isSupportedChain = isSupportedChainId(chainId);
-  const isWrongNetwork = Boolean(token && !isSupportedChain);
+  const isWrongNetwork = Boolean(!isSupportedChain);
 
   // Sync selected chain with current chainId
   useEffect(() => {
@@ -39,9 +41,10 @@ const InputBox = () => {
     }
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextareaChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+
     // Check if user has token, if not, show connect wallet modal
-    if (!token) {
+    if (!authenticated) {
       dispatch(setGlobalData({
         ...globalData,
         isConnectButtonClicked: true,
@@ -65,29 +68,13 @@ const InputBox = () => {
   };
 
   const handleSendPromt = async () => {
-    // Check if user has token, if not, show connect wallet modal
-    if (!token) {
-      dispatch(setGlobalData({
-        ...globalData,
-        isConnectButtonClicked: true,
-      }));
-      return;
-    }
-
-    // Check if user is on wrong network
-    if (isWrongNetwork) {
-      dispatch(setGlobalData({
-        ...globalData,
-        isNetworkSwitchWarningTriggered: true,
-      }));
-      return;
-    }
 
     if (prompt.trim() === "") return;
 
+    const token = await getAccessToken();
     // Include chain information in the prompt
     const promptWithChain = `[Chain: ${selectedChain}] ${prompt}`;
-    dispatch(streamChatPrompt({ prompt: promptWithChain, network:getChainById(chainId)?.id, abortSignal: new AbortController().signal, address: address!}));
+    dispatch(streamChatPrompt({ prompt: promptWithChain, network:getChainById(chainId)?.id, abortSignal: new AbortController().signal, address: address!, token: token!}));
     setPrompt("");
     if (textareaRef.current) {
       textareaRef.current.value = "";
@@ -104,12 +91,7 @@ const InputBox = () => {
 
   const handleFocus = () => {
     // Check if user has token, if not, show connect wallet modal
-    if (!token) {
-      // Just open the modal and keep it open
-      dispatch(setGlobalData({
-        ...globalData,
-        isConnectButtonClicked: true,
-      }));
+    if (!authenticated) {
 
       // Blur the textarea to prevent typing
       if (textareaRef.current) {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useAccount, useChainId } from "wagmi";
 import { getChainById } from "@/config/chains";
+import { getAccessToken } from "@privy-io/react-auth";
 
 // --- 1. Reusable UI Helpers (Inputs/Selects) ---
 const Input = ({ placeholder, value, onChange, type = "text" }: any) => (
@@ -258,6 +259,23 @@ const MarketForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   );
 };
 
+const TwitterForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
+  return (
+    <div className="flex flex-col w-full gap-2">
+      <p className="text-[10px] text-gray-400 text-center mb-1">Stay updated with the latest crypto trends and news from X (Twitter).</p>
+      <button
+        onClick={() => onCommit("give me latest twitter posts related to crypto")}
+        className="mt-1 w-full py-2.5 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z" />
+        </svg>
+        Fetch Crypto X Feed
+      </button>
+    </div>
+  );
+};
+
 const ExecuteStrategiesForm = ({
   onCommit,
   tokens,
@@ -476,6 +494,7 @@ const ActionCard = ({
           <SimulateForm onCommit={onAction} tokens={tokens} />
         )}
         {type === "market" && <MarketForm onCommit={onAction} />}
+        {type === "twitter" && <TwitterForm onCommit={onAction} />}
         {type === "strategies" && (
           <ExecuteStrategiesForm onCommit={onAction} tokens={tokens} />
         )}
@@ -494,10 +513,12 @@ const QuickActionsGrid = () => {
   const tokenList = useAppSelector(selectTokensByChain(chainId));
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const handleAction = (resultString: string) => {
+  const handleAction =async (resultString: string) => {
     // TODO: Connect this to your chat input state
     // setInput(resultString);
-    dispatch(streamChatPrompt({ prompt: resultString, address:address!, network: network?.id }));
+        const token = await getAccessToken();
+
+    dispatch(streamChatPrompt({ prompt: resultString, address:address!, network: network?.id, abortSignal: new AbortController().signal, token:token! }));
   };
 
   const actions = [
@@ -578,6 +599,20 @@ const QuickActionsGrid = () => {
             strokeWidth={2}
             d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
           />
+        </svg>
+      ),
+    },
+    {
+      type: "twitter",
+      title: "Twitter Insights",
+      desc: "Get the latest crypto trends and top posts from X.",
+      icon: (
+        <svg
+          className="w-6 h-6 text-blue-400"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z" />
         </svg>
       ),
     },

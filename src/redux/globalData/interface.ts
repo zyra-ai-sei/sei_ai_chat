@@ -5,7 +5,6 @@ export interface IGlobalData {
   smartAccountAddress: string;
   eoaAddress: string;
   isOtpSent: boolean;
-  token: string;
   isEoaEnabled: boolean;
   isTokenExpired: boolean;
   chainIdSelected: number;

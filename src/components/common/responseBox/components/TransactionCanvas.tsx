@@ -223,7 +223,7 @@ const TransactionCanvas = ({
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: txn.metadata?.network })
+                    addTxn({ txHash: data, network: txn.metadata?.network,address:address as string })
                   );
                  
                   // Update message state for this execution
@@ -298,7 +298,7 @@ const TransactionCanvas = ({
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: txn.metadata?.network })
+                    addTxn({ txHash: data, network: txn.metadata?.network, address:address as string })
                   );
                 
                   // Update message state for this execution
@@ -401,7 +401,7 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn({ txHash: data, network: txn.metadata?.network }));
+            dispatch(addTxn({ txHash: data, network: txn.metadata?.network , address:address as string}));
            
             // Update message state for this execution
             if (txn.executionId) {
@@ -458,7 +458,7 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn({ txHash: data, network: txn.metadata?.network }));
+            dispatch(addTxn({ txHash: data, network: txn.metadata?.network , address:address as string}));
           
             // Update message state for this execution
             if (txn.executionId) {
@@ -691,7 +691,7 @@ const TransactionCanvas = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto mb-4 animate-fade-in-up">
+    <div className="w-full max-w-4xl mx-auto animate-fade-in-up">
       <div className="relative group rounded-xl bg-[#0d0d10] border border-white/5 p-[1px] shadow-xl">
         <div className="absolute -top-[1px] left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="px-4 py-3">
