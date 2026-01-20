@@ -55,34 +55,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     build: {
-      sourcemap:false,
-      rollupOptions: {
-        output: {
-           manualChunks(id) {
-            if (id.includes('node_modules')) {
-              // 1. Group React core together - this is the most important group
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                return 'vendor-framework';
-              }
-              // 2. Group UI library
-              if (id.includes('antd') || id.includes('@ant-design')) {
-                return 'vendor-ui';
-              }
-              // 3. Group Web3/Auth logic
-              if (id.includes('ethers') || id.includes('viem') || id.includes('wagmi') || id.includes('@privy-io')) {
-                return 'vendor-web3-auth';
-              }
-              // 4. Group Animation
-              if (id.includes('framer-motion')) {
-                return 'vendor-animation';
-              }
-              // 5. Everything else
-              return 'vendor-libs';
-            }
-          },
-        },
-      },
-      chunkSizeWarningLimit:1500
+      sourcemap: false,
     },
     define: {
       "process.env.SOME_KEY": JSON.stringify(env.SOME_KEY),

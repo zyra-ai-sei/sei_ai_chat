@@ -1,20 +1,19 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import PageNotFound from "./pages/pageNotFound";
+import Chat from "./pages/chat";
 import DefaultLayout from "./layouts/defaultLayout";
 import { useAppDispatch, useAppSelector } from "./hooks/useRedux";
-import React, { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 
 import { useAccount, useDisconnect } from "wagmi";
 
 import useScreenWidth from "./hooks/useScreenWidth";
 import { setGlobalData } from "./redux/globalData/action";
 
+import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
-
-const Home = React.lazy(() => import("./pages/home"));
-const Chat = React.lazy(() => import("./pages/chat"));
-const Transactions = React.lazy(() => import("./pages/Transactions"));
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+import Transactions from "./pages/Transactions";
+import Dashboard from "./pages/Dashboard";
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -62,18 +61,11 @@ function RouterConfig() {
 
   return (
     <Router>
-      <Suspense
-        fallback={
-          <div className="h-screen bg-[#0B0F1A] flex items-center justify-center text-white">
-            <div className="w-12 h-12 border-2 border-white/20 border-t-[#2AF598] rounded-full animate-spin" />
-          </div>
-        }
-      >
-        <Routes>
-          <Route
-            path="/"
-            element={<DefaultLayout MainContentComponent={Home} />}
-          />
+      <Routes>
+        <Route
+          path="/"
+          element={<DefaultLayout MainContentComponent={Home} />}
+        />
           <Route
             path="/chat"
             element={
@@ -105,11 +97,8 @@ function RouterConfig() {
             }
           />
 
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </Suspense>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
     </Router>
   );
-}
-
-export default RouterConfig;
+}export default RouterConfig;
