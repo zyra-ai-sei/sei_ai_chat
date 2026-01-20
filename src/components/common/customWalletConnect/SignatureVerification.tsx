@@ -1,17 +1,13 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { setGlobalData } from "@/redux/globalData/action";
-import { axiosInstance } from "@/services/axios";
+
 import { useEffect, useState } from "react";
-import { useAccount, useSignMessage } from "wagmi";
+
 import { usePrivy } from "@privy-io/react-auth";
 
 const SignatureVerificationPopup = () => {
   const { authenticated } = usePrivy();
-  const { signMessageAsync } = useSignMessage();
-  const { address } = useAccount();
-  const dispatch = useAppDispatch();
+
+
   const [pending, setPending] = useState(false);
-  const globalData = useAppSelector((state) => state.globalData.data);
 
   const handleVerification = async () => {
     try {

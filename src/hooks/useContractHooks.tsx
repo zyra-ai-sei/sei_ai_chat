@@ -16,7 +16,6 @@ import {
 } from "wagmi";
 import { FixTypeLater } from "../interface/common.interface";
 import TransactionContext from "../components/common/Transaction/TransactionContext";
-import * as Sentry from "@sentry/react";
 
 /**
  * send a new transaction
@@ -238,7 +237,6 @@ export function useContractCall(
 
   if (error) {
     console.error(error.message);
-    Sentry.captureException(error);
     return undefined;
   }
   return data;
@@ -368,7 +366,6 @@ export const useApprove = (
         .catch((e: FixTypeLater) => {
           console.error(e);
           onFailure();
-          Sentry.captureException(e);
           resolve(false);
         });
     });

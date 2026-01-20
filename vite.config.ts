@@ -2,7 +2,6 @@ import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
 import { join } from "path";
 import { defineConfig, loadEnv } from "vite";
-
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 const manifestForPlugIn = {
   registerType: "autoUpdate",
@@ -55,6 +54,27 @@ const manifestForPlugIn = {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+               // Group common heavy libraries
+              if (id.includes('antd')) return 'vendor-antd';
+              if (id.includes('ethers') || id.includes('viem') || id.includes('wagmi')) return 'vendor-web3';
+              if (id.includes('@privy-io')) return 'vendor-auth';
+              if (id.includes('framer-motion')) return 'vendor-animation';
+              if (id.includes('lodash') || id.includes('moment')) return 'vendor-utils';
+              if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-framework';
+              
+              // Move everything else in node_modules to a shared file
+              return 'vendor-core';
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit:1500
+    },
     define: {
       "process.env.SOME_KEY": JSON.stringify(env.SOME_KEY),
     },
@@ -69,7 +89,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": join(__dirname, "./src"),
-        "@assets": join(__dirname, ".src/assets"),
+        "@assets": join(__dirname, "src/assets"),
         "@components": join(__dirname, "src/components"),
         contract: join(__dirname, "src/contract"),
         components: join(__dirname, "src/components"),

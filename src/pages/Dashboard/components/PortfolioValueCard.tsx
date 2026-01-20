@@ -1,6 +1,5 @@
 // PortfolioValueCard - Displays total portfolio value with performance score
-import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import StatCard from "./StatCard";
+import { Wallet } from "lucide-react";
 import { PortfolioStats } from "../types/dashboard.types";
 import { formatCurrency, formatPercentage } from "../utils/dashboard.utils";
 import { motion } from "framer-motion";

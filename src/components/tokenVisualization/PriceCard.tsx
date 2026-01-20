@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import PriceChart from "./PriceChart";
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { useAppDispatch } from "@/hooks/useRedux";
 import { fetchMarketChartData } from "@/redux/tokenVisualization/action";
 
 type DataType = "price" | "marketCap";

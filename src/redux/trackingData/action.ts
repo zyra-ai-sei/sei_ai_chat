@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "@/services/axios";
-import { selectSubscribedAddresses } from "./reducer";
 
 export interface TokenTransfer {
   _id: string;
@@ -36,7 +35,7 @@ export const subscribeToAddress = createAsyncThunk(
 
 export const getSubscribedAddresses = createAsyncThunk(
   "tracking/subscribes",
-  async (userId: string) => {
+  async () => {
     try {
       const response = await axiosInstance.get("/tracking/addresses");
       const addresses = response?.data?.data?.items;

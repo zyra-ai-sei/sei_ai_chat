@@ -31,7 +31,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { axiosInstance } from "@/services/axios";
 import AddressSummary from "./AddressSummary";
-import { formatUnits } from "ethers";
 import { getChainByIdentifier } from "@/config/chains";
 import { getTokensByChainId } from "@/constants/token";
 import Pagination from "@/components/common/Pagination";
@@ -182,7 +181,7 @@ const WalletWatcher = () => {
   };
 
   useEffect(() => {
-    dispatch(getSubscribedAddresses(user?.id as string));
+    dispatch(getSubscribedAddresses());
   }, []);
 
   useEffect(() => {

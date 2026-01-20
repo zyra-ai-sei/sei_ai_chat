@@ -1,7 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Copy, CheckCircle2, Loader2, Sparkles, TrendingUp, Target, BrainCircuit, Info, Zap, ShieldCheck } from "lucide-react";
+import { Loader2, TrendingUp, BrainCircuit, Info, Zap, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AddressSummaryProps {
@@ -10,14 +10,7 @@ interface AddressSummaryProps {
   isLoading: boolean;
 }
 
-const AddressSummary: React.FC<AddressSummaryProps> = ({ address, summary, isLoading }) => {
-  const [copied, setCopied] = React.useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+const AddressSummary: React.FC<AddressSummaryProps> = ({ summary, isLoading }) => {
 
   if (isLoading) {
     return (

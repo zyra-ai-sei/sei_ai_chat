@@ -23,14 +23,6 @@ const PortfolioPerformanceSection = ({
     (item) => item.chainId === selectedChainId
   );
 
-  const CHAIN_ICONS: Record<number, string> = {
-    1: "🔷", // Ethereum
-    137: "🟣", // Polygon
-    42161: "🔵", // Arbitrum
-    8453: "🔵", // Base
-    1329: "🔴", // SEI
-  };
-
   const isPositive = selectedChainData && Number(selectedChainData.total_realized_profit_usd) >= 0;
 
   return (

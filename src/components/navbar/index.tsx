@@ -41,7 +41,7 @@ const Navbar = () => {
   const transactions = useAppSelector(
     (state) => state?.transactionData?.transactions,
   );
-  const { authenticated, user, ready } = usePrivy();
+  const { authenticated, ready } = usePrivy();
   const {
     isConnected,
     address: wagmiAddress,

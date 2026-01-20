@@ -1,4 +1,3 @@
-import "../components/icons/index.scss";
 import WebThreeProvider from "@/hooks/useWeb3Context";
 import TransactionContextProvider from "@/components/common/Transaction/TransactionContextProvider";
 import AlertProvider from "@/hooks/useAlert";

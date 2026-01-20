@@ -70,7 +70,7 @@ export const ORACLE_PRECOMPILE_ABI = [
 ] as const;
 
 const Assets = () => {
-  const { address, chain } = useAccount();
+  const { address } = useAccount();
   const chainId = useChainId();
   // Get tokens for the current chain from Redux
   const TokenList = useAppSelector(selectTokensByChain(chainId));

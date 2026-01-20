@@ -1,5 +1,5 @@
 // PortfolioOverviewCard - Displays key portfolio metrics and chain distribution
-import { Wallet, TrendingUp, TrendingDown, PieChart } from "lucide-react";
+import { TrendingUp, TrendingDown, PieChart } from "lucide-react";
 import { formatCurrency, formatPercentage } from "../utils/dashboard.utils";
 import { ChainBalance } from "@/redux/portfolioData/types";
 import { motion } from "framer-motion";
@@ -20,13 +20,6 @@ const PortfolioOverviewCard = ({
   chainBalances,
   totalChains,
 }: PortfolioOverviewCardProps) => {
-  // Find the chain with highest balance
-  const topChain =
-    chainBalances.length > 0
-      ? chainBalances.reduce((prev, current) =>
-          prev.totalUsdValue > current.totalUsdValue ? prev : current
-        )
-      : null;
   return (
     <motion.div
       custom={3}
@@ -114,19 +107,11 @@ const PortfolioOverviewCard = ({
 
           {/* Legend */}
           <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {chainBalances.map((chain, index) => {
+            {chainBalances.map((chain) => {
               const percentage =
                 totalBalance > 0
                   ? (chain.totalUsdValue / totalBalance) * 100
                   : 0;
-
-              const dotColors = [
-                "bg-blue-500",
-                "bg-purple-500",
-                "bg-emerald-500",
-                "bg-amber-500",
-                "bg-rose-500",
-              ];
 
               return (
                 <div key={chain.chainId} className="flex items-center gap-1.5">

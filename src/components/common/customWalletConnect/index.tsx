@@ -4,7 +4,6 @@ import okxIcon from "@/assets/walletPopup/okx.png";
 import metamaskIcon from "@/assets/walletPopup/metamask.png";
 import coinbaseIcon from "@/assets/walletPopup/coinbase.png";
 import walletconnectIcon from "@/assets/walletPopup/walletconnect.png";
-import SignatureVerification from "./SignatureVerification";
 
 const WalletConnectModal = () => {
   const [_, setIsSignatureVerificationOpen] =

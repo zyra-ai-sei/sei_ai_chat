@@ -1,9 +1,8 @@
-import React from "react";
 import { motion } from "framer-motion";
-import { Wallet, Activity, Zap, PieChart, ChevronDown } from "lucide-react";
+import { Wallet, Activity, PieChart, ChevronDown } from "lucide-react";
 
 const DashboardHeader = () => {
-  const cardVariants = {
+  const cardVariants:any = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: any) => ({
       opacity: 1,

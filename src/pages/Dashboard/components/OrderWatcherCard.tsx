@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ClipboardList, 
@@ -8,11 +8,9 @@ import {
   ArrowRight,
   Loader2,
   TrendingUp,
-  AlertCircle,
   XCircle,
   RefreshCw,
   Search,
-  Filter
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import { getOrders } from "@/redux/orderData/action";

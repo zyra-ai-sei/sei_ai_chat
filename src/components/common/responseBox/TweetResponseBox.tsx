@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Repeat2, Heart, Share, ExternalLink, BarChart2, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageCircle, Repeat2, Heart, ExternalLink, BarChart2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TweetAuthor {

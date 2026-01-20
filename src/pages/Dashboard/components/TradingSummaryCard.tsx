@@ -1,7 +1,6 @@
 import { useAppSelector } from "@/hooks/useRedux";
 import {
   selectSummaryError,
-  selectSummaryItems,
   selectSummaryLoading,
   selectSummaryStats,
 } from "@/redux/portfolioData";

@@ -1,17 +1,14 @@
 import Navbar from "@/components/navbar";
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { resetGlobalData } from "@/redux/globalData/action";
 import { setTokenFetcher } from "@/services/axios";
-import { useLogout, usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { useEffect } from "react";
-import { useDisconnect } from "wagmi";
 
 const DefaultAppLayout = ({
   MainContentComponent,
 }: {
   MainContentComponent: any;
 }) => {
-    const { getAccessToken, logout, user } = usePrivy();
+    const { getAccessToken } = usePrivy();
 
   useEffect(() => {
     // 1. Set the dynamic token fetcher for Axios

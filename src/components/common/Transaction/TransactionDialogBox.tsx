@@ -3,7 +3,7 @@ import "./index.scss";
 import { useState, useEffect, useMemo } from "react";
 import CrossIcon from "../../../assets/popup/cross.svg?react";
 import ViewOnEtherscan from "../ViewOnEtherscan";
-import { Modal } from "antd";
+import { Modal } from "antd/";
 import { FixTypeLater } from "react-redux";
 import { useWeb3Context } from "../../../hooks/useWeb3Context";
 import ConditionDisplay from "../conditionDisplay";

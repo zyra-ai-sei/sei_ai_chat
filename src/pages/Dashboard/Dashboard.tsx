@@ -8,7 +8,6 @@ import {
   AssetAllocationSection,
   PortfolioPerformanceSection,
   YieldPerformanceChart,
-  StatCard,
   WalletWatcher,
   OrderWatcherCard,
 } from "./components";
@@ -27,9 +26,6 @@ import {
   selectDefiError,
   selectDefiChainIds,
   fetchPortfolioSummary,
-  selectSummaryStats,
-  selectSummaryLoading,
-  selectSummaryError,
   selectSummaryItems,
 } from "@/redux/portfolioData";
 
@@ -57,10 +53,6 @@ const Dashboard = () => {
   const defiError = useAppSelector(selectDefiError);
   const defiChainIds = useAppSelector(selectDefiChainIds);
 
-  // Summary data from Redux
-  const summaryStats = useAppSelector(selectSummaryStats);
-  const summaryLoading = useAppSelector(selectSummaryLoading);
-  const summaryError = useAppSelector(selectSummaryError);
   const summaryItems = useAppSelector(selectSummaryItems);
 
   // Chain selection state for DeFi sections
