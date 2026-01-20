@@ -58,18 +58,26 @@ export default defineConfig(({ mode }) => {
       sourcemap:false,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes("node_modules")) {
-               // Group common heavy libraries
-              if (id.includes('antd')) return 'vendor-antd';
-              if (id.includes('ethers') || id.includes('viem') || id.includes('wagmi')) return 'vendor-web3';
-              if (id.includes('@privy-io')) return 'vendor-auth';
-              if (id.includes('framer-motion')) return 'vendor-animation';
-              if (id.includes('lodash') || id.includes('moment')) return 'vendor-utils';
-              if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-framework';
-              
-              // Move everything else in node_modules to a shared file
-              return 'vendor-core';
+           manualChunks(id) {
+            if (id.includes('node_modules')) {
+              // 1. Group React core together - this is the most important group
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'vendor-framework';
+              }
+              // 2. Group UI library
+              if (id.includes('antd') || id.includes('@ant-design')) {
+                return 'vendor-ui';
+              }
+              // 3. Group Web3/Auth logic
+              if (id.includes('ethers') || id.includes('viem') || id.includes('wagmi') || id.includes('@privy-io')) {
+                return 'vendor-web3-auth';
+              }
+              // 4. Group Animation
+              if (id.includes('framer-motion')) {
+                return 'vendor-animation';
+              }
+              // 5. Everything else
+              return 'vendor-libs';
             }
           },
         },
