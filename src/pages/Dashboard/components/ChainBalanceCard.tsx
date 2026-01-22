@@ -57,7 +57,7 @@ const ChainBalanceCard = ({
           transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
         }),
       }}
-      className="rounded-3xl group overflow-hidden bg-zinc-900/40 border flex flex-col gap-4 border-zinc-800 p-6 backdrop-blur-xl"
+      className="rounded-3xl z-50 group bg-zinc-900/40 border flex flex-col gap-4 border-zinc-800 p-6 backdrop-blur-xl"
     >
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -93,12 +93,13 @@ const ChainBalanceCard = ({
             <>
               {/* Backdrop */}
               <div
-                className="fixed inset-0 z-10"
+              style={{zIndex:999}}
+                className="fixed inset-0 z-50"
                 onClick={() => setIsDropdownOpen(false)}
               />
 
               {/* Dropdown List */}
-              <div className="absolute right-0 top-full mt-1 z-20 min-w-[180px] bg-[#0f1218] border border-white/20 rounded-xl overflow-hidden shadow-xl">
+              <div style={{zIndex:999}} className="absolute  right-0 top-full mt-1 min-w-[180px] scrollbar-none overflow-scroll bg-[#0f1218] border border-white/20 rounded-xl shadow-xl">
                 {chainBalances.map((chain) => (
                   <button
                     key={chain.chainId}

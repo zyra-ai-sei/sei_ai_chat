@@ -5,11 +5,17 @@ import {
   unsubscribeFromAddress,
   TokenTransfer,
   getSubscribedAddresses,
+  updateSubscribe,
 } from "./action";
+
+export interface SubscribedAddress {
+  address: string;
+  chains: string[];
+}
 
 interface TrackingState {
   transfers: TokenTransfer[];
-  subscribedAddresses: string[]; // Keep track of what we are watching
+  subscribedAddresses: SubscribedAddress[]; // Keep track of what we are watching
   loading: boolean;
   error: string | null;
   subscribing: boolean;
@@ -31,9 +37,9 @@ const trackingSlice = createSlice({
       // Add new transfer to the top
       state.transfers.unshift(action.payload);
     },
-    setSubscribedAddresses: (state, action: PayloadAction<string[]>) => {
-        state.subscribedAddresses = action.payload;
-    }
+    setSubscribedAddresses: (state, action: PayloadAction<SubscribedAddress[]>) => {
+      state.subscribedAddresses = action.payload;
+    },
   },
   extraReducers: (builder) => {
     // Fetch History
@@ -79,10 +85,15 @@ const trackingSlice = createSlice({
     builder.addCase(subscribeToAddress.fulfilled, (state, action) => {
       state.subscribing = false;
       // Assuming we want to add the address to our local list
-      // The action.meta.arg contains the address passed to the thunk
-      const address = action.meta.arg;
-      if (!state.subscribedAddresses.includes(address)) {
-        state.subscribedAddresses.push(address);
+      // The action.meta.arg contains the address and chains passed to the thunk
+      const { address, chains } = action.meta.arg;
+      if (!state.subscribedAddresses.find(item => item.address === address)) {
+        state.subscribedAddresses.push({ address, chains });
+      } else {
+        // Update chains if already exists
+        state.subscribedAddresses = state.subscribedAddresses.map(item => 
+          item.address === address ? { ...item, chains } : item
+        );
       }
     });
     builder.addCase(subscribeToAddress.rejected, (state, action) => {
@@ -90,10 +101,18 @@ const trackingSlice = createSlice({
       state.error = action.payload as string;
     });
 
+    // Update Subscribe
+    builder.addCase(updateSubscribe.fulfilled, (state, action) => {
+      const { address, chains } = action.payload;
+      state.subscribedAddresses = state.subscribedAddresses.map((item) =>
+        item.address === address ? { ...item, chains } : item
+      );
+    });
+
     // Unsubscribe
     builder.addCase(unsubscribeFromAddress.fulfilled, (state, action) => {
       const address = action.meta.arg;
-      state.subscribedAddresses = state.subscribedAddresses.filter(a => a !== address);
+      state.subscribedAddresses = state.subscribedAddresses.filter(item => item.address !== address);
     });
   },
 });

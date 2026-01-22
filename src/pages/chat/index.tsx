@@ -4,10 +4,34 @@ import { useEffect, useRef, useState } from "react";
 import ChatBox from "@/components/chat/chatBox";
 import TransactionResponseBox from "@/components/common/responseBox/TransactionResponseBox";
 import { TransactionNavigationProvider } from "@/contexts/TransactionNavigationContext";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { useAccount, useChainId } from "wagmi";
+import { getChainById } from "@/config/chains";
+import { getChatHistory, setHistoryLoading } from "@/redux/chatData/action";
+import iconSvg from "@/assets/icon.svg";
 
 function Chat() {
-  // Select only token to avoid re-renders when other globalData properties change
+  const historyLoading = useAppSelector((state) => state.chatData.historyLoading);
+  const chats = useAppSelector((state) => state.chatData.chats);
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const network = getChainById(chainId);
+  const dispatch = useAppDispatch();
 
+  useEffect(() => {
+    if (address) {
+      dispatch(getChatHistory({ address: address!, network: network?.id }));
+    } else {
+      // If no address is found after initial mount, we shouldn't show the history loader
+      // typically address will be available if user is already logged in
+      const timeout = setTimeout(() => {
+        if (!address) {
+          dispatch(setHistoryLoading(false));
+        }
+      }, 5000); // 5 second grace period for wagmi/privy to init
+      return () => clearTimeout(timeout);
+    }
+  }, [address, chainId, dispatch]);
 
   const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
   const [isDragging, setIsDragging] = useState(false);
@@ -53,7 +77,27 @@ function Chat() {
     };
   }, [isDragging]);
 
-
+  if (historyLoading && chats.length === 0) {
+    return (
+      <div className="flex flex-col w-screen h-[calc(100vh-68px)] items-center justify-center bg-[#0a0d14] relative">
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(56, 189, 248, 0.4) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div className="relative flex flex-col items-center gap-4">
+          <div className="relative flex items-center justify-center">
+            <div className="w-12 h-12 border-2 border-white/20 border-t-[#2AF598] rounded-full animate-spin" />
+            <img src={iconSvg} alt="Zyra" className="absolute w-6 h-6" />
+          </div>
+          <span className="text-sm text-white/60">Loading history...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TransactionNavigationProvider>

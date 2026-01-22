@@ -32,6 +32,7 @@ export const formatLLMResponse = (message: any, handleHumanMessage?: any) => {
     };
   if (type == LLMResponseEnum.TOOLMESSAGE && message["tool_output"]) {
     // Process tool_output to map executionStatus to status
+    console.log('tool_output',tool_output)
     const processedToolOutput = tool_output.map((tool: any) => ({
       ...tool,
       status: mapExecutionStatus(tool.executionStatus),

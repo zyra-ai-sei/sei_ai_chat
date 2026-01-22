@@ -9,6 +9,7 @@ import {
 import {
   subscribeToAddress,
   unsubscribeFromAddress,
+  updateSubscribe,
   fetchTransferHistory,
   TokenTransfer,
   getSubscribedAddresses,
@@ -19,6 +20,8 @@ import {
   Loader2,
   Plus,
   Trash2,
+  Edit3,
+  Check,
   Activity,
   Search,
   X,
@@ -36,6 +39,7 @@ import { getTokensByChainId } from "@/constants/token";
 import Pagination from "@/components/common/Pagination";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const AVAILABLE_CHAINS = ["base", "arbitrum", "polygon", "ethereum", "sei"];
 
 const WalletWatcher = () => {
   const dispatch = useAppDispatch();
@@ -43,8 +47,8 @@ const WalletWatcher = () => {
   const transfers = useAppSelector(selectTransfers);
   const subscribedAddresses = useAppSelector(selectSubscribedAddresses);
   const subscribing = useAppSelector(selectSubscribing);
-
   const [inputAddress, setInputAddress] = useState("");
+  const [selectedChains, setSelectedChains] = useState<string[]>(["sei"]);
   const [activeTab, setActiveTab] = useState<"ALL" | "INCOMING" | "OUTGOING">(
     "ALL"
   );
@@ -54,6 +58,8 @@ const WalletWatcher = () => {
     string | null
   >(null);
   const [isAddingTarget, setIsAddingTarget] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<string | null>(null);
+  const [editingChains, setEditingChains] = useState<string[]>([]);
   const [summaryCache, setSummaryCache] = useState<Map<string, string>>(
     new Map()
   );
@@ -94,17 +100,42 @@ const WalletWatcher = () => {
   }, [dispatch]);
 
   const handleSubscribe = async () => {
-    if (!inputAddress) return;
-    // @ts-ignore
-    if (subscribedAddresses.includes(inputAddress)) {
+    if (!inputAddress || selectedChains.length === 0) return;
+    
+    if (subscribedAddresses.find((item:any) => item.address === inputAddress)) {
       setInputAddress("");
       setIsAddingTarget(false);
       return;
     }
 
-    await dispatch(subscribeToAddress(inputAddress));
+    await dispatch(subscribeToAddress({ address: inputAddress, chains: selectedChains }));
     setInputAddress("");
+    setSelectedChains(["sei"]);
     setIsAddingTarget(false);
+  };
+
+  const handleUpdateSubscribe = async (address: string) => {
+    if (editingChains.length === 0) return;
+    await dispatch(updateSubscribe({ address, chains: editingChains }));
+    setEditingTarget(null);
+    setEditingChains([]);
+  };
+
+  const startEditing = (item: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (editingTarget === item.address) {
+      setEditingTarget(null);
+      setEditingChains([]);
+    } else {
+      setEditingTarget(item.address);
+      setEditingChains(item.chains || []);
+    }
+  };
+
+  const toggleEditingChain = (chain: string) => {
+    setEditingChains((prev) =>
+      prev.includes(chain) ? prev.filter((c) => c !== chain) : [...prev, chain]
+    );
   };
 
   const handleUnsubscribe = async (address: string, e: React.MouseEvent) => {
@@ -186,7 +217,7 @@ const WalletWatcher = () => {
 
   useEffect(() => {
     if (subscribedAddresses.length > 0 && !selectedTargetFilter) {
-      handleAddressClick(subscribedAddresses[0]);
+      handleAddressClick(subscribedAddresses[0].address);
     }
   }, [subscribedAddresses, selectedTargetFilter]);
 
@@ -195,7 +226,7 @@ const WalletWatcher = () => {
   }, [activeTab]);
 
   return (
-    <div className="relative w-full overflow-hidden border shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] rounded-3xl border-blue-500/20 bg-[#05060E]">
+    <div className="relative w-full border shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] rounded-3xl border-blue-500/20 bg-[#05060E]">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
@@ -293,9 +324,34 @@ const WalletWatcher = () => {
                       placeholder="0x..."
                       className="w-full px-3 py-2 text-xs text-white border rounded-lg bg-white/5 border-white/10 focus:border-blue-500/50 focus:outline-none"
                     />
+
+                    <div className="flex flex-wrap gap-1.5 py-1">
+                      {AVAILABLE_CHAINS.map((chain) => (
+                        <button
+                          key={chain}
+                          type="button"
+                          onClick={() => {
+                            setSelectedChains((prev) =>
+                              prev.includes(chain)
+                                ? prev.filter((c) => c !== chain)
+                                : [...prev, chain]
+                            );
+                          }}
+                          className={cn(
+                            "px-2 py-1 text-[9px] rounded-md border transition-all uppercase font-bold tracking-tighter",
+                            selectedChains.includes(chain)
+                              ? "bg-blue-500/20 border-blue-500/40 text-blue-400"
+                              : "bg-white/5 border-white/10 text-white/40 hover:text-white/60"
+                          )}
+                        >
+                          {chain}
+                        </button>
+                      ))}
+                    </div>
+
                     <button
                       onClick={handleSubscribe}
-                      disabled={subscribing || !inputAddress}
+                      disabled={subscribing || !inputAddress || selectedChains.length === 0}
                       className="w-full py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-500 disabled:opacity-50"
                     >
                       {subscribing ? (
@@ -311,42 +367,101 @@ const WalletWatcher = () => {
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2 max-h-[400px] lg:max-h-none">
-            {subscribedAddresses.map((addr: string) => (
-              <motion.div
-                key={addr}
-                layout
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <button
-                  onClick={() => handleAddressClick(addr)}
-                  className={cn(
-                    "group relative w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                    selectedTargetFilter === addr
-                      ? "bg-blue-500/10 border-blue-500/50"
-                      : "bg-white/5 border-transparent hover:bg-white/10 hover:border-white/10"
-                  )}
+            {subscribedAddresses.length > 0 &&
+              subscribedAddresses?.map((item: any) => (
+                <motion.div
+                  key={item.address}
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-300 font-mono text-[10px]">
-                    {addr.slice(2, 4)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-mono text-xs font-medium text-white truncate">
-                      {addr}
-                    </p>
-                    <p className="text-[10px] text-white/40">Watching</p>
-                  </div>
-                  <div
-                    onClick={(e) => handleUnsubscribe(addr, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all"
+                  <button
+                    onClick={() => handleAddressClick(item.address)}
+                    className={cn(
+                      "group relative w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                      selectedTargetFilter === item.address
+                        ? "bg-blue-500/10 border-blue-500/50"
+                        : "bg-white/5 border-transparent hover:bg-white/10 hover:border-white/10"
+                    )}
                   >
-                    <Trash2 size={12} />
-                  </div>
-                </button>
-              </motion.div>
-            ))}
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-300 font-mono text-[10px]">
+                      {item.address?.slice(2, 4)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-xs font-medium text-white truncate">
+                        {item.address}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.chains?.map((chain: string) => (
+                          <span
+                            key={chain}
+                            className="text-[8px] px-1 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase font-bold"
+                          >
+                            {chain}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {/* Edit Button */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditing(item, e);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-blue-500/20 hover:text-blue-400 rounded-md transition-all"
+                      >
+                        <Edit3 size={12} />
+                      </div>
+                      {/* Delete Button */}
+                      <div
+                        onClick={(e) => handleUnsubscribe(item.address, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all"
+                      >
+                        <Trash2 size={12} />
+                      </div>
+                    </div>
+                  </button>
 
+                  {/* Edit Chains Menu */}
+                  {editingTarget === item.address && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2"
+                    >
+                      <div className="flex flex-wrap gap-2 p-3 border rounded-xl bg-black/40 border-blue-500/30">
+                        {AVAILABLE_CHAINS.map((chain) => (
+                          <button
+                            key={chain}
+                            type="button"
+                            onClick={() => toggleEditingChain(chain)}
+                            className={cn(
+                              "px-3 py-1 text-[10px] rounded-md border transition-all uppercase font-bold",
+                              editingChains.includes(chain)
+                                ? "bg-blue-500/20 border-blue-500/40 text-blue-400"
+                                : "bg-white/5 border-white/10 text-white/40 hover:text-white/60"
+                            )}
+                          >
+                            {chain}
+                          </button>
+                        ))}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUpdateSubscribe(item.address);
+                          }}
+                          className="px-3 py-1 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-all"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
             {subscribedAddresses.length === 0 && (
               <div className="py-8 text-center">
                 <p className="text-xs text-white/30">No targets active</p>

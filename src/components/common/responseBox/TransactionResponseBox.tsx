@@ -1,30 +1,18 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { getChatHistory } from "@/redux/chatData/action";
-import React, { useEffect, useRef, useMemo, useState } from "react";
+import { useAppSelector } from "@/hooks/useRedux";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import TransactionCanvas from "./components/TransactionCanvas";
 import TransactionLoader from "@/assets/chat/transactionLoader.png";
-import { useAccount, useChainId } from "wagmi";
 import QuickActionsGrid from "@/components/chat/QuickActionsGrid";
-import { getChainById } from "@/config/chains";
 import DisplaySwitch from "./components/DisplaySwitch";
 import DataOutputRenderer from "./components/DataOutputRenderer";
 
 const TransactionResponseBox = () => {
   // Only select the specific token value to avoid re-renders when other globalData properties change
   const chats = useAppSelector((data) => data.chatData.chats);
-  const { address } = useAccount();
-  const dispatch = useAppDispatch();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevChatsCountRef = useRef(0);
-  const chainId = useChainId();
-  const network = getChainById(chainId);
 
   const [display, setDisplay] = useState('home');
-
-  useEffect(() => {
-    if (address)
-      dispatch(getChatHistory({ address: address!, network: network?.id }));
-  }, [address]);
 
   // Memoize chat count to avoid unnecessary re-renders
   const chatsCount = useMemo(() => chats.length, [chats.length]);

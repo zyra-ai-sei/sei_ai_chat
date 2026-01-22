@@ -12,7 +12,9 @@ export interface ExecutionState {
 export interface ToolOutput {
   id:number;
   label?: string;
-  metadata: any;
+  metadata?: any;
+  metaData?: any;
+  type?: string;
   executionId?: string;
   transaction: {
     address?: string;
@@ -45,11 +47,13 @@ export interface ChatItem {
 export interface ChatDataState {
   chats: ChatItem[];
   sessionId: string | null;
+  historyLoading: boolean;
 }
 
 const initialState: ChatDataState = {
   chats: [],
   sessionId: null,
+  historyLoading: true,
 };
 
 const chatDataSlice = createSlice({
@@ -58,6 +62,9 @@ const chatDataSlice = createSlice({
   reducers: {
     addSessionId(state, action: PayloadAction<string>) {
       state.sessionId = action.payload;
+    },
+    setHistoryLoading(state, action: PayloadAction<boolean>) {
+      state.historyLoading = action.payload;
     },
     addPrompt(state, action: PayloadAction<string>) {
       state.chats.push({
@@ -243,7 +250,8 @@ export const {
   updateTransactionStatus,
   reorderTransactions,
   updateTransactionData,
-  updateExecutionState
+  updateExecutionState,
+  setHistoryLoading
 } = chatDataSlice.actions;
 export default chatDataSlice.reducer;
 export { chatDataSlice };

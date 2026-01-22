@@ -1,10 +1,10 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { streamChatPrompt } from "@/redux/chatData/action";
 import { Token, selectTokensByChain } from "@/redux/tokenData/reducer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAccount, useChainId } from "wagmi";
-import { getChainById } from "@/config/chains";
+import { getChainById, SUPPORTED_CHAINS } from "@/config/chains";
 import { getAccessToken } from "@privy-io/react-auth";
 
 // --- 1. Reusable UI Helpers (Inputs/Selects) ---
@@ -441,6 +441,187 @@ const ExecuteStrategiesForm = ({
   );
 };
 
+const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
+  const tokensByChain = useAppSelector((state) => state.tokenData.tokensByChain);
+  const [srcChainId, setSrcChainId] = useState<number>(SUPPORTED_CHAINS[0].chainId);
+  const [dstChainId, setDstChainId] = useState<number>(SUPPORTED_CHAINS[1].chainId);
+  const [amount, setAmount] = useState("");
+
+  const srcTokens = tokensByChain[srcChainId] || [];
+  const dstTokens = tokensByChain[dstChainId] || [];
+
+  const [srcToken, setSrcToken] = useState("");
+  const [dstToken, setDstToken] = useState("");
+
+  useEffect(() => {
+    if (srcTokens.length > 0) {
+      setSrcToken((prev) =>
+        srcTokens.find((t) => t.symbol === prev) ? prev : srcTokens[0].symbol
+      );
+    }
+  }, [srcChainId, srcTokens]);
+
+  useEffect(() => {
+    if (dstTokens.length > 0) {
+      setDstToken((prev) =>
+        dstTokens.find((t) => t.symbol === prev) ? prev : dstTokens[0].symbol
+      );
+    }
+  }, [dstChainId, dstTokens]);
+
+  const handleSubmit = () => {
+    if (!amount || !srcToken || !dstToken) return;
+    const srcChainName = SUPPORTED_CHAINS.find(
+      (c) => c.chainId === srcChainId
+    )?.name;
+    const dstChainName = SUPPORTED_CHAINS.find(
+      (c) => c.chainId === dstChainId
+    )?.name;
+    onCommit(
+      `Bridge ${amount} ${srcToken} from ${srcChainName} to ${dstToken} on ${dstChainName}`
+    );
+  };
+
+  return (
+    <div className="flex flex-col w-full gap-2 max-h-[350px] overflow-y-auto scrollbar-none">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            From Chain
+          </label>
+          <Select
+            options={SUPPORTED_CHAINS.map((c) => c.name)}
+            value={SUPPORTED_CHAINS.find((c) => c.chainId === srcChainId)?.name}
+            onChange={(name: string) =>
+              setSrcChainId(
+                SUPPORTED_CHAINS.find((c) => c.name === name)?.chainId ||
+                  srcChainId
+              )
+            }
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            To Chain
+          </label>
+          <Select
+            options={SUPPORTED_CHAINS.map((c) => c.name)}
+            value={SUPPORTED_CHAINS.find((c) => c.chainId === dstChainId)?.name}
+            onChange={(name: string) =>
+              setDstChainId(
+                SUPPORTED_CHAINS.find((c) => c.name === name)?.chainId ||
+                  dstChainId
+              )
+            }
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            From Token
+          </label>
+          <Select
+            options={srcTokens.map((t) => t.symbol)}
+            value={srcToken}
+            onChange={setSrcToken}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+            To Token
+          </label>
+          <Select
+            options={dstTokens.map((t) => t.symbol)}
+            value={dstToken}
+            onChange={setDstToken}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Amount
+        </label>
+        <Input
+          placeholder="0.0"
+          type="number"
+          value={amount}
+          onChange={setAmount}
+        />
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        className="mt-1 w-full py-2 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors"
+      >
+        Initiate Bridge
+      </button>
+    </div>
+  );
+};
+
+const TrackAddressForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
+  const [address, setAddress] = useState("");
+  const [selectedChains, setSelectedChains] = useState<string[]>(["sei"]);
+  const chains = ["base", "arbitrum", "polygon", "ethereum", "sei"];
+
+  const toggleChain = (chain: string) => {
+    setSelectedChains((prev) =>
+      prev.includes(chain) ? prev.filter((c) => c !== chain) : [...prev, chain]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (!address || selectedChains.length === 0) return;
+    onCommit(`track ${address} on chains:[${selectedChains.join(", ")}]`);
+  };
+
+  return (
+    <div className="flex flex-col w-full gap-3">
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Wallet Address
+        </label>
+        <Input
+          placeholder="0x..."
+          value={address}
+          onChange={setAddress}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+          Select Chains
+        </label>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {chains.map((chain) => (
+            <button
+              key={chain}
+              onClick={() => toggleChain(chain)}
+              className={`px-2 py-1 text-[9px] rounded-md border transition-all uppercase font-bold tracking-tight ${
+                selectedChains.includes(chain)
+                  ? "bg-purple-500/20 border-purple-500/40 text-purple-400"
+                  : "bg-white/5 border-white/10 text-white/40 hover:text-white/60"
+              }`}
+            >
+              {chain}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        className="mt-1 w-full py-2 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors"
+      >
+        Start Tracking
+      </button>
+    </div>
+  );
+};
+
 // --- 3. The Main Card Component ---
 
 const ActionCard = ({
@@ -450,54 +631,81 @@ const ActionCard = ({
   type,
   onAction,
   tokens,
-  isHovered,
-  onHover,
+  isActive,
+  onToggle,
 }: any) => {
-  const isExpandable = type === "simulate" || type === "strategies";
+  const needsExpansion = ["strategies", "simulate", "bridge", "track"].includes(type);
 
   return (
     <motion.div
       layout
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => onHover(false)}
-      className={`group relative w-full rounded-xl border border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:border-purple-500/50 overflow-hidden ${
-        isExpandable && isHovered ? "row-span-2 z-20" : "row-span-1"
+      onClick={onToggle}
+      className={`group relative w-full h-full rounded-xl border cursor-pointer transition-all duration-300 snap-start overflow-hidden ${
+        isActive 
+          ? `${needsExpansion ? "row-span-2" : "row-span-1"} z-20 bg-[#0A0B0F] border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]` 
+          : "row-span-1 bg-white/5 border-white/10 hover:bg-white/[0.08] hover:border-white/20"
       }`}
     >
-      {/* State 1: Default View (Visible by default, hidden on hover) */}
+      {/* State 1: Default View (Visible when not active) */}
       <div
-        className={`absolute inset-0 flex flex-col items-start p-6 transition-opacity duration-[1000ms] ease-in-out ${
-          isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+        className={`absolute inset-0 flex flex-col items-start p-6 transition-all duration-500 ease-in-out ${
+          isActive ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
         }`}
       >
-        <div className="p-3 mb-4 text-white rounded-lg bg-black/20">{icon}</div>
-        <h3 className="mb-1 text-lg font-semibold text-white">{title}</h3>
-        <p className="text-sm leading-relaxed text-gray-400">{desc}</p>
+        <div className={`p-3 mb-4 text-white rounded-lg transition-colors duration-300 ${isActive ? "bg-purple-500/20" : "bg-black/20 group-hover:bg-black/40"}`}>
+          {icon}
+        </div>
+        <h3 className="mb-1 text-lg font-semibold text-white tracking-tight">{title}</h3>
+        <p className="text-sm leading-relaxed text-gray-400 line-clamp-2">{desc}</p>
+        
+        <div className="mt-auto flex items-center gap-1.5 text-[10px] font-bold text-purple-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
+          Click to Open <span className="text-lg">→</span>
+        </div>
       </div>
 
-      {/* State 2: Hover View (Hidden by default, visible on hover) */}
+      {/* State 2: Active View (Interaction Form) */}
       <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-6 transition-opacity duration-[1000ms] ease-in-out bg-black/80 backdrop-blur-sm ${
-          isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute inset-0 z-10 flex flex-col p-5 transition-all duration-500 ease-in-out bg-[#0A0B0F]/95 backdrop-blur-sm ${
+          isActive ? "opacity-100 scale-100" : "opacity-0 scale-110 pointer-events-none"
         }`}
       >
-        <h4 className="mb-3 text-sm font-bold tracking-wider text-white uppercase">
-          {title}
-        </h4>
+        <div className={`flex items-center justify-between pb-2 border-b border-white/5 ${needsExpansion ? "mb-4" : "mb-2"}`}>
+          <div className="flex items-center gap-2">
+            <div className="text-purple-400 scale-75 origin-left">{icon}</div>
+            <h4 className="text-sm font-bold tracking-wider text-white uppercase truncate">
+              {title}
+            </h4>
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onToggle(); }}
+            className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-        {type === "transfer" && (
-          <TransferForm onCommit={onAction} tokens={tokens} />
-        )}
-        {type === "swap" && <SwapForm onCommit={onAction} tokens={tokens} />}
-        {type === "simulate" && (
-          <SimulateForm onCommit={onAction} tokens={tokens} />
-        )}
-        {type === "market" && <MarketForm onCommit={onAction} />}
-        {type === "twitter" && <TwitterForm onCommit={onAction} />}
-        {type === "strategies" && (
-          <ExecuteStrategiesForm onCommit={onAction} tokens={tokens} />
-        )}
+        <div 
+          className="flex-1 overflow-y-auto pr-1 flex flex-col justify-center scrollbar-none" 
+          onClick={(e) => e.stopPropagation()}
+        >
+          {type === "transfer" && (
+            <TransferForm onCommit={onAction} tokens={tokens} />
+          )}
+          {type === "swap" && <SwapForm onCommit={onAction} tokens={tokens} />}
+          {type === "simulate" && (
+            <SimulateForm onCommit={onAction} tokens={tokens} />
+          )}
+          {type === "market" && <MarketForm onCommit={onAction} />}
+          {type === "twitter" && <TwitterForm onCommit={onAction} />}
+          {type === "strategies" && (
+            <ExecuteStrategiesForm onCommit={onAction} tokens={tokens} />
+          )}
+          {type === "bridge" && <BridgeForm onCommit={onAction} />}
+          {type === "track" && <TrackAddressForm onCommit={onAction} />}
+        </div>
       </div>
     </motion.div>
   );
@@ -511,14 +719,16 @@ const QuickActionsGrid = () => {
   const {address} = useAccount();
   const network = getChainById(chainId);
   const tokenList = useAppSelector(selectTokensByChain(chainId));
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handleAction =async (resultString: string) => {
     // TODO: Connect this to your chat input state
     // setInput(resultString);
-        const token = await getAccessToken();
+    const token = await getAccessToken();
 
     dispatch(streamChatPrompt({ prompt: resultString, address:address!, network: network?.id, abortSignal: new AbortController().signal, token:token! }));
+    // Collapsing after action commit for better UX
+    setActiveIndex(null);
   };
 
   const actions = [
@@ -617,12 +827,12 @@ const QuickActionsGrid = () => {
       ),
     },
     {
-      type: "transfer",
-      title: "Transfer Funds",
-      desc: "Send crypto securely to another wallet.",
+      type: "track",
+      title: "Track Address",
+      desc: "Live interceptor for wallet activity across multiple chains.",
       icon: (
         <svg
-          className="w-6 h-6 text-pink-400"
+          className="w-6 h-6 text-emerald-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -631,7 +841,53 @@ const QuickActionsGrid = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+      ),
+    },
+    {
+      type: "transfer",
+      title: "Transfer Funds",
+      desc: "Send crypto securely to another wallet.",
+      icon: (
+        <svg
+        className="w-6 h-6 text-pink-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
+        </svg>
+      ),
+    },
+    {
+      type: "bridge",
+      title: "Bridge Assets",
+      desc: "Move tokens between different blockchain networks.",
+      icon: (
+        <svg
+          className="w-6 h-6 text-indigo-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
           />
         </svg>
       ),
@@ -639,7 +895,7 @@ const QuickActionsGrid = () => {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full p-8">
+    <div className="flex flex-col items-center justify-center w-full h-full py-8 overflow-hidden">
       <div className="mb-8 text-center">
         <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
           Welcome to Zyra
@@ -649,17 +905,19 @@ const QuickActionsGrid = () => {
         </p>
       </div>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2 auto-rows-[12rem] grid-flow-dense">
-        {actions.map((action, index) => (
-          <ActionCard
-            key={index}
-            {...action}
-            onAction={handleAction}
-            tokens={tokenList}
-            isHovered={hoveredIndex === index}
-            onHover={(hover: boolean) => setHoveredIndex(hover ? index : null)}
-          />
-        ))}
+      <div className="w-full overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory px-4 md:px-12">
+        <div className="grid grid-flow-col grid-rows-2 gap-4 auto-cols-[280px] md:auto-cols-[340px] h-[26rem]">
+          {actions.map((action, index) => (
+            <ActionCard
+              key={index}
+              {...action}
+              onAction={handleAction}
+              tokens={tokenList}
+              isActive={activeIndex === index}
+              onToggle={() => setActiveIndex(activeIndex === index ? null : index)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

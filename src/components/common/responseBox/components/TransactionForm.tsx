@@ -19,6 +19,7 @@ import { addTxn } from "@/redux/transactionData/action";
 import { setGlobalData } from "@/redux/globalData/action";
 import { Play, ArrowLeftRight } from "lucide-react";
 import { isSupportedChainId, getChainByIdentifier } from "@/config/chains";
+import { getTxnNetwork } from "@/utility/transactionUtils";
 
 const TransactionForm = ({
   txn,
@@ -41,7 +42,7 @@ const TransactionForm = ({
   const isWrongNetwork = Boolean(!isSupportedChainId(chainId));
 
   // Check if transaction network matches current chain
-  const networkLabel = txn?.metadata?.network;
+  const networkLabel = getTxnNetwork(txn);
   const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
   const isWrongTxnNetwork = txnChain && txnChain.chainId !== chainId;
 
@@ -67,7 +68,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn({txHash: data, network: txn.metadata.network, address:address as string}));
+          dispatch(addTxn({txHash: data, network: getTxnNetwork(txn), address:address as string}));
         }
         // dispatch(eraseLatestToolOutput());
       },
@@ -117,7 +118,7 @@ const TransactionForm = ({
       },
       onSuccess: (data) => {
         if (data) {
-          dispatch(addTxn({txHash: data, network: txn.metadata?.network,address:address as string}));
+          dispatch(addTxn({txHash: data, network: getTxnNetwork(txn), address:address as string}));
         }
         // dispatch(eraseLatestToolOutput());
       },

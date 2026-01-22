@@ -19,10 +19,14 @@ export interface TokenTransfer {
 
 export const subscribeToAddress = createAsyncThunk(
   "tracking/subscribe",
-  async (address: string, { rejectWithValue }) => {
+  async (
+    { address, chains }: { address: string; chains: string[] },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await axiosInstance.post("/tracking/subscribe", {
         address,
+        chains,
       });
       return response.data;
     } catch (error: any) {
@@ -38,8 +42,7 @@ export const getSubscribedAddresses = createAsyncThunk(
   async () => {
     try {
       const response = await axiosInstance.get("/tracking/addresses");
-      const addresses = response?.data?.data?.items;
-      return addresses;
+      return response?.data?.data?.items || [];
     } catch (error: any) {
       return [];
     }
@@ -62,6 +65,26 @@ export const unsubscribeFromAddress = createAsyncThunk(
   }
 );
 
+export const updateSubscribe = createAsyncThunk(
+  "tracking/update",
+  async (
+    { address, chains }: { address: string; chains: string[] },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axiosInstance.post("/tracking/update", {
+        address,
+        chains,
+      });
+      return { address, chains, data: response.data };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update subscription"
+      );
+    }
+  }
+);
+
 export const fetchTransferHistory = createAsyncThunk(
   "tracking/history",
   async (_, { rejectWithValue }) => {
@@ -74,5 +97,4 @@ export const fetchTransferHistory = createAsyncThunk(
       );
     }
   }
-
 );

@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
-import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSendTransaction, useWriteContract, useChainId, useAccount } from "wagmi";
-import ExecuteAllButton from "./ExecuteAllButton";
-import SimulateAllButton from "./SimulateAllButton";
-import TransactionCard from "./TransactionCard";
+import TransactionQueueHeader from "./TransactionQueueHeader";
+import TransactionList from "./TransactionList";
 import { Address } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
@@ -15,7 +13,7 @@ import {
   updateMessageState,
 } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
-import { Activity } from "lucide-react";
+import { getTxnNetwork } from "@/utility/transactionUtils";
 
 const TransactionCanvas = ({
   txns,
@@ -28,6 +26,7 @@ const TransactionCanvas = ({
   const chats = useAppSelector((state) => state.chatData.chats);
   const chainId = useChainId();
   const {address} = useAccount();
+
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
@@ -223,7 +222,7 @@ const TransactionCanvas = ({
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: txn.metadata?.network,address:address as string })
+                    addTxn({ txHash: data, network: getTxnNetwork(txn),address:address as string })
                   );
                  
                   // Update message state for this execution
@@ -233,7 +232,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "completed",
                         txnHash: data as string,
-                        network: txn.metadata?.network,
+                        network: getTxnNetwork(txn),
                         address:address!
                       })
                     );
@@ -261,7 +260,7 @@ const TransactionCanvas = ({
                       updateMessageState({
                         executionId: txn.executionId,
                         executionState: "failed",
-                        network: txn?.metadata?.network,
+                        network: getTxnNetwork(txn),
                         address:address!
                       })
                     );
@@ -298,7 +297,7 @@ const TransactionCanvas = ({
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: txn.metadata?.network, address:address as string })
+                    addTxn({ txHash: data, network: getTxnNetwork(txn), address:address as string })
                   );
                 
                   // Update message state for this execution
@@ -308,7 +307,7 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "completed",
                         txnHash: data as string,
-                        network: txn.metadata?.network,
+                        network: getTxnNetwork(txn),
                         address:address!
                       })
                     );
@@ -336,7 +335,7 @@ const TransactionCanvas = ({
                       updateMessageState({
                         executionId: txn.executionId,
                         executionState: "failed",
-                        network: txn?.metadata?.network,
+                        network: getTxnNetwork(txn),
                         address:address!
                       })
                     );
@@ -401,7 +400,7 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn({ txHash: data, network: txn.metadata?.network , address:address as string}));
+            dispatch(addTxn({ txHash: data, network: getTxnNetwork(txn) , address:address as string}));
            
             // Update message state for this execution
             if (txn.executionId) {
@@ -410,7 +409,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "completed",
                   txnHash: data as string,
-                  network: txn?.metadata?.network,
+                  network: getTxnNetwork(txn),
                   address:address!
                 })
               );
@@ -434,7 +433,7 @@ const TransactionCanvas = ({
                 updateMessageState({
                   executionId: txn.executionId,
                   executionState: "failed",
-                  network: txn.metadata.network,
+                  network: getTxnNetwork(txn),
                   address:address!
                 })
               );
@@ -458,7 +457,7 @@ const TransactionCanvas = ({
                 txHash: data as string,
               })
             );
-            dispatch(addTxn({ txHash: data, network: txn.metadata?.network , address:address as string}));
+            dispatch(addTxn({ txHash: data, network: getTxnNetwork(txn) , address:address as string}));
           
             // Update message state for this execution
             if (txn.executionId) {
@@ -467,7 +466,7 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "completed",
                   txnHash: data as string,
-                  network: txn.metadata.network,
+                  network: getTxnNetwork(txn),
                   address:address!
                 })
               );
@@ -491,7 +490,7 @@ const TransactionCanvas = ({
                 updateMessageState({
                   executionId: txn.executionId,
                   executionState: "failed",
-                  network: txn?.metadata?.network,
+                  network: getTxnNetwork(txn),
                   address:address!
                 })
               );
@@ -630,8 +629,8 @@ const TransactionCanvas = ({
               resolve({ success: false, error: error.message });
             });
         } else {
-          // For simple transfers, just validate the transaction structure
-          if (txn.transaction?.to && txn.transaction?.value) {
+          // For simple transfers and bridge transactions without ABI
+          if (txn.type === "bridge" || (txn.transaction?.to && (txn.transaction?.value || txn.transaction?.data))) {
             resolve({ success: true });
           } else {
             resolve({ success: false, error: "Invalid transaction structure" });
@@ -695,94 +694,27 @@ const TransactionCanvas = ({
       <div className="relative group rounded-xl bg-[#0d0d10] border border-white/5 p-[1px] shadow-xl">
         <div className="absolute -top-[1px] left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="px-4 py-3">
-          <div className="flex flex-col justify-between gap-2 mb-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400">
-                <Activity size={14} />
-              </div>
-              <div>
-                <h2 className="text-[11px] font-bold text-slate-200 uppercase tracking-[0.2em]">
-                  Transaction Queue
-                </h2>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[9px] text-slate-500 font-mono">
-                    QID: {chatIndex}
-                  </span>
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-600" />
-                  <span className="text-[9px] text-violet-400 font-mono">
-                    {orderedTxns.length} PENDING
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <SimulateAllButton
-                simulationState={simulationState}
-                orderedTxns={orderedTxns}
-                onSimulateAll={simulateAllTransactions}
-              />
-              <ExecuteAllButton
-                executionState={executionState}
-                orderedTxns={orderedTxns}
-                onExecuteAll={executeAllTransactions}
-              />
-            </div>
-          </div>
+          <TransactionQueueHeader
+            chatIndex={chatIndex}
+            pendingCount={orderedTxns.length}
+            simulationState={simulationState}
+            executionState={executionState}
+            orderedTxns={orderedTxns}
+            onSimulateAll={simulateAllTransactions}
+            onExecuteAll={executeAllTransactions}
+          />
 
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="droppable-1" type="PERSON">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="flex flex-col gap-2"
-                >
-                  {orderedTxns.map((txn, index) => {
-                    const isExpanded = expandedTxns.has(index);
-                    const isCurrentlyExecuting =
-                      executionState.isExecuting &&
-                      executionState.currentIndex === index;
-                    const isCurrentlySimulating =
-                      simulationState.isSimulating &&
-                      simulationState.currentIndex === index;
-
-                    return (
-                      <Draggable
-                        key={`draggable-${index}`}
-                        draggableId={`draggable-${index}`}
-                        index={index}
-                      >
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            <TransactionCard
-                              txn={txn}
-                              index={index}
-                              chatIndex={chatIndex}
-                              isExpanded={isExpanded}
-                              isCurrentlyExecuting={isCurrentlyExecuting}
-                              isCurrentlySimulating={isCurrentlySimulating}
-                              onToggleExpanded={() => toggleExpanded(index)}
-                              onExecuteTransaction={() =>
-                                handleExecuteTransaction(txn, index)
-                              }
-                              onSimulateTransaction={() =>
-                                handleSimulateTransaction(txn, index)
-                              }
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <TransactionList
+            orderedTxns={orderedTxns}
+            executionState={executionState}
+            simulationState={simulationState}
+            onDragEnd={onDragEnd}
+            expandedTxns={expandedTxns}
+            toggleExpanded={toggleExpanded}
+            chatIndex={chatIndex}
+            onExecuteTransaction={handleExecuteTransaction}
+            onSimulateTransaction={handleSimulateTransaction}
+          />
         </div>
       </div>
     </div>
@@ -790,3 +722,4 @@ const TransactionCanvas = ({
 };
 
 export default TransactionCanvas;
+

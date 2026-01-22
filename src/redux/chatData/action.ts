@@ -22,6 +22,7 @@ export const {
   addSessionId,
   eraseLatestToolOutput,
   setLoading,
+  setHistoryLoading,
   updateResponse,
   updateTransactionStatus,
   reorderTransactions,
@@ -221,6 +222,7 @@ export const getChatHistory = createAsyncThunk<
   { state: IRootState }
 >("chatData/getChatHistory", async ({ network = "sei", address }, { dispatch, getState }) => {
   try {
+    dispatch(setHistoryLoading(true));
     const response = await axiosInstance.get(`/llm/getChatHistory?network=${network}&address=${address}`);
     const apiData = response?.data;
     if (apiData?.status === 200 && apiData?.data) {
@@ -283,6 +285,8 @@ export const getChatHistory = createAsyncThunk<
   } catch (err) {
     console.log("err", err);
     dispatch(resetChat());
+  } finally {
+    dispatch(setHistoryLoading(false));
   }
 });
 

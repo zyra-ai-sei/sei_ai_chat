@@ -3,6 +3,7 @@ import { Play, ArrowLeftRight } from "lucide-react";
 import { ToolOutput } from "@/redux/chatData/reducer";
 import { useChainId, useSwitchChain } from "wagmi";
 import { getChainByIdentifier } from "@/config/chains";
+import { getTxnNetwork } from "@/utility/transactionUtils";
 
 interface ExecuteAllButtonProps {
   executionState: {
@@ -29,14 +30,14 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
 
   // Check if any transaction requires a different network
   const txnRequiringSwitch = orderedTxns.find((txn) => {
-    const networkLabel = txn?.metadata?.network;
+    const networkLabel = getTxnNetwork(txn);
     const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
     return txnChain && txnChain.chainId !== currentChainId;
   });
 
   const handleSwitchChain = () => {
     if (txnRequiringSwitch) {
-      const networkLabel = txnRequiringSwitch.metadata.network;
+      const networkLabel = getTxnNetwork(txnRequiringSwitch);
       const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
       if (txnChain) {
         switchChain({ chainId: txnChain.chainId });
@@ -85,7 +86,7 @@ const ExecuteAllButton: React.FC<ExecuteAllButtonProps> = ({
   
   // Show Switch Chain button if any transaction requires different network
   if (txnRequiringSwitch && !executionState.isExecuting) {
-    const networkLabel = txnRequiringSwitch.metadata.network;
+    const networkLabel = getTxnNetwork(txnRequiringSwitch);
     const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
 
     return (
