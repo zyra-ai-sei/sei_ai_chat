@@ -9,8 +9,20 @@ export interface ExecutionState {
   isCompleted: boolean;
 }
 
+export type TransactionType = 'immediate' | 'limit_order' | 'stop_loss' | 'dca' | 'scheduled';
+
+export interface ExecutionConditions {
+  targetPrice?: number;
+  priceDirection?: 'above' | 'below';
+  targetTokenSymbol?: string;
+  stopPrice?: number;
+  executeAt?: string;
+  expiresAt?: string;
+  dependsOn?: string;
+}
+
 export interface ToolOutput {
-  id:number;
+  id: number;
   label?: string;
   metadata: any;
   executionId?: string;
@@ -21,10 +33,17 @@ export interface ToolOutput {
     args?: any[];
     value?: string;
     to?: string;
+    data?: string; // Encoded calldata for delegated transactions
+    chainId?: number;
     [key: string]: any;
   };
+  // For conditional/delegated orders
+  transactionType?: TransactionType;
+  executionConditions?: ExecutionConditions;
+  // Status tracking
   status?: StatusEnum;
   txHash?: string;
+  orderId?: string; // For tracking delegated orders
 }
 
 interface ChatResponse {
@@ -180,9 +199,10 @@ const chatDataSlice = createSlice({
         toolOutputIndex: number;
         status: StatusEnum;
         txHash?: string;
+        orderId?: string;
       }>
     ) {
-      const { chatIndex, toolOutputIndex, status, txHash } = action.payload;
+      const { chatIndex, toolOutputIndex, status, txHash, orderId } = action.payload;
       if (
         state.chats[chatIndex] &&
         state.chats[chatIndex].response.tool_outputs &&
@@ -193,6 +213,10 @@ const chatDataSlice = createSlice({
         if (txHash) {
           state.chats[chatIndex].response.tool_outputs[toolOutputIndex].txHash =
             txHash;
+        }
+        if (orderId) {
+          state.chats[chatIndex].response.tool_outputs[toolOutputIndex].orderId =
+            orderId;
         }
       }
     },

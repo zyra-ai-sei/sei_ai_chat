@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSendTransaction, useWriteContract, useChainId, useAccount } from "wagmi";
+import { useWallets } from "@privy-io/react-auth";
 import ExecuteAllButton from "./ExecuteAllButton";
 import SimulateAllButton from "./SimulateAllButton";
 import TransactionCard from "./TransactionCard";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { StatusEnum } from "@/enum/status.enum";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import {
@@ -16,6 +17,8 @@ import {
 } from "@/redux/chatData/action";
 import { addTxn } from "@/redux/transactionData/action";
 import { Activity } from "lucide-react";
+import { createDelegatedOrder } from "@/services/delegatedTransactionApi";
+import { getChainByIdentifier } from "@/config/chains";
 
 const TransactionCanvas = ({
   txns,
@@ -28,6 +31,8 @@ const TransactionCanvas = ({
   const chats = useAppSelector((state) => state.chatData.chats);
   const chainId = useChainId();
   const {address} = useAccount();
+  const { wallets } = useWallets();
+  const embeddedWallet = wallets.find(wallet => wallet.connectorType === 'embedded');
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
     currentIndex: null,
@@ -57,10 +62,25 @@ const TransactionCanvas = ({
     setExpandedTxns(newExpanded);
   };
 
+  // Serialize tool_outputs for dependency comparison to detect nested changes
+  const toolOutputsJson = JSON.stringify(
+    chats[chatIndex]?.response?.tool_outputs?.map((t: any) => ({
+      status: t.status,
+      orderId: t.orderId,
+      txHash: t.txHash,
+    })) || []
+  );
+
   React.useEffect(() => {
     const latestTxns = chats[chatIndex]?.response?.tool_outputs || txns || [];
+    console.log('[TransactionCanvas] useEffect - updating orderedTxns:', {
+      chatIndex,
+      txnsCount: latestTxns.length,
+      txnsWithOrderId: latestTxns.filter((t: any) => t.orderId).length,
+      statuses: latestTxns.map((t: any) => ({ status: t.status, orderId: t.orderId })),
+    });
     setOrderedTxns(latestTxns);
-  }, [txns, chats[chatIndex]?.response?.tool_outputs, chatIndex]);
+  }, [txns, toolOutputsJson, chatIndex, chats]);
 
   // Update execution state when all transactions complete (but don't send notifications here)
   React.useEffect(() => {
@@ -186,7 +206,61 @@ const TransactionCanvas = ({
         })
       );
 
+      // Check if this is a conditional order
+      const isConditionalOrder = txn?.transactionType && txn.transactionType !== 'immediate';
+
       try {
+        // Handle conditional orders - create delegated order instead of executing
+        if (isConditionalOrder && txn.executionConditions) {
+          const networkLabel = txn?.metadata?.network;
+          const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+          const txnChainId = txnChain?.chainId || chainId;
+
+          let encodedData: string | undefined;
+          if (txn.transaction?.abi && txn.transaction?.functionName && txn.transaction?.args) {
+            encodedData = encodeFunctionData({
+              abi: txn.transaction.abi,
+              functionName: txn.transaction.functionName,
+              args: txn.transaction.args,
+            });
+          }
+
+          const result = await createDelegatedOrder({
+            walletId: embeddedWallet?.address || '',
+            transactionType: txn.transactionType!,
+            transactionData: {
+              to: txn.transaction?.to || txn.transaction?.address || '',
+              value: txn.transaction?.value || '0',
+              data: encodedData || txn.transaction?.data,
+              chainId: txnChainId,
+            },
+            executionConditions: txn.executionConditions,
+            description: txn.label || `${txn.transaction?.functionName} on ${networkLabel}`,
+          });
+
+          if (result.success) {
+            completedCount++;
+            successfulTxHashes.push(result.orderId || '');
+            dispatch(
+              updateExecutionState({
+                index: chatIndex,
+                response: { completedCount },
+              })
+            );
+            dispatch(
+              updateTransactionStatus({
+                chatIndex,
+                toolOutputIndex: i,
+                status: StatusEnum.SUCCESS,
+                orderId: result.orderId, // Store orderId separately, not as txHash
+              })
+            );
+          } else {
+            throw new Error(result.error || 'Failed to create delegated order');
+          }
+          continue; // Skip to next transaction
+        }
+
         // Execute the transaction and wait for it to complete
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
@@ -371,8 +445,105 @@ const TransactionCanvas = ({
     );
   };
 
-  const handleExecuteTransaction = (txn: ToolOutput, txnIndex: number) => {
-    // Check if user is on wrong network
+  const handleExecuteTransaction = async (txn: ToolOutput, txnIndex: number) => {
+    // Check if this is a conditional/delegated order
+    const isConditionalOrder = txn?.transactionType && txn.transactionType !== 'immediate';
+
+    console.log('[TransactionCanvas] handleExecuteTransaction:', {
+      transactionType: txn?.transactionType,
+      isConditionalOrder,
+      hasExecutionConditions: !!txn?.executionConditions,
+    });
+
+    // Handle conditional orders - create delegated order instead of executing immediately
+    if (isConditionalOrder && txn.executionConditions) {
+      dispatch(
+        updateTransactionStatus({
+          chatIndex,
+          toolOutputIndex: txnIndex,
+          status: StatusEnum.PENDING,
+        })
+      );
+
+      try {
+        // Get chain ID from transaction metadata
+        const networkLabel = txn?.metadata?.network;
+        const txnChain = networkLabel ? getChainByIdentifier(networkLabel) : null;
+        const txnChainId = txnChain?.chainId || chainId;
+
+        // Encode function data if we have ABI
+        let encodedData: string | undefined;
+        if (txn.transaction?.abi && txn.transaction?.functionName && txn.transaction?.args) {
+          encodedData = encodeFunctionData({
+            abi: txn.transaction.abi,
+            functionName: txn.transaction.functionName,
+            args: txn.transaction.args,
+          });
+        }
+
+        // Log the request details
+        const requestPayload = {
+          walletId: embeddedWallet?.address || address || '',
+          transactionType: txn.transactionType!,
+          transactionData: {
+            to: txn.transaction?.to || txn.transaction?.address || '',
+            value: txn.transaction?.value || '0',
+            data: encodedData || txn.transaction?.data,
+            chainId: txnChainId,
+          },
+          executionConditions: txn.executionConditions,
+          description: txn.label || `${txn.transaction?.functionName} on ${networkLabel}`,
+        };
+
+        console.log('[TransactionCanvas] Creating delegated order with:', {
+          walletId: requestPayload.walletId,
+          transactionType: requestPayload.transactionType,
+          chainId: requestPayload.transactionData.chainId,
+          to: requestPayload.transactionData.to,
+          hasData: !!requestPayload.transactionData.data,
+          executionConditions: requestPayload.executionConditions,
+          embeddedWallet: embeddedWallet?.address,
+          connectedAddress: address,
+        });
+
+        const result = await createDelegatedOrder(requestPayload);
+
+        if (result.success && result.orderId) {
+          console.log('[TransactionCanvas] Delegated order created, dispatching update:', {
+            chatIndex,
+            toolOutputIndex: txnIndex,
+            orderId: result.orderId,
+          });
+          dispatch(
+            updateTransactionStatus({
+              chatIndex,
+              toolOutputIndex: txnIndex,
+              status: StatusEnum.SUCCESS,
+              orderId: result.orderId, // Store orderId separately, not as txHash
+            })
+          );
+        } else {
+          throw new Error(result.error || 'Failed to create delegated order');
+        }
+      } catch (error: any) {
+        console.error('[TransactionCanvas] Delegated order error:', {
+          message: error?.message,
+          response: error?.response?.data,
+          status: error?.response?.status,
+          error,
+        });
+        dispatch(
+          updateTransactionStatus({
+            chatIndex,
+            toolOutputIndex: txnIndex,
+            status: StatusEnum.ERROR,
+          })
+        );
+      }
+      return;
+    }
+
+    // Standard immediate execution flow
     // Mark as pending before execution
     dispatch(
       updateTransactionStatus({
