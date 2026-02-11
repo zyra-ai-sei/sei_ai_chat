@@ -1,12 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 
-// import TransactionContext from '../Transaction/TransactionContext';
-import ERC20Token_abi from "../contract/abi/ERC20Token_abi";
-
-import ContractConfig from "../contract/ContractConfig";
-import BigNumber from "bignumber.js";
 import { useWeb3Context } from "./useWeb3Context";
 import {
   useReadContract,
@@ -158,47 +153,6 @@ export function useConfiguredContractSend(
   );
 }
 
-export function useTokenContractSend(
-  tokenAddress: number,
-  callMethod: string,
-  txContent?: string,
-  onSuccess?: FixTypeLater,
-  isPaid?: boolean
-) {
-  const configuredContract = {
-    theAddress: tokenAddress,
-    abi: ERC20Token_abi,
-  } as IConfiguredContract;
-  return useContractSend(
-    configuredContract,
-    callMethod,
-    txContent,
-    onSuccess,
-    "REC20",
-    () => {},
-    isPaid
-  );
-}
-
-// const buildDefaultProvider = (web3Context: FixTypeLater) => {
-//   console.debug(web3Context);
-//   return undefined;
-//   // TODO need to extend here, to support multi chains.
-//   // if(web3Context.account){
-//   //     return undefined;
-//   // }
-//   //
-//   // let provider = new providers.StaticJsonRpcProvider(
-//   //     DefaultChain.rpcUrl,
-//   //     {
-//   //         chainId: DefaultChain.chainId,
-//   //         name: DefaultChain.chainName,
-//   //     }
-//   // );
-//   // // console.debug(`created default provider => `, provider);
-//   // return provider;
-// };
-
 /**
  * call contract function and fetch data
  * @param configuredContract
@@ -302,110 +256,3 @@ export function useContractCalls(...calls: FixTypeLater[]) {
   }, [data]);
 }
 
-export const useApprove = (
-  token: FixTypeLater,
-  tokenInputAmount: FixTypeLater,
-  userAddress: string,
-  spender: FixTypeLater,
-  approveTitle: string,
-  onApproved?: FixTypeLater,
-  onFailure?: FixTypeLater
-) => {
-  const [needToApprove, setNeedToApprove] = useState<FixTypeLater>(false);
-  const [loaded, setLoaded] = useState(false);
-
-  const tokenAddress = token?.address;
-
-  const checkApprove = () => {
-    return new Promise((resolve) => {
-      if (
-        token?.native ||
-        !tokenAddress ||
-        tokenAddress === "0x0000000000000000000000000000000000000000"
-      ) {
-        resolve(false);
-        return;
-      }
-
-      const polygonRpc = import.meta.env?.VITE_BASE_POLYGON_RPC;
-      const provider = new ethers.JsonRpcProvider(polygonRpc);
-      const tokenContract = new Contract(
-        tokenAddress,
-        ContractConfig.asset.ERC20.abi,
-        provider
-      );
-
-      tokenContract
-        .allowance(userAddress, spender)
-        .then((allowance: FixTypeLater) => {
-          const allowanceNb = new BigNumber(allowance?._hex, 6);
-
-          const tokenAmount = tokenInputAmount?.tokenAmount
-            ? tokenInputAmount?.tokenAmount
-            : tokenInputAmount;
-
-          const isNeedApprove = allowance < tokenAmount;
-
-          console.debug(
-            `checkApprove: address =>`,
-            tokenAddress,
-            `spender =>`,
-            spender,
-            `checkAmount =>`,
-            tokenAmount,
-            `allowance =>`,
-            allowance,
-            `allowanceNb =>`,
-            allowanceNb.toFixed(),
-            `isNeedApprove =>`,
-            isNeedApprove
-          );
-
-          resolve(isNeedApprove);
-        })
-        .catch((e: FixTypeLater) => {
-          console.error(e);
-          onFailure();
-          resolve(false);
-        });
-    });
-  };
-
-  const doCheckApprove = () => {
-    checkApprove().then((isNeedApprove) => {
-      setNeedToApprove(isNeedApprove);
-      setLoaded(true);
-    });
-  };
-
-  const { send: sendApprove, sendAndShareData: sendAndShareDataForApprove } =
-    useTokenContractSend(
-      tokenAddress,
-      "approve",
-      approveTitle,
-      (events: FixTypeLater, sharedData: FixTypeLater) => {
-        checkApprove().then((isNeedApprove: FixTypeLater) => {
-          setNeedToApprove(isNeedApprove);
-
-          onApproved && onApproved(events, sharedData);
-          // if (!isNeedApprove) {
-          //   onApproved && onApproved(events, sharedData);
-          // }
-        });
-      },
-      true
-    );
-  useEffect(() => {
-    doCheckApprove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenAddress, tokenInputAmount, spender]);
-
-
-  return {
-    loaded,
-    needToApprove,
-    checkApprove,
-    send: sendApprove,
-    sendAndShareData: sendAndShareDataForApprove,
-  };
-};

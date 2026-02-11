@@ -21,7 +21,6 @@ import {
   Plus,
   Trash2,
   Edit3,
-  Check,
   Activity,
   Search,
   X,
