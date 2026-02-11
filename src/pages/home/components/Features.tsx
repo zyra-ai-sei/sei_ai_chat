@@ -60,7 +60,7 @@ const Features = () => {
     },
   ];
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
+    <section id="features" className="bg-[#0D0C11] flex flex-col gap-[48px] md:gap-[64px] items-center justify-center py-[48px] md:py-[84px] w-full">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

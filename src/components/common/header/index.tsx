@@ -1,9 +1,9 @@
 import "./index.scss";
 import Icon from "@/assets/icon.svg";
 import { LaunchButton } from "../customWalletConnect/LaunchButton";
-import ConnectedDisplay from "../customWalletConnect/ConnectedDisplay";
 import { useAccount } from "wagmi";
 import { useLocation } from "react-router-dom";
+import ConnectedDisplay from "../customWalletConnect/ConnectedDisplay";
 
 function Header() {
   const { isConnected } = useAccount();
@@ -24,7 +24,7 @@ function Header() {
             Zyra
           </p>
         </div>
-        {currentPath === '/' ? <LaunchButton /> : isConnected ? <ConnectedDisplay /> : null}
+        {currentPath === '/' ? <LaunchButton /> : isConnected ? <ConnectedDisplay/> : null}
       </div>
     </header>
   );

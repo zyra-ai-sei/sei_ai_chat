@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { X, Plus } from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -33,62 +33,88 @@ const FAQ = () => {
   };
 
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.6 }}
-        className="flex flex-col gap-[16px] items-start text-center w-full"
-      >
-        <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
-          We got your <span className="text-[#3B82F6]">answer</span>
-        </p>
-        <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white w-full">
-          Everything you might want to know before we work together answered clearly and simply
-        </p>
-      </motion.div>
+    <section className="relative w-full py-24 md:py-32 overflow-hidden pointer-events-none">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* FAQ Items */}
-      <div className="flex flex-col gap-[24px] items-start justify-center px-[135px] w-full">
-        {faqs.map((faq, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="border-b border-[rgba(255,255,255,0.08)] border-solid flex flex-col gap-[16px] items-start py-[24px] w-full"
-          >
-            <button
-              onClick={() => toggleFAQ(index)}
-              className="flex items-center justify-between w-full"
-            >
-              <p className="font-['Figtree',sans-serif] font-medium text-[24px] leading-[30px] text-center text-white tracking-[-0.48px] whitespace-pre text-left">
-                {faq.question}
-              </p>
-              <div className="overflow-clip shrink-0 w-[24px] h-[24px]">
-                {openIndex === index ? (
-                  <X className="w-[24px] h-[24px] text-white" strokeWidth={1.5} />
-                ) : (
-                  <Plus className="w-[24px] h-[24px] text-white" strokeWidth={1.5} />
-                )}
-              </div>
-            </button>
-            <div
-              className={`overflow-hidden transition-all duration-300 ${
-                openIndex === index ? "max-h-[500px]" : "max-h-0"
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8 relative z-10">
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col gap-6 items-center text-center max-w-3xl mx-auto mb-16 md:mb-24"
+        >
+          <h2 className="font-['Figtree'] font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight text-white leading-tight">
+            We've got your <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+              answers
+            </span>
+          </h2>
+          <p className="font-['Figtree'] text-base md:text-lg text-gray-400 leading-relaxed max-w-xl">
+            Everything you might want to know before we work together, answered clearly and simply.
+          </p>
+        </motion.div>
+
+        {/* FAQ Items */}
+        <div className="flex flex-col gap-4 max-w-3xl mx-auto">
+          {faqs.map((faq, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${
+                openIndex === index 
+                  ? "bg-white/10 border-white/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]" 
+                  : "bg-white/5 border-white/5 hover:bg-white/[0.07]"
               }`}
             >
-              <div className="flex gap-[8px] items-center justify-center pr-[84px] w-full">
-                <p className="basis-0 font-['Figtree',sans-serif] font-normal grow text-[14px] leading-[20px] opacity-60 text-white min-h-px min-w-px">
-                  {faq.answer}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+              <button
+                onClick={() => toggleFAQ(index)}
+                className="flex pointer-events-auto items-center justify-between w-full p-6 md:p-8 text-left gap-4"
+              >
+                <span className={`font-['Figtree'] font-semibold text-lg md:text-xl transition-colors duration-300 ${
+                  openIndex === index ? "text-white" : "text-gray-200"
+                }`}>
+                  {faq.question}
+                </span>
+                
+                <div className={`shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                   openIndex === index 
+                     ? "bg-blue-500 border-blue-400 rotate-45" 
+                     : "bg-white/5 border-white/10 group-hover:border-white/30"
+                }`}>
+                  <Plus 
+                    className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 ${
+                      openIndex === index ? "text-white" : "text-gray-400 group-hover:text-white"
+                    }`} 
+                  />
+                </div>
+              </button>
+              
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="px-6 md:px-8 pb-6 md:pb-8 pt-0">
+                      <p className="font-['Figtree'] text-base text-gray-400 leading-relaxed border-t border-white/10 pt-6">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -121,8 +121,8 @@ const Working = () => {
                   >
                     <work.icon className="w-[48px] h-[48px] text-white" />
                   </motion.div>
-                  <div className="flex flex-col gap-[12px] items-start w-[330px]">
-                    <p className="font-['Figtree',sans-serif] font-semibold text-[32px] leading-[38px] text-center text-white tracking-[-0.64px] whitespace-pre">
+                  <div className="flex flex-col gap-[12px] items-start flex-1 min-w-0">
+                    <p className="font-['Figtree',sans-serif] font-semibold text-[32px] leading-[38px] text-white tracking-[-0.64px]">
                       {work.title}
                     </p>
                     <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-[rgba(255,255,255,0.6)]">

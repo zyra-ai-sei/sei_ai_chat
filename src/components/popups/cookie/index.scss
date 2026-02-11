@@ -1,7 +1,13 @@
-.joinBackground {
-  background: url("/src/assets/topBanner/community.png");
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+.cookie-switch {
+  &.ant-switch {
+    background: rgba(255, 255, 255, 0.1);
+    min-width: 40px;
+  }
+  &.ant-switch-checked {
+    background: #3b82f6;
+  }
+  &.ant-switch-disabled {
+    opacity: 0.5;
+  }
 }
 

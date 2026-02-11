@@ -1,11 +1,7 @@
-import Button from '@/components/common/button'
-
 import { useEffect, useState } from 'react'
-import CookieIcon from '@/assets/common/cookie.svg?react';
 import "./index.scss"
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { LocalStorageIdEnum } from '@/enum/utility.enum';
-import SecondaryButton from '@/components/common/button/secondaryButton';
 import { useAppSelector } from '@/hooks/useRedux';
 import { Switch } from 'antd';
 
@@ -57,58 +53,117 @@ const CookiePopup = ({ setIsCenterAlignPopupOpen, isCenterAlignPopupOpen }: Cook
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMobile])
 
-    if (!isCenterAlignPopupOpen) {
-        return null; // Skip rendering entirely
-      }
+    if (!isCenterAlignPopupOpen || window.location.pathname === '/') {
+        return null;
+    }
 
     return (
-        <div  style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }} className="fixed z-10 flex justify-center w-full overflow-hidden bottom-1 joinBackground">
-            <section className="h-fit w-full joinBackground max-w-[907px] rounded-[10px] shadow1 px-[24px] py-[16px] flex flex-col  md:flex-row items-start  md:justify-between ">
-                <div className="mt-[16px] md:mt-[0px]">
-                    <div className='flex items-center gap-2'>
-                        <CookieIcon className="h-[32px] w-[32px] text-neutral-greys-950" />
-                        <h5 className="typo-h5-semiBold text-neutral-greys-950">We use Cookies</h5>
+        <div className="fixed z-50 bottom-0 left-0 right-0 flex justify-center p-4 pointer-events-none">
+            <section 
+                className="pointer-events-auto w-full max-w-[520px] rounded-2xl border border-white/10 bg-[#15141A]/95 backdrop-blur-xl shadow-[0_-4px_40px_rgba(0,0,0,0.5)] p-6 font-['Figtree',sans-serif]"
+            >
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-blue-400">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
+                            <circle cx="8" cy="10" r="1.5" fill="currentColor"/>
+                            <circle cx="15" cy="9" r="1" fill="currentColor"/>
+                            <circle cx="11" cy="15" r="1.5" fill="currentColor"/>
+                            <circle cx="16" cy="14" r="1" fill="currentColor"/>
+                        </svg>
                     </div>
-                    <p className="text-neutral-greys-500 typo-b2-regular max-w-[447px] mt-[8px]">
-                        We use cookies to ensure the best possible experience. By using Chaquen, you agree with our
-                        <a target='_blank' href={"/privacyPolicy"} className='text-primary-main-400'>{" "}Cookie Policy</a>.
-                    </p>
+                    <h5 className="text-white font-semibold text-base">We use Cookies</h5>
                 </div>
-                <div className={`${customize ? 'h-0 overflow-hidden' : 'h-8'} flex items-start gap-x-[16px] mt-[32px] md:mt-[0px]`}>
-                    <Button
-                        title="Accept"
-                        onClick={handleCookieButton}
-                    />
 
-                    <SecondaryButton
-                        title="Customise"
-                        onClick={() => setCustomize?.(true)}
-                    />
+                {/* Description */}
+                <p className="text-gray-400 text-sm leading-relaxed mb-5">
+                    We use cookies to ensure the best possible experience. By using Zyra, you agree with our{" "}
+                    <a href="/cookie-policy" className="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2">
+                        Cookie Policy
+                    </a>.
+                </p>
+
+                {/* Customize section */}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${customize ? 'max-h-[300px] mb-5' : 'max-h-0'}`}>
+                    <div className="space-y-3 pb-1">
+                        <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white/5 border border-white/5">
+                            <div>
+                                <p className="text-white text-sm font-medium">Necessary</p>
+                                <p className="text-gray-500 text-xs mt-0.5">Required for core functionality</p>
+                            </div>
+                            <Switch 
+                                checked={true} 
+                                disabled 
+                                className="cookie-switch"
+                            />
+                        </div>
+                        <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white/5 border border-white/5">
+                            <div>
+                                <p className="text-white text-sm font-medium">Functional</p>
+                                <p className="text-gray-500 text-xs mt-0.5">Enhanced features & personalization</p>
+                            </div>
+                            <Switch 
+                                checked={isFunctionalCookies} 
+                                onChange={setFunctionalCookies}
+                                className="cookie-switch"
+                            />
+                        </div>
+                        <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white/5 border border-white/5">
+                            <div>
+                                <p className="text-white text-sm font-medium">Performance</p>
+                                <p className="text-gray-500 text-xs mt-0.5">Analytics & usage insights</p>
+                            </div>
+                            <Switch 
+                                checked={isPerformanceCookies} 
+                                onChange={setPerformanceCookies}
+                                className="cookie-switch"
+                            />
+                        </div>
+                    </div>
                 </div>
-                <div className={`pt-4 text-white w-full transition-all duration-300 ${customize ? 'h-[240px]' : 'h-0 overflow-hidden'} flex flex-col gap-[16px] size-4`}>
-                    <div className='flex items-center justify-between'>
-                        <h1>Necessary cookies</h1>
-                        <Switch checked={true} onChange={() => { }} defaultChecked={true} />
-                    </div>
-                    <div className='flex items-center justify-between'>
-                        <h1>Functional cookies</h1>
-                        <Switch checked={isFunctionalCookies} onChange={setFunctionalCookies} />
-                    </div>
-                    <div className='flex items-center justify-between'>
-                        <h1>Performance cookies</h1>
-                        <Switch checked={isPerformanceCookies} onChange={setPerformanceCookies} defaultChecked={true} />
-                    </div>
 
-                    <Button
-                        onClick={handleSelectedCookies}
-                        title={"Allow selected cookies"} />
-                    <SecondaryButton
-                        onClick={handleNecessaryCookies}
-                        title={"Allow necessary cookies only"} />
-
-                </div>
+                {/* Buttons */}
+                {!customize ? (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleCookieButton}
+                            className="flex-1 px-4 py-2.5 rounded-full bg-white text-[#0D0C11] text-sm font-semibold hover:bg-gray-100 transition-colors"
+                        >
+                            Accept All
+                        </button>
+                        <button
+                            onClick={() => setCustomize(true)}
+                            className="flex-1 px-4 py-2.5 rounded-full border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition-colors"
+                        >
+                            Customize
+                        </button>
+                        <button
+                            onClick={handleNecessaryCookies}
+                            className="px-4 py-2.5 rounded-full text-gray-500 text-sm hover:text-gray-300 transition-colors"
+                        >
+                            Reject
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleSelectedCookies}
+                            className="flex-1 px-4 py-2.5 rounded-full bg-white text-[#0D0C11] text-sm font-semibold hover:bg-gray-100 transition-colors"
+                        >
+                            Save Preferences
+                        </button>
+                        <button
+                            onClick={handleNecessaryCookies}
+                            className="px-4 py-2.5 rounded-full border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition-colors"
+                        >
+                            Necessary Only
+                        </button>
+                    </div>
+                )}
             </section>
-        </div>)
+        </div>
+    )
 }
 
 export default CookiePopup

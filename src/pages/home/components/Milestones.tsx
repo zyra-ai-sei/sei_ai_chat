@@ -1,12 +1,15 @@
-import { CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Milestones = () => {
   const timelineData = [
     {
+      id: "01",
       quarter: "Q3",
       year: "2025",
       title: "Core Sei\nIntegration",
       status: "completed",
+      theme: "from-[#FF6B6B] to-[#FF8E8E]",
+      barColor: "bg-[#FF6B6B]",
       description: [
         "Connected base Sei swaps and transfers through natural language",
         "Live unsigned transaction preview with full edit controls",
@@ -14,104 +17,153 @@ const Milestones = () => {
       ],
     },
     {
+      id: "02",
       quarter: "Q4",
       year: "2025",
       title: "Strategies\nIntegration",
-      status: "in-progress",
+      status: "completed",
+      theme: "from-[#FFA502] to-[#FFC048]",
+      barColor: "bg-[#FFA502]",
       description: [
         "Add DCA, limit orders, and scheduled orders through NL prompts",
         "Build strategy templates users can reuse and modify easily",
-        "Launch SDK beta with 1 partner dApp on Sei",
       ],
     },
     {
+      id: "03",
       quarter: "Q1",
       year: "2026",
-      title: "Automated Agents & Trading Intelligence",
+      title: "Agents &\nIntelligence",
       status: "upcoming",
+      theme: "from-[#D980FA] to-[#FDA7DF]",
+      barColor: "bg-[#D980FA]",
       description: [
-        "Introduce agent-based execution and monitoring for user-defined strategies",
+        "Introduce agent-based execution and monitoring",
         "Portfolio analytics & execution suggestions inside chat",
-        "Support copy trading (single wallets & curated list based groups)",
-        "Launch SDK v1 with 3+ partner dApps on Sei"
+        "Support copy trading (single wallets & curated groups)",
       ],
     },
     {
+      id: "04",
       quarter: "Q2",
       year: "2026",
-      title: "Growth, Scaling & Developer Ecosystem",
+      title: "Growth &\nEcosystem",
       status: "upcoming",
+      theme: "from-[#2ED573] to-[#7BED9F]",
+      barColor: "bg-[#2ED573]",
       description: [
-        "Launch partner SDK program for Sei dApps",
-        "Support a User Generated Content Marketplace for AI agent templates",
-        "Expand to multi-app distribution on Sei via integrated developer tooling",
-        "Launch API access for advanced users and developers",
+        "User Generated Content Marketplace for AI agent templates",
+        "Expand to multi-app distribution via developer tooling",
+        "Launch API access for advanced users",
       ],
     },
   ];
 
   return (
-    <section className="bg-[#0D0C11] flex flex-col gap-[64px] items-center justify-center py-[84px] w-full max-w-[1440px] mx-auto">
+    <section
+      id="timeline"
+      className="bg-[#0D0C11] flex flex-col gap-16 md:gap-24 pointer-events-none items-center justify-center py-20 md:py-32 w-full max-w-[1440px] mx-auto overflow-hidden"
+    >
       {/* Header */}
-      <div className="flex flex-col gap-[16px] items-start text-center w-full">
-        <p className="bg-clip-text font-['Figtree',sans-serif] font-semibold text-[48px] leading-[54px] tracking-[-0.96px] text-transparent bg-gradient-to-r from-white to-[#7CABF9] w-full">
-          Key Milestones <span className="text-[#3B82F6]">ahead</span>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col gap-6 items-center text-center w-full px-4"
+      >
+        <p className="bg-clip-text font-['Figtree'] font-bold text-4xl md:text-5xl lg:text-7xl tracking-[-0.02em] text-transparent bg-gradient-to-r from-white to-[#7CABF9]">
+          Key Milestones <span className="text-[#3B82F6]">Ahead</span>
         </p>
-        <p className="font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white w-full">
-          We're just getting started. Here's what's coming next as we build the future of conversational trading.
+        <p className="font-['Figtree'] text-base md:text-lg text-gray-400 max-w-2xl leading-relaxed">
+          We're just getting started. Here's what's coming next as we build the
+          future of conversational trading.
         </p>
-      </div>
+      </motion.div>
 
-      {/* Timeline Cards */}
-      <div className="flex gap-[24px] items-stretch px-[135px] w-full">
-        {timelineData.map((item, index) => (
-          <div
-            key={index}
-            className={`flex flex-row items-center self-stretch ${
-              item.status === 'completed'
-                ? 'bg-gradient-to-b from-[#3B82F6] to-[#193767]'
-                : 'bg-gradient-to-b from-[rgba(255,255,255,0.06)] to-[rgba(255,255,255,0.12)]'
-            } flex-col gap-[40px] items-start p-[24px] rounded-[24px] w-[274.5px] min-h-[400px]`}
-          >
-            {/* Quarter Badge */}
-            <div className="flex gap-[12px] items-center">
-              <div
-                className={`${
-                  item.status === 'completed'
-                    ? 'bg-[rgba(255,255,255,0.3)]'
-                    : 'bg-[rgba(53, 95, 212, 0.08)] border border-[rgba(3, 47, 136, 0.1)] border-solid'
-                } flex flex-col gap-[8px] items-center justify-center p-[12px] rounded-[16px] w-[64px] h-[64px]`}
+      {/* Timeline Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-y-12 lg:gap-y-0 w-full px-6 md:px-12 lg:px-16 pb-20">
+        {timelineData.map((item, index) => {
+          const isEven = index % 2 !== 0;
+          return (
+            <div key={index} className="relative lg:px-4 lg:h-full">
+              {/* Vertical Separator (Desktop Only) */}
+              {index !== timelineData.length - 1 && (
+                <div
+                  className={`hidden lg:block absolute right-0 bottom-0 w-px bg-white/20 ${isEven ? "top-36" : "top-4"}`}
+                />
+              )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className={`
+                  group relative flex flex-col gap-4 
+                  ${isEven ? "items-end text-right lg:items-start lg:text-left lg:mt-32" : "items-start text-left"}
+                `}
               >
-                <p className="font-['Figtree',sans-serif] font-semibold text-[28px] leading-[28px] text-center text-white">
-                  {item.quarter}
-                </p>
-              </div>
-              <div className="flex flex-col justify-center font-['Figtree',sans-serif] font-normal text-[16px] leading-[24px] text-white">
-                <p>{item.year}</p>
-              </div>
-            </div>
+                <div
+                  className={`flex items-center gap-6 ${isEven ? "flex-row-reverse lg:flex-row" : "flex-row"}`}
+                >
+                  {/* Number */}
+                  <span
+                    className={`text-7xl md:text-8xl font-black font-['Figtree'] leading-[0.8] text-transparent bg-clip-text bg-gradient-to-b ${item.theme}`}
+                  >
+                    {item.id}
+                  </span>
 
-            {/* Content */}
-            <div className="flex flex-col gap-[16px] items-start w-full">
-              <p className="font-['Figtree',sans-serif] font-semibold text-[24px] leading-[30px] text-white tracking-[-0.48px] w-full whitespace-pre-line">
-                {item.title}
-              </p>
-              <div className="flex flex-col gap-[12px] items-start w-full">
-                {item.description.map((desc, descIndex) => (
-                  <div key={descIndex} className="flex gap-[8px] items-start w-full">
-                    <CheckCircle2
-                      className="w-[20px] h-[20px] shrink-0 text-white"
-                      fill="none"
-                    />
-                    <p className="basis-0 font-['Figtree',sans-serif] font-normal grow text-[14px] leading-[18px] text-white min-h-px min-w-px">
-                      {desc}
-                    </p>
+                  {/* Colored Vertical Bar */}
+                  <div
+                    className={`
+                    w-1.5 h-20 ${item.barColor} rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)] dark:opacity-80 z-10
+                    lg:absolute lg:-right-4 lg:translate-x-1/2 lg:top-4
+                  `}
+                  />
+                </div>
+
+                <div
+                  className={`flex flex-col gap-3 ${isEven ? "items-end lg:items-start" : "items-start"}`}
+                >
+                  <h3
+                    className={`text-2xl font-bold text-white font-['Figtree'] uppercase tracking-wide leading-tight whitespace-pre-line group-hover:text-[#7CABF9] transition-colors duration-300 ${isEven ? "text-right lg:text-left" : "text-left"}`}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <div
+                    className={`flex items-center gap-3 mb-2 ${isEven ? "flex-row-reverse lg:flex-row" : "flex-row"}`}
+                  >
+                    <div
+                      className={`flex flex-col ${isEven ? "items-end lg:items-start" : "items-start"}`}
+                    >
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        {item.quarter} {item.year}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider ${item.status === "completed" ? "text-green-400" : item.status === "in-progress" ? "text-blue-400" : "text-purple-400"}`}
+                      >
+                        {item.status.replace("-", " ")}
+                      </span>
+                    </div>
                   </div>
-                ))}
-              </div>
+
+                  <ul className="space-y-2.5">
+                    {item.description.map((desc, i) => (
+                      <li
+                        key={i}
+                        className={`text-sm md:text-[15px] text-gray-400 leading-relaxed font-['Figtree'] font-medium ${isEven ? "text-right lg:text-left" : "text-left"}`}
+                      >
+                        {isEven ? <span>{desc}</span> : <span>{desc}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

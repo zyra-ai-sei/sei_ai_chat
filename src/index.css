@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   :root {
     --primary-main-50: #fef1f1;
     --primary-main-100: #fee1e1;

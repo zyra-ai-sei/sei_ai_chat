@@ -2,97 +2,92 @@ import Icon from "@/assets/icon.svg";
 import Github from "@/assets/footer/github.svg?react";
 import Twitter from "@/assets/footer/twitter.svg?react";
 import Discord from "@/assets/footer/discord.svg?react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#0D0C11] flex items-end justify-between w-[1170px] mx-auto">
-      {/* Left Column - Logo and Social */}
-      <div className="flex flex-row items-end self-stretch">
-        <div className="flex flex-col h-full items-start justify-between w-[275px]">
-          {/* Logo and Description */}
-          <div className="flex flex-col gap-[12px] items-start justify-end w-full">
-            <div className="flex gap-[8px] items-center">
-              <div className="relative rounded-[8px] w-[32px] h-[32px]">
-                <img src={Icon} className="absolute left-[3px] top-[0px] w-[32px] h-[32px]" />
-              </div>
-              <p className="font-['Satoshi',sans-serif] font-black text-[27px] leading-normal text-white text-center whitespace-pre">
+    <footer className=" border-t bg-black/10 border-white/5 w-full mt-20 relative z-10 pointer-events-none">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 pt-6">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8">
+          
+          {/* Brand Column */}
+          <div className="flex flex-col gap-6 max-w-sm">
+            <div className="flex items-center gap-3">
+              <img src={Icon} alt="Zyra Logo" className="w-10 h-10" />
+              <span className="font-['Satoshi',sans-serif] font-black text-3xl text-white tracking-tight">
                 Zyra
-              </p>
+              </span>
             </div>
-            <p className="font-['Figtree',sans-serif] font-medium text-[14px] leading-[20px] text-[#98A2B3] w-full">
-              Revolutionizing blockchain interaction through natural language AI
+            <p className="font-['Figtree',sans-serif] text-base text-gray-400 leading-relaxed text-left">
+              Revolutionizing blockchain interaction through natural language AI. Execute complex strategies with simple commands.
             </p>
-          </div>
-
-          {/* Social Icons */}
-          <div className="flex gap-[12px] items-start">
-            <a
-              href="https://github.com/zyra-ai-sei"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-[24px] h-[24px]"
-            >
-              <Github className="w-full h-full text-[#98A2B3] hover:text-white transition-colors" />
-            </a>
-            <a
-              href="https://x.com/Zyra_ai_"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-[24px] h-[24px]"
-            >
-              <Twitter className="w-full h-full text-[#98A2B3] hover:text-white transition-colors" />
-            </a>
-            <a
-              href="https://discord.gg/pGu7pfh8r"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#98A2B3] hover:bg-white flex gap-[8px] items-center justify-center p-[10px] rounded-[99px] w-[24px] h-[24px] transition-colors"
-            >
-              <Discord className="w-[16px] h-[16px] text-[#0D0C11]" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column - Links and Copyright */}
-      <div className="flex flex-col gap-[64px] items-start">
-        {/* Links Container */}
-        <div className="flex gap-[24px] items-start justify-center w-full">
-          {/* Product Column */}
-          <div className="flex flex-col gap-[20px] items-start w-[148px]">
-            <p className="font-['Figtree',sans-serif] font-semibold text-[16px] leading-[24px] text-white w-full">
-              Product
-            </p>
-            <div className="flex flex-col font-['Figtree',sans-serif] font-normal gap-[8px] items-start text-[16px] leading-[24px] text-[#98A2B3] w-full">
-              <a href="#features" className="w-full transition-colors hover:text-white">
-                Features
+            
+            {/* Social Icons */}
+            <div className="flex gap-4 mt-2 pointer-events-auto">
+              <a
+                href="https://github.com/zyra-ai-sei"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 pointer-events-auto rounded-full bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center transition-all group"
+              >
+                <Github className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
               </a>
-              <a href="#timeline" className="w-full transition-colors hover:text-white">
-                Timeline
+              <a
+                href="https://x.com/Zyra_ai_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center transition-all group"
+              >
+                <Twitter className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+              </a>
+              <a
+                href="https://discord.gg/fSQEBj4q"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center transition-all group"
+              >
+                <Discord className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
               </a>
             </div>
           </div>
 
-          {/* Company Column */}
-          <div className="flex flex-col gap-[20px] items-start w-[148px]">
-            <p className="font-['Figtree',sans-serif] font-semibold text-[16px] leading-[24px] text-white w-full">
-              Company
-            </p>
-            <div className="flex flex-col font-['Figtree',sans-serif] font-normal gap-[8px] items-start text-[16px] leading-[24px] text-[#98A2B3] w-full">
-              <a href="#about" className="w-full transition-colors hover:text-white">
-                About
-              </a>
-              <a href="#" className="w-full transition-colors hover:text-white">
-                Blog
-              </a>
+          {/* Links Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24 w-full md:w-auto">
+            <div className="flex flex-col gap-6">
+              <h4 className="font-['Figtree',sans-serif] font-semibold text-white text-lg text-left">Product</h4>
+              <div className="flex flex-col gap-4 text-gray-400 font-['Figtree',sans-serif] text-left">
+                <a href="/#tracking" className="hover:text-white transition-colors pointer-events-auto">Features</a>
+                <a href="/#timeline" className="hover:text-white transition-colors pointer-events-auto">Timeline</a>
+                <Link to="/dashboard" className="hover:text-white transition-colors pointer-events-auto">Dashboard</Link>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <h4 className="font-['Figtree',sans-serif] font-semibold text-white text-lg text-left">Company</h4>
+              <div className="flex flex-col gap-4 text-gray-400 font-['Figtree',sans-serif] text-left">
+                {/* <a href="#about" className="hover:text-white transition-colors pointer-events-auto">About</a> */}
+                <a target="_blank" href="https://dev.to/shreyansh_b89bf259255b814/introduction-to-zyra-ai-powered-crypto-trading-companion-30pp" className="hover:text-white transition-colors pointer-events-auto">Blog</a>
+                <a href="mailto:admin@zyrachat.app" className="hover:text-white transition-colors pointer-events-auto">Contact</a>
+              </div>
+            </div>
+
+             <div className="flex flex-col gap-6">
+              <h4 className="font-['Figtree',sans-serif] font-semibold text-white text-lg text-left">Legal</h4>
+              <div className="flex flex-col gap-4 text-gray-400 font-['Figtree',sans-serif] text-left">
+                <Link to="/terms" className="hover:text-white transition-colors pointer-events-auto">Terms</Link>
+                <Link to="/privacy" className="hover:text-white transition-colors pointer-events-auto">Privacy</Link>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Copyright Row */}
-        <div className="flex font-['Figtree',sans-serif] font-normal items-center justify-between text-[10px] leading-[14px] text-[#98A2B3] text-center w-full whitespace-pre">
-          <p>© 2025 Zyra. All Rights Reserved</p>
-          <p>Privacy & Cookies Policy</p>
+        {/* Bottom Bar */}
+        <div className="mt-16 border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 font-['Figtree',sans-serif] text-sm text-gray-500">
+          <p>© 2025 Zyra. All Rights Reserved.</p>
+          <div className="flex gap-8">
+             <Link to="/privacy" className="hover:text-gray-300 cursor-pointer transition-colors pointer-events-auto">Privacy Policy</Link>
+             <Link to="/terms" className="hover:text-gray-300 cursor-pointer transition-colors pointer-events-auto">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>

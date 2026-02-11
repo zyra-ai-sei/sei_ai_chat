@@ -1,19 +1,31 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import PageNotFound from "./pages/pageNotFound";
-import Chat from "./pages/chat";
 import DefaultLayout from "./layouts/defaultLayout";
 import { useAppDispatch, useAppSelector } from "./hooks/useRedux";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 
 import { useAccount, useDisconnect } from "wagmi";
 
 import useScreenWidth from "./hooks/useScreenWidth";
 import { setGlobalData } from "./redux/globalData/action";
 
-import Home from "./pages/home";
 import DefaultAppLayout from "./layouts/defaultAppLayout";
-import Transactions from "./pages/Transactions";
-import Dashboard from "./pages/Dashboard";
+
+// Lazy load the pages
+const Home = lazy(() => import("./pages/home"));
+const Chat = lazy(() => import("./pages/chat"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const PageNotFound = lazy(() => import("./pages/pageNotFound"));
+
+// Create a simple loading fallback
+const PageLoader = () => (
+  <div className="flex flex-col items-center justify-center w-full h-screen bg-[#0D0C11]">
+    <div className="w-10 h-10 border-2 border-blue-500 rounded-full animate-spin border-t-transparent" />
+  </div>
+);
 
 function RouterConfig() {
   const dispatch = useAppDispatch();
@@ -61,11 +73,12 @@ function RouterConfig() {
 
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={<DefaultLayout MainContentComponent={Home} />}
-        />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route
+            path="/"
+            element={<DefaultLayout MainContentComponent={Home} />}
+          />
           <Route
             path="/chat"
             element={
@@ -96,9 +109,23 @@ function RouterConfig() {
               />
             }
           />
+          <Route
+            path="/terms"
+            element={<DefaultLayout MainContentComponent={Terms} />}
+          />
+          <Route
+            path="/privacy"
+            element={<DefaultLayout MainContentComponent={Privacy} />}
+          />
+          <Route
+            path="/cookie-policy"
+            element={<DefaultLayout MainContentComponent={CookiePolicy} />}
+          />
 
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
-}export default RouterConfig;
+}
+export default RouterConfig;
