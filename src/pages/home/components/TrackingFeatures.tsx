@@ -111,15 +111,15 @@ const TrackingFeatures = () => {
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold font-['Figtree'] text-white leading-[1.1] tracking-tight">
-            Unlock Top <br />
+            Unlock Crypto AI <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
               Money Flows
             </span>
           </h2>
           <p className="text-lg text-gray-400 font-['Figtree'] max-w-xl leading-relaxed">
-            Track smart money wallets and influential X accounts in real-time.
-            Get instant alerts when whales buy or influencers tweet about a
-            token.
+            Track smart money wallets and influential X accounts in real-time
+            with Zyra's Crypto AI. Get trading signals and instant alerts when
+            whales buy or influencers tweet about a token.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">

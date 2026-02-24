@@ -87,8 +87,8 @@ const SwapForm = ({
   onCommit: (s: string) => void;
   tokens: Token[];
 }) => {
-  const [src, setSrc] = useState(tokens[0].symbol || "");
-  const [dst, setDst] = useState(tokens[1].symbol || "");
+  const [src, setSrc] = useState(tokens[0]?.symbol || "");
+  const [dst, setDst] = useState(tokens[1]?.symbol || "");
   const [val, setVal] = useState("1");
   const [time, setTime] = useState("10m");
 
@@ -171,7 +171,7 @@ const SimulateForm = ({
   const handleSubmit = () => {
     if (!period || !investment) return;
     onCommit(
-      `Simulate a ${frequency} dollar-cost averaging (DCA) strategy for ${token} over a ${period}-day period with a total investment of $${investment}.`
+      `Simulate a ${frequency} dollar-cost averaging (DCA) strategy for ${token} over a ${period}-day period with a total investment of $${investment}.`,
     );
   };
 
@@ -192,11 +192,7 @@ const SimulateForm = ({
           <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
             Strategy
           </label>
-          <Select
-            options={["DCA"]}
-            value={strategy}
-            onChange={setStrategy}
-          />
+          <Select options={["DCA"]} value={strategy} onChange={setStrategy} />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
@@ -262,9 +258,11 @@ const MarketForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
 const TwitterForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   return (
     <div className="flex flex-col w-full gap-2">
-      <p className="text-[10px] text-gray-400 text-center mb-1">Stay updated with the latest crypto trends and news from X (Twitter).</p>
+      <p className="text-[10px] text-gray-400 text-center mb-1">
+        Stay updated with the latest crypto trends and news from X (Twitter).
+      </p>
       <button
-        onClick={() => onCommit("give me latest twitter posts related to crypto")}
+        onClick={() => onCommit("give me top twitter posts related to crypto")}
         className="mt-1 w-full py-2.5 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -287,7 +285,7 @@ const ExecuteStrategiesForm = ({
     "Spot Market Order",
     "Spot Limit Order",
     "TWAP Market (DCA)",
-    "TWAP Limit"
+    "TWAP Limit",
   ];
 
   const [orderType, setOrderType] = useState(orderTypes[0]);
@@ -316,13 +314,19 @@ const ExecuteStrategiesForm = ({
 
       case "TWAP Market (DCA)":
         if (!chunkAmount || !fillDelay) return;
-        const delaySeconds = delayUnit === "minutes" ? parseInt(fillDelay) * 60 : parseInt(fillDelay) * 3600;
+        const delaySeconds =
+          delayUnit === "minutes"
+            ? parseInt(fillDelay) * 60
+            : parseInt(fillDelay) * 3600;
         prompt = `Create a TWAP market order (DCA) to swap a total of ${totalAmount} ${srcToken} for ${dstToken} in chunks of ${chunkAmount} ${srcToken} each, with ${fillDelay} ${delayUnit} between trades. Accept market price for each chunk with srcAmount=${totalAmount}, srcBidAmount=${chunkAmount}, dstMinAmount=1 (market price), and fillDelay=${delaySeconds} seconds.`;
         break;
 
       case "TWAP Limit":
         if (!chunkAmount || !limitPrice || !fillDelay) return;
-        const delaySecondsLimit = delayUnit === "minutes" ? parseInt(fillDelay) * 60 : parseInt(fillDelay) * 3600;
+        const delaySecondsLimit =
+          delayUnit === "minutes"
+            ? parseInt(fillDelay) * 60
+            : parseInt(fillDelay) * 3600;
         prompt = `Create a TWAP limit order to swap a total of ${totalAmount} ${srcToken} for ${dstToken} in chunks of ${chunkAmount} ${srcToken} each, with ${fillDelay} ${delayUnit} between trades. Only execute if each chunk receives at least ${limitPrice} ${dstToken} per ${srcToken}. Set srcAmount=${totalAmount}, srcBidAmount=${chunkAmount}, dstMinAmount=${limitPrice} per chunk, and fillDelay=${delaySecondsLimit} seconds.`;
         break;
     }
@@ -339,7 +343,11 @@ const ExecuteStrategiesForm = ({
         <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
           Order Type
         </label>
-        <Select options={orderTypes} value={orderType} onChange={setOrderType} />
+        <Select
+          options={orderTypes}
+          value={orderType}
+          onChange={setOrderType}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -358,7 +366,9 @@ const ExecuteStrategiesForm = ({
             To
           </label>
           <Select
-            options={tokens.filter((t) => t.symbol !== srcToken).map((t) => t.symbol)}
+            options={tokens
+              .filter((t) => t.symbol !== srcToken)
+              .map((t) => t.symbol)}
             value={dstToken}
             onChange={setDstToken}
           />
@@ -442,9 +452,15 @@ const ExecuteStrategiesForm = ({
 };
 
 const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
-  const tokensByChain = useAppSelector((state) => state.tokenData.tokensByChain);
-  const [srcChainId, setSrcChainId] = useState<number>(SUPPORTED_CHAINS[0].chainId);
-  const [dstChainId, setDstChainId] = useState<number>(SUPPORTED_CHAINS[1].chainId);
+  const tokensByChain = useAppSelector(
+    (state) => state.tokenData.tokensByChain,
+  );
+  const [srcChainId, setSrcChainId] = useState<number>(
+    SUPPORTED_CHAINS[0].chainId,
+  );
+  const [dstChainId, setDstChainId] = useState<number>(
+    SUPPORTED_CHAINS[1].chainId,
+  );
   const [amount, setAmount] = useState("");
 
   const srcTokens = tokensByChain[srcChainId] || [];
@@ -456,7 +472,7 @@ const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   useEffect(() => {
     if (srcTokens.length > 0) {
       setSrcToken((prev) =>
-        srcTokens.find((t) => t.symbol === prev) ? prev : srcTokens[0].symbol
+        srcTokens.find((t) => t.symbol === prev) ? prev : srcTokens[0].symbol,
       );
     }
   }, [srcChainId, srcTokens]);
@@ -464,7 +480,7 @@ const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   useEffect(() => {
     if (dstTokens.length > 0) {
       setDstToken((prev) =>
-        dstTokens.find((t) => t.symbol === prev) ? prev : dstTokens[0].symbol
+        dstTokens.find((t) => t.symbol === prev) ? prev : dstTokens[0].symbol,
       );
     }
   }, [dstChainId, dstTokens]);
@@ -472,13 +488,13 @@ const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
   const handleSubmit = () => {
     if (!amount || !srcToken || !dstToken) return;
     const srcChainName = SUPPORTED_CHAINS.find(
-      (c) => c.chainId === srcChainId
+      (c) => c.chainId === srcChainId,
     )?.name;
     const dstChainName = SUPPORTED_CHAINS.find(
-      (c) => c.chainId === dstChainId
+      (c) => c.chainId === dstChainId,
     )?.name;
     onCommit(
-      `Bridge ${amount} ${srcToken} from ${srcChainName} to ${dstToken} on ${dstChainName}`
+      `Bridge ${amount} ${srcToken} from ${srcChainName} to ${dstToken} on ${dstChainName}`,
     );
   };
 
@@ -495,7 +511,7 @@ const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
             onChange={(name: string) =>
               setSrcChainId(
                 SUPPORTED_CHAINS.find((c) => c.name === name)?.chainId ||
-                  srcChainId
+                  srcChainId,
               )
             }
           />
@@ -510,7 +526,7 @@ const BridgeForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
             onChange={(name: string) =>
               setDstChainId(
                 SUPPORTED_CHAINS.find((c) => c.name === name)?.chainId ||
-                  dstChainId
+                  dstChainId,
               )
             }
           />
@@ -569,7 +585,7 @@ const TrackAddressForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
 
   const toggleChain = (chain: string) => {
     setSelectedChains((prev) =>
-      prev.includes(chain) ? prev.filter((c) => c !== chain) : [...prev, chain]
+      prev.includes(chain) ? prev.filter((c) => c !== chain) : [...prev, chain],
     );
   };
 
@@ -584,11 +600,7 @@ const TrackAddressForm = ({ onCommit }: { onCommit: (s: string) => void }) => {
         <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
           Wallet Address
         </label>
-        <Input
-          placeholder="0x..."
-          value={address}
-          onChange={setAddress}
-        />
+        <Input placeholder="0x..." value={address} onChange={setAddress} />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -634,7 +646,9 @@ const ActionCard = ({
   isActive,
   onToggle,
 }: any) => {
-  const needsExpansion = ["strategies", "simulate", "bridge", "track"].includes(type);
+  const needsExpansion = ["strategies", "simulate", "bridge", "track"].includes(
+    type,
+  );
 
   return (
     <motion.div
@@ -642,23 +656,31 @@ const ActionCard = ({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onClick={onToggle}
       className={`group relative w-full h-full rounded-xl border cursor-pointer transition-all duration-300 snap-start overflow-hidden ${
-        isActive 
-          ? `${needsExpansion ? "row-span-2" : "row-span-1"} z-20 bg-[#0A0B0F] border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]` 
+        isActive
+          ? `${needsExpansion ? "row-span-2" : "row-span-1"} z-20 bg-[#0A0B0F] border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)]`
           : "row-span-1 bg-white/5 border-white/10 hover:bg-white/[0.08] hover:border-white/20"
       }`}
     >
       {/* State 1: Default View (Visible when not active) */}
       <div
         className={`absolute inset-0 flex flex-col items-start p-6 transition-all duration-500 ease-in-out ${
-          isActive ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
+          isActive
+            ? "opacity-0 scale-95 pointer-events-none"
+            : "opacity-100 scale-100"
         }`}
       >
-        <div className={`p-3 mb-4 text-white rounded-lg transition-colors duration-300 ${isActive ? "bg-purple-500/20" : "bg-black/20 group-hover:bg-black/40"}`}>
+        <div
+          className={`p-3 mb-4 text-white rounded-lg transition-colors duration-300 ${isActive ? "bg-purple-500/20" : "bg-black/20 group-hover:bg-black/40"}`}
+        >
           {icon}
         </div>
-        <h3 className="mb-1 text-lg font-semibold text-white tracking-tight">{title}</h3>
-        <p className="text-sm leading-relaxed text-gray-400 line-clamp-2">{desc}</p>
-        
+        <h3 className="mb-1 text-lg font-semibold text-white tracking-tight">
+          {title}
+        </h3>
+        <p className="text-sm leading-relaxed text-gray-400 line-clamp-2">
+          {desc}
+        </p>
+
         <div className="mt-auto flex items-center gap-1.5 text-[10px] font-bold text-purple-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
           Click to Open <span className="text-lg">→</span>
         </div>
@@ -667,28 +689,45 @@ const ActionCard = ({
       {/* State 2: Active View (Interaction Form) */}
       <div
         className={`absolute inset-0 z-10 flex flex-col p-5 transition-all duration-500 ease-in-out bg-[#0A0B0F]/95 backdrop-blur-sm ${
-          isActive ? "opacity-100 scale-100" : "opacity-0 scale-110 pointer-events-none"
+          isActive
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-110 pointer-events-none"
         }`}
       >
-        <div className={`flex items-center justify-between pb-2 border-b border-white/5 ${needsExpansion ? "mb-4" : "mb-2"}`}>
+        <div
+          className={`flex items-center justify-between pb-2 border-b border-white/5 ${needsExpansion ? "mb-4" : "mb-2"}`}
+        >
           <div className="flex items-center gap-2">
             <div className="text-purple-400 scale-75 origin-left">{icon}</div>
             <h4 className="text-sm font-bold tracking-wider text-white uppercase truncate">
               {title}
             </h4>
           </div>
-          <button 
-            onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
             className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
-        <div 
-          className="flex-1 overflow-y-auto pr-1 flex flex-col justify-center scrollbar-none" 
+        <div
+          className="flex-1 overflow-y-auto pr-1 flex flex-col justify-center scrollbar-none"
           onClick={(e) => e.stopPropagation()}
         >
           {type === "transfer" && (
@@ -716,17 +755,26 @@ const ActionCard = ({
 const QuickActionsGrid = () => {
   const dispatch = useAppDispatch();
   const chainId = useChainId();
-  const {address} = useAccount();
+  const { address } = useAccount();
   const network = getChainById(chainId);
   const tokenList = useAppSelector(selectTokensByChain(chainId));
+  console.log("token", tokenList, chainId, network);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const handleAction =async (resultString: string) => {
+  const handleAction = async (resultString: string) => {
     // TODO: Connect this to your chat input state
     // setInput(resultString);
     const token = await getAccessToken();
 
-    dispatch(streamChatPrompt({ prompt: resultString, address:address!, network: network?.id, abortSignal: new AbortController().signal, token:token! }));
+    dispatch(
+      streamChatPrompt({
+        prompt: resultString,
+        address: address!,
+        network: network?.id,
+        abortSignal: new AbortController().signal,
+        token: token!,
+      }),
+    );
     // Collapsing after action commit for better UX
     setActiveIndex(null);
   };
@@ -858,17 +906,17 @@ const QuickActionsGrid = () => {
       desc: "Send crypto securely to another wallet.",
       icon: (
         <svg
-        className="w-6 h-6 text-pink-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+          className="w-6 h-6 text-pink-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-            />
+          />
         </svg>
       ),
     },
@@ -905,8 +953,8 @@ const QuickActionsGrid = () => {
         </p>
       </div>
 
-      <div className="w-full overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory px-4 md:px-12">
-        <div className="grid grid-flow-col grid-rows-2 gap-4 auto-cols-[280px] md:auto-cols-[340px] h-[26rem]">
+      <div className="w-full h-full overflow-y-auto md:overflow-y-hidden md:overflow-x-auto pb-4 scrollbar-none snap-y md:snap-x snap-mandatory px-4 md:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-none md:grid-flow-col md:grid-rows-2 gap-4 auto-rows-[200px] md:auto-rows-auto md:auto-cols-[340px] md:h-[26rem] pb-24 md:pb-0">
           {actions.map((action, index) => (
             <ActionCard
               key={index}
@@ -914,7 +962,9 @@ const QuickActionsGrid = () => {
               onAction={handleAction}
               tokens={tokenList}
               isActive={activeIndex === index}
-              onToggle={() => setActiveIndex(activeIndex === index ? null : index)}
+              onToggle={() =>
+                setActiveIndex(activeIndex === index ? null : index)
+              }
             />
           ))}
         </div>

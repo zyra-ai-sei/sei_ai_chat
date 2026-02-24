@@ -11,10 +11,12 @@ import Polygon from "@/assets/chains/pol.svg";
 
 export const SUPPORTED_CHAINS = [
   { id: "sei", name: "Sei", chainId: 1329, logo: Sei },
+  { id: "sei-testnet", name: "Sei Testnet", chainId: 713715, logo: Sei },
   { id: "ethereum", name: "Ethereum", chainId: 1, logo: Ethereum },
   { id: "arbitrum", name: "Arbitrum", chainId: 42161, logo: Arbitrum },
   { id: "base", name: "Base", chainId: 8453, logo: Base },
   { id: "polygon", name: "Polygon", chainId: 137, logo: Polygon },
+  { id: "amoy", name: "Amoy", chainId: 80002, logo: Polygon },
 ] as const;
 
 /**

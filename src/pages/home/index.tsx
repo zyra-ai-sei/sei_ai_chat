@@ -14,17 +14,17 @@ import MultiChain from "./components/MultiChain";
 const Home = () => {
   return (
     <div className="flex flex-col gap-[50px] w-full min-h-screen relative bg-[#0D0C11]">
-      <SEO 
-        title="Home" 
-        description="Trade crypto with natural language. Manage your portfolio, execute strategies, and track wallets using Zyra AI on Sei Network."
+      <SEO
+        title="Zyra AI | The Ultimate Crypto AI Trading Assistant"
+        description="Zyra AI is an advanced conversational crypto trading assistant. Manage your portfolio, execute trades, and track your wallet efficiently using simple natural language."
       />
       <BulgeGrid />
       <Header />
       <HeroSection />
       <Working />
       <TrackingFeatures />
-      <Orbs/>
-      <MultiChain/>
+      <Orbs />
+      <MultiChain />
       {/* <ChatDemo /> */}
       <Milestones />
       <FAQ />

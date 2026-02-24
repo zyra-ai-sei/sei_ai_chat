@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { ToolOutput, updateExecutionState } from "@/redux/chatData/reducer";
-import { useSendTransaction, useWriteContract, useChainId, useAccount } from "wagmi";
+import {
+  useSendTransaction,
+  useWriteContract,
+  useChainId,
+  useAccount,
+} from "wagmi";
 import TransactionQueueHeader from "./TransactionQueueHeader";
 import TransactionList from "./TransactionList";
 import { Address } from "viem";
@@ -25,7 +30,7 @@ const TransactionCanvas = ({
   const dispatch = useAppDispatch();
   const chats = useAppSelector((state) => state.chatData.chats);
   const chainId = useChainId();
-  const {address} = useAccount();
+  const { address } = useAccount();
 
   const executionState = chats[chatIndex]?.response?.execution_state || {
     isExecuting: false,
@@ -66,20 +71,20 @@ const TransactionCanvas = ({
     const toolOutputs = chats[chatIndex]?.response?.tool_outputs;
     if (toolOutputs && toolOutputs.length > 0) {
       const hasErrors = toolOutputs.some(
-        (txn) => txn.status === StatusEnum.ERROR
+        (txn) => txn.status === StatusEnum.ERROR,
       );
       const hasPending = toolOutputs.some(
-        (txn) => txn.status === StatusEnum.PENDING
+        (txn) => txn.status === StatusEnum.PENDING,
       );
       const hasIdle = toolOutputs.some(
-        (txn) => !txn.status || txn.status === StatusEnum.IDLE
+        (txn) => !txn.status || txn.status === StatusEnum.IDLE,
       );
       const successCount = toolOutputs.filter(
-        (txn) => txn.status === StatusEnum.SUCCESS
+        (txn) => txn.status === StatusEnum.SUCCESS,
       ).length;
       const allCompleted = toolOutputs.every(
         (txn) =>
-          txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR
+          txn.status === StatusEnum.SUCCESS || txn.status === StatusEnum.ERROR,
       );
 
       // Only update execution state, don't send notifications from here
@@ -97,7 +102,7 @@ const TransactionCanvas = ({
               isCompleted: !hasErrors,
               completedCount: successCount,
             },
-          })
+          }),
         );
       }
     }
@@ -124,7 +129,7 @@ const TransactionCanvas = ({
       reorderTransactions({
         chatIndex,
         reorderedTxns: items,
-      })
+      }),
     );
   };
 
@@ -143,7 +148,7 @@ const TransactionCanvas = ({
           hasErrors: false,
           isCompleted: false,
         },
-      })
+      }),
     );
 
     // Use local counter instead of reading from closure
@@ -164,7 +169,7 @@ const TransactionCanvas = ({
           updateExecutionState({
             index: chatIndex,
             response: { completedCount },
-          })
+          }),
         );
         continue;
       }
@@ -175,14 +180,14 @@ const TransactionCanvas = ({
           chatIndex,
           toolOutputIndex: i,
           status: StatusEnum.PENDING,
-        })
+        }),
       );
 
       dispatch(
         updateExecutionState({
           index: chatIndex,
           response: { currentIndex: i },
-        })
+        }),
       );
 
       try {
@@ -209,7 +214,7 @@ const TransactionCanvas = ({
                     updateExecutionState({
                       index: chatIndex,
                       response: { completedCount },
-                    })
+                    }),
                   );
                   // Update status in Redux store
                   dispatch(
@@ -218,13 +223,17 @@ const TransactionCanvas = ({
                       toolOutputIndex: i,
                       status: StatusEnum.SUCCESS,
                       txHash: data as string,
-                    })
+                    }),
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: getTxnNetwork(txn),address:address as string })
+                    addTxn({
+                      txHash: data,
+                      network: getTxnNetwork(txn),
+                      address: address as string,
+                    }),
                   );
-                 
+
                   // Update message state for this execution
                   if (txn.executionId) {
                     dispatch(
@@ -233,8 +242,9 @@ const TransactionCanvas = ({
                         executionState: "completed",
                         txnHash: data as string,
                         network: getTxnNetwork(txn),
-                        address:address!
-                      })
+                        address: address!,
+                        transactionIndex: txn.transactionIndex ?? 0,
+                      }),
                     );
                   }
                   resolve();
@@ -248,7 +258,7 @@ const TransactionCanvas = ({
                       chatIndex,
                       toolOutputIndex: i,
                       status: StatusEnum.ERROR,
-                    })
+                    }),
                   );
                   // Mark tool as aborted
                   if (txn.id) {
@@ -261,19 +271,23 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "failed",
                         network: getTxnNetwork(txn),
-                        address:address!
-                      })
+                        address: address!,
+                        transactionIndex: txn.transactionIndex ?? 0,
+                      }),
                     );
                   }
                   reject(error);
                 },
-              }
+              },
             );
           } else {
             sendTransaction(
               {
                 to: txn.transaction!.to as Address,
-                value: BigInt(txn.transaction!.value || "0"),
+                value: txn.transaction!.value
+                  ? BigInt(txn.transaction!.value)
+                  : undefined,
+                data: txn.transaction!.data as `0x${string}` | undefined,
               },
               {
                 onSuccess: (data) => {
@@ -284,7 +298,7 @@ const TransactionCanvas = ({
                     updateExecutionState({
                       index: chatIndex,
                       response: { completedCount },
-                    })
+                    }),
                   );
                   // Update status in Redux store
                   dispatch(
@@ -293,13 +307,17 @@ const TransactionCanvas = ({
                       toolOutputIndex: i,
                       status: StatusEnum.SUCCESS,
                       txHash: data as string,
-                    })
+                    }),
                   );
                   // Add transaction to transaction store
                   dispatch(
-                    addTxn({ txHash: data, network: getTxnNetwork(txn), address:address as string })
+                    addTxn({
+                      txHash: data,
+                      network: getTxnNetwork(txn),
+                      address: address as string,
+                    }),
                   );
-                
+
                   // Update message state for this execution
                   if (txn.executionId) {
                     dispatch(
@@ -308,8 +326,9 @@ const TransactionCanvas = ({
                         executionState: "completed",
                         txnHash: data as string,
                         network: getTxnNetwork(txn),
-                        address:address!
-                      })
+                        address: address!,
+                        transactionIndex: txn.transactionIndex ?? 0,
+                      }),
                     );
                   }
                   resolve();
@@ -323,7 +342,7 @@ const TransactionCanvas = ({
                       chatIndex,
                       toolOutputIndex: i,
                       status: StatusEnum.ERROR,
-                    })
+                    }),
                   );
                   // Mark tool as aborted
                   if (txn.id) {
@@ -336,13 +355,14 @@ const TransactionCanvas = ({
                         executionId: txn.executionId,
                         executionState: "failed",
                         network: getTxnNetwork(txn),
-                        address:address!
-                      })
+                        address: address!,
+                        transactionIndex: txn.transactionIndex ?? 0,
+                      }),
                     );
                   }
                   reject(error);
                 },
-              }
+              },
             );
           }
         });
@@ -366,7 +386,7 @@ const TransactionCanvas = ({
           isCompleted: !hasErrors,
           completedCount,
         },
-      })
+      }),
     );
   };
 
@@ -378,7 +398,7 @@ const TransactionCanvas = ({
         chatIndex,
         toolOutputIndex: txnIndex,
         status: StatusEnum.PENDING,
-      })
+      }),
     );
 
     // Execute individual transaction
@@ -398,10 +418,16 @@ const TransactionCanvas = ({
                 toolOutputIndex: txnIndex,
                 status: StatusEnum.SUCCESS,
                 txHash: data as string,
-              })
+              }),
             );
-            dispatch(addTxn({ txHash: data, network: getTxnNetwork(txn) , address:address as string}));
-           
+            dispatch(
+              addTxn({
+                txHash: data,
+                network: getTxnNetwork(txn),
+                address: address as string,
+              }),
+            );
+
             // Update message state for this execution
             if (txn.executionId) {
               dispatch(
@@ -410,8 +436,9 @@ const TransactionCanvas = ({
                   executionState: "completed",
                   txnHash: data as string,
                   network: getTxnNetwork(txn),
-                  address:address!
-                })
+                  address: address!,
+                  transactionIndex: txn.transactionIndex ?? 0,
+                }),
               );
             }
           },
@@ -422,7 +449,7 @@ const TransactionCanvas = ({
                 chatIndex,
                 toolOutputIndex: txnIndex,
                 status: StatusEnum.ERROR,
-              })
+              }),
             );
             if (txn.id) {
               dispatch(abortTool({ toolId: txn.id.toString() }));
@@ -434,18 +461,22 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "failed",
                   network: getTxnNetwork(txn),
-                  address:address!
-                })
+                  address: address!,
+                  transactionIndex: txn.transactionIndex ?? 0,
+                }),
               );
             }
           },
-        }
+        },
       );
     } else {
       sendTransaction(
         {
           to: txn.transaction!.to as Address,
-          value: BigInt(txn.transaction!.value || "0"),
+          value: txn.transaction!.value
+            ? BigInt(txn.transaction!.value)
+            : undefined,
+          data: txn.transaction!.data as `0x${string}` | undefined,
         },
         {
           onSuccess: (data) => {
@@ -455,10 +486,16 @@ const TransactionCanvas = ({
                 toolOutputIndex: txnIndex,
                 status: StatusEnum.SUCCESS,
                 txHash: data as string,
-              })
+              }),
             );
-            dispatch(addTxn({ txHash: data, network: getTxnNetwork(txn) , address:address as string}));
-          
+            dispatch(
+              addTxn({
+                txHash: data,
+                network: getTxnNetwork(txn),
+                address: address as string,
+              }),
+            );
+
             // Update message state for this execution
             if (txn.executionId) {
               dispatch(
@@ -467,8 +504,9 @@ const TransactionCanvas = ({
                   executionState: "completed",
                   txnHash: data as string,
                   network: getTxnNetwork(txn),
-                  address:address!
-                })
+                  address: address!,
+                  transactionIndex: txn.transactionIndex ?? 0,
+                }),
               );
             }
           },
@@ -479,7 +517,7 @@ const TransactionCanvas = ({
                 chatIndex,
                 toolOutputIndex: txnIndex,
                 status: StatusEnum.ERROR,
-              })
+              }),
             );
             if (txn.id) {
               dispatch(abortTool({ toolId: txn.id.toString() }));
@@ -491,12 +529,13 @@ const TransactionCanvas = ({
                   executionId: txn.executionId,
                   executionState: "failed",
                   network: getTxnNetwork(txn),
-                  address:address!
-                })
+                  address: address!,
+                  transactionIndex: txn.transactionIndex ?? 0,
+                }),
               );
             }
           },
-        }
+        },
       );
     }
   };
@@ -527,7 +566,7 @@ const TransactionCanvas = ({
           chatIndex,
           toolOutputIndex: i,
           status: StatusEnum.SIMULATING,
-        })
+        }),
       );
 
       setSimulationState((prev) => ({
@@ -546,7 +585,7 @@ const TransactionCanvas = ({
               chatIndex,
               toolOutputIndex: i,
               status: StatusEnum.SIMULATION_SUCCESS,
-            })
+            }),
           );
         } else {
           dispatch(
@@ -554,7 +593,7 @@ const TransactionCanvas = ({
               chatIndex,
               toolOutputIndex: i,
               status: StatusEnum.SIMULATION_FAILED,
-            })
+            }),
           );
           // Stop on first failure
           setSimulationState({
@@ -576,7 +615,7 @@ const TransactionCanvas = ({
             chatIndex,
             toolOutputIndex: i,
             status: StatusEnum.SIMULATION_FAILED,
-          })
+          }),
         );
         setSimulationState({
           isSimulating: false,
@@ -600,7 +639,7 @@ const TransactionCanvas = ({
 
   // Simulate individual transaction
   const simulateTransaction = async (
-    txn: ToolOutput
+    txn: ToolOutput,
   ): Promise<{ success: boolean; error?: string }> => {
     return new Promise((resolve) => {
       try {
@@ -630,7 +669,11 @@ const TransactionCanvas = ({
             });
         } else {
           // For simple transfers and bridge transactions without ABI
-          if (txn.type === "bridge" || (txn.transaction?.to && (txn.transaction?.value || txn.transaction?.data))) {
+          if (
+            txn.type === "bridge" ||
+            (txn.transaction?.to &&
+              (txn.transaction?.value || txn.transaction?.data))
+          ) {
             resolve({ success: true });
           } else {
             resolve({ success: false, error: "Invalid transaction structure" });
@@ -644,7 +687,7 @@ const TransactionCanvas = ({
 
   const handleSimulateTransaction = async (
     txn: ToolOutput,
-    txnIndex: number
+    txnIndex: number,
   ) => {
     // Check if user is on wrong network
 
@@ -654,7 +697,7 @@ const TransactionCanvas = ({
         chatIndex,
         toolOutputIndex: txnIndex,
         status: StatusEnum.SIMULATING,
-      })
+      }),
     );
 
     try {
@@ -666,7 +709,7 @@ const TransactionCanvas = ({
             chatIndex,
             toolOutputIndex: txnIndex,
             status: StatusEnum.SIMULATION_SUCCESS,
-          })
+          }),
         );
       } else {
         dispatch(
@@ -674,7 +717,7 @@ const TransactionCanvas = ({
             chatIndex,
             toolOutputIndex: txnIndex,
             status: StatusEnum.SIMULATION_FAILED,
-          })
+          }),
         );
       }
     } catch (error) {
@@ -684,7 +727,7 @@ const TransactionCanvas = ({
           chatIndex,
           toolOutputIndex: txnIndex,
           status: StatusEnum.SIMULATION_FAILED,
-        })
+        }),
       );
     }
   };
@@ -722,4 +765,3 @@ const TransactionCanvas = ({
 };
 
 export default TransactionCanvas;
-

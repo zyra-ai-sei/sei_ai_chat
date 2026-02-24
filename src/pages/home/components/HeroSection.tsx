@@ -10,16 +10,15 @@ const HeroSection = () => {
     offset: ["start end", "end start"],
   });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   return (
-    <section 
+    <section
       ref={containerRef}
       className="relative min-h-screen flex flex-col items-center pt-[80px] md:pt-[120px] overflow-hidden pointer-events-none"
     >
-   
       {/* Content Container */}
       <div className="flex flex-col py-10 items-center gap-8 px-4 z-10 max-w-[900px] mx-auto text-center">
         {/* Badge */}
@@ -41,7 +40,7 @@ const HeroSection = () => {
 
         {/* Main Heading */}
         <h1 className="font-['Figtree',sans-serif] font-semibold text-[40px] md:text-[56px] lg:text-[72px] leading-[1.1] tracking-[-0.02em] text-white">
-          Trade crypto with{" "}
+          Zyra AI: Trade crypto with{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#7CABF9]">
             natural language
           </span>
@@ -55,12 +54,13 @@ const HeroSection = () => {
         </p>
 
         {/* CTA Button */}
-        <button onClick={()=>navigate('/chat')} className="px-8 py-3.5 rounded-full border border-white/20 bg-[#ffffffd1] text-black font-['Figtree',sans-serif] font-medium text-base hover:bg-white/90 transition-colors pointer-events-auto">
+        <button
+          onClick={() => navigate("/chat")}
+          className="px-8 py-3.5 rounded-full border border-white/20 bg-[#ffffffd1] text-black font-['Figtree',sans-serif] font-medium text-base hover:bg-white/90 transition-colors pointer-events-auto"
+        >
           Get started
         </button>
       </div>
-
-     
 
       <motion.div
         initial={{ y: 200, opacity: 1 }}
@@ -69,11 +69,11 @@ const HeroSection = () => {
         style={{ y }}
         className="relative mx-[5vw] rounded-t-[22px] md:rounded-t-[30px] border-8 border-white/5 isolate"
       >
-        <div className="absolute -top-2 -left-2 bg-red-500 blur-[60px] z-0 w-12 h-24 md:h-48 md:w-24 opacity-80 md:opacity-100"/>
-        <div className="absolute -top-2 -right-2 bg-red-500 blur-[60px] z-0 w-12 h-24 md:h-48 md:w-24 opacity-80 md:opacity-100"/>
+        <div className="absolute -top-2 -left-2 bg-red-500 blur-[60px] z-0 w-12 h-24 md:h-48 md:w-24 opacity-80 md:opacity-100" />
+        <div className="absolute -top-2 -right-2 bg-red-500 blur-[60px] z-0 w-12 h-24 md:h-48 md:w-24 opacity-80 md:opacity-100" />
         <img
           src={ChatPage}
-          alt="Zyra AI Trading Interface"
+          alt="Zyra AI crypto trading dashboard showing automated trades"
           className="relative z-10 w-full h-auto object-cover object-top rounded-t-[18px] md:rounded-t-[24px]"
         />
         {/* Bottom fade gradient */}

@@ -23,6 +23,7 @@ const TransactionQueueHeader: React.FC<TransactionQueueHeaderProps> = ({
   onSimulateAll,
   onExecuteAll,
 }) => {
+  console.log("orderedTxns", orderedTxns);
   return (
     <div className="flex flex-col justify-between gap-2 mb-3 sm:flex-row sm:items-center">
       <div className="flex items-center gap-2.5">

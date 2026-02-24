@@ -18,6 +18,7 @@ import { useTransactionNavigation } from "@/contexts/TransactionNavigationContex
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { getChainByIdentifier } from "@/config/chains";
 import { getTxnNetwork, getTxnFunction } from "@/utility/transactionUtils";
+import { getTokensByChainId } from "@/constants/token";
 
 interface TransactionCardProps {
   txn: ToolOutput;
@@ -84,7 +85,7 @@ const BridgeNetworks = ({ txn }: { txn: ToolOutput }) => {
   const dstChain = getChainByIdentifier(metaData.dstNetwork.toLowerCase());
 
   return (
-    <div className="flex items-center gap-1.5 px-2 py-2 rounded-sm bg-white/5 overflow-hidden mx-1 ">
+    <div className="flex items-center gap-1.5 px-2 py-2 border rounded-full border-white/10 overflow-hidden mx-1 ">
       <div className="flex items-center gap-1 min-w-0">
         {srcChain?.logo ? (
           <img
@@ -117,6 +118,219 @@ const BridgeNetworks = ({ txn }: { txn: ToolOutput }) => {
       </div>
     </div>
   );
+};
+
+const BridgeTokens = ({ txn }: { txn: ToolOutput }) => {
+  const metaData = txn.metaData || txn.metadata;
+  if (!metaData?.srcToken || !metaData?.dstToken) return null;
+
+  const srcChain = getChainByIdentifier(metaData.srcNetwork?.toLowerCase());
+  const dstChain = getChainByIdentifier(metaData.dstNetwork?.toLowerCase());
+
+  const getDetails = (chainId?: number, address?: string) => {
+    if (!chainId || !address) return { logo: null, symbol: null };
+    const tokens = getTokensByChainId(chainId);
+    const token = tokens.find(
+      (t) => t.address.toLowerCase() === address.toLowerCase()
+    );
+    return { logo: token?.imageUrl, symbol: token?.symbol };
+  };
+
+  const srcDetails = getDetails(srcChain?.chainId, metaData.srcToken);
+  const dstDetails = getDetails(dstChain?.chainId, metaData.dstToken);
+
+  if (!srcDetails.symbol && !dstDetails.symbol) return null;
+
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-2 border rounded-full border-white/10 overflow-hidden mx-1">
+      <div className="flex items-center gap-1 min-w-0">
+        {srcDetails.logo ? (
+          <img
+            src={srcDetails.logo}
+            alt={srcDetails.symbol || "src"}
+            className="w-5 h-5 rounded-full flex-shrink-0"
+          />
+        ) : (
+          <span className="text-[9px] text-slate-400 font-medium uppercase truncate max-w-[40px]">
+            {srcDetails.symbol}
+          </span>
+        )}
+      </div>
+
+      <ArrowRight size={10} className="text-slate-400 flex-shrink-0" />
+
+      <div className="flex items-center gap-1 min-w-0">
+        {dstDetails.logo ? (
+          <img
+            src={dstDetails.logo}
+            alt={dstDetails.symbol || "dst"}
+            className="w-5 h-5 rounded-full flex-shrink-0"
+          />
+        ) : (
+          <span className="text-[9px] text-slate-400 font-medium uppercase truncate max-w-[40px]">
+            {dstDetails.symbol}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const BridgeActionDetails = ({ txn }: { txn: ToolOutput }) => {
+  const metaData = txn.metaData || txn.metadata;
+  if (txn.type !== "bridge" || !metaData) return null;
+
+  const {
+    function: funcType,
+    srcAmount,
+    dstAmount,
+    srcDecimals,
+    dstDecimals,
+    srcToken,
+    dstToken,
+    srcNetwork,
+    dstNetwork,
+  } = metaData;
+
+  const srcChain = getChainByIdentifier(srcNetwork?.toLowerCase());
+  const dstChain = getChainByIdentifier(dstNetwork?.toLowerCase());
+
+  const getDetails = (chainId?: number, address?: string) => {
+    if (!chainId || !address) return { logo: null, symbol: null };
+    const tokens = getTokensByChainId(chainId);
+    const token = tokens.find(
+      (t) => t.address.toLowerCase() === address.toLowerCase()
+    );
+    return { logo: token?.imageUrl, symbol: token?.symbol };
+  };
+
+  const srcDetails = getDetails(srcChain?.chainId, srcToken);
+  const dstDetails = getDetails(dstChain?.chainId, dstToken);
+
+  const formatAmountVal = (amount: any, decimals: any) => {
+    if (!amount || decimals === undefined) return "0.00";
+    try {
+      return (Number(amount) / Math.pow(10, decimals)).toLocaleString(
+        undefined,
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 6,
+        }
+      );
+    } catch (e) {
+      return "0.00";
+    }
+  };
+
+  if (funcType === "approve") {
+    return (
+      <div className="flex items-center gap-3 p-3 mb-3 rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+        <div className="flex flex-col gap-1 w-full">
+          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+            Approval Amount
+          </span>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              {srcDetails.logo && (
+                <img
+                  src={srcDetails.logo}
+                  alt="token"
+                  className="w-6 h-6 rounded-full border border-white/10"
+                />
+              )}
+              {srcChain?.logo && (
+                <img
+                  src={srcChain.logo}
+                  alt="chain"
+                  className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[#0a0b0f] bg-[#0a0b0f]"
+                />
+              )}
+            </div>
+            <span className="text-base font-semibold text-blue-400">
+              {formatAmountVal(srcAmount, srcDecimals)}{" "}
+              <span className="text-[10px] text-slate-400 font-normal">
+                {srcDetails.symbol || ""}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (funcType === "bridge") {
+    return (
+      <div className="flex flex-col gap-4 p-3 mb-3 rounded-lg bg-violet-500/10 border border-violet-500/20 shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+              Send From {srcChain?.name}
+            </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="relative flex-shrink-0">
+                {srcDetails.logo && (
+                  <img
+                    src={srcDetails.logo}
+                    alt="token"
+                    className="w-6 h-6 rounded-full border border-white/10"
+                  />
+                )}
+                {srcChain?.logo && (
+                  <img
+                    src={srcChain.logo}
+                    alt="chain"
+                    className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[#0a0b0f] bg-[#0a0b0f]"
+                  />
+                )}
+              </div>
+              <span className="text-sm font-semibold text-slate-100 truncate">
+                {formatAmountVal(srcAmount, srcDecimals)}{" "}
+                <span className="text-[9px] text-slate-400 font-normal">
+                  {srcDetails.symbol || ""}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center p-1.5 rounded-full bg-white/5 border border-white/10">
+            <ArrowRight size={14} className="text-violet-400" />
+          </div>
+
+          <div className="flex flex-col gap-1 items-end min-w-0">
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold text-right">
+              Receive at {dstChain?.name}
+            </span>
+            <div className="flex items-center gap-2 justify-end min-w-0">
+              <span className="text-sm font-semibold text-emerald-400 truncate">
+                {formatAmountVal(dstAmount, dstDecimals)}{" "}
+                <span className="text-[9px] text-slate-400 font-normal">
+                  {dstDetails.symbol || ""}
+                </span>
+              </span>
+              <div className="relative flex-shrink-0">
+                {dstDetails.logo && (
+                  <img
+                    src={dstDetails.logo}
+                    alt="token"
+                    className="w-6 h-6 rounded-full border border-white/10"
+                  />
+                )}
+                {dstChain?.logo && (
+                  <img
+                    src={dstChain.logo}
+                    alt="chain"
+                    className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[#0a0b0f] bg-[#0a0b0f]"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 const ActionButton = ({
@@ -246,7 +460,10 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-1">
           <BridgeNetworks txn={txn} />
+          <BridgeTokens txn={txn} />
+        </div>
 
         <div className="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto mt-1 lg:mt-0 pl-2 lg:pl-0 border-t lg:border-t-0 border-white/5 pt-2 lg:pt-0">
           <StatusBadge status={txn.status} />
@@ -326,6 +543,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         >
           <div className="overflow-hidden">
             <div className="mx-3 mb-2 p-3 rounded-lg bg-[#050505]/40 border border-white/5">
+              <BridgeActionDetails txn={txn} />
               <div className="grid grid-cols-2 gap-3 text-[10px] font-mono mb-3">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-slate-500 uppercase tracking-wider text-[9px]">

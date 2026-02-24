@@ -9,14 +9,21 @@ import { useAccount, useChainId } from "wagmi";
 import { getChainById } from "@/config/chains";
 import { getChatHistory, setHistoryLoading } from "@/redux/chatData/action";
 import iconSvg from "@/assets/icon.svg";
+import MobileViewToggle from "@/components/chat/MobileViewToggle";
+import { SEO } from "@/components/common/SEO";
 
 function Chat() {
-  const historyLoading = useAppSelector((state) => state.chatData.historyLoading);
+  const historyLoading = useAppSelector(
+    (state) => state.chatData.historyLoading,
+  );
   const chats = useAppSelector((state) => state.chatData.chats);
   const { address } = useAccount();
   const chainId = useChainId();
   const network = getChainById(chainId);
   const dispatch = useAppDispatch();
+
+  const [activeView, setActiveView] = useState<"chat" | "canvas">("chat");
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (address) {
@@ -33,7 +40,27 @@ function Chat() {
     }
   }, [address, chainId, dispatch]);
 
-  const [chatBoxWidth, setChatBoxWidth] = useState(70); // percentage
+  const [chatBoxWidth, setChatBoxWidth] = useState(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 1090) return 50;
+    }
+    return 70;
+  }); // percentage
+
+  // Update chatBoxWidth on resize for 1090px breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+      if (window.innerWidth < 1090) {
+        setChatBoxWidth(50);
+      } else {
+        setChatBoxWidth(70);
+      }
+    };
+    handleResize(); // trigger initially
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
   const chatBoxRef = useRef(null);
@@ -79,7 +106,7 @@ function Chat() {
 
   if (historyLoading && chats.length === 0) {
     return (
-      <div className="flex flex-col w-screen h-[calc(100vh-68px)] items-center justify-center bg-[#0a0d14] relative">
+      <div className="flex flex-col w-full h-[calc(100vh-164px)] items-center justify-center bg-[#0a0d14] relative">
         <div
           className="absolute inset-0 opacity-[0.18]"
           style={{
@@ -93,7 +120,6 @@ function Chat() {
             <div className="w-12 h-12 border-2 border-white/20 border-t-[#2AF598] rounded-full animate-spin" />
             <img src={iconSvg} alt="Zyra" className="absolute w-6 h-6" />
           </div>
-          <span className="text-sm text-white/60">Loading history...</span>
         </div>
       </div>
     );
@@ -101,7 +127,11 @@ function Chat() {
 
   return (
     <TransactionNavigationProvider>
-      <div className="flex flex-col w-screen h-[calc(100vh-68px)]">
+      <SEO
+        title="AI Chat"
+        description="Interact with Zyra AI, the advanced conversational AI crypto trading assistant. Manage your portfolio and execute intelligent strategies effortlessly."
+      />
+      <div className="flex flex-col w-full h-[calc(100vh-64px)] overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.18]"
           style={{
@@ -110,23 +140,40 @@ function Chat() {
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="relative flex flex-col justify-end w-full h-full mixbls border-zinc-800">
-          <div ref={containerRef} className="flex justify-end w-full h-full">
-            <div
-              style={{ width: `${chatBoxWidth}%` }}
-              className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-auto "
-            >
-              <TransactionResponseBox />
-            </div>
-            <div
-              onMouseDown={() => setIsDragging(true)}
-              className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group z-40 ${
-                isDragging ? "bg-blue-500" : ""
-              }`}
-            >
-              <div className="absolute inset-y-0 w-4 -left-2" />
-            </div>
-            <ChatBox width={chatBoxWidth} ref={chatBoxRef} />
+        {isMobile && (
+          <div className="relative z-50 flex-none">
+            <MobileViewToggle
+              activeView={activeView}
+              onToggle={setActiveView}
+            />
+          </div>
+        )}
+        <div className="relative flex-1 flex flex-col justify-end w-full min-h-0 mixbls border-zinc-800">
+          <div
+            ref={containerRef}
+            className="flex justify-end w-full h-full min-h-0"
+          >
+            {(!isMobile || activeView === "canvas") && (
+              <div
+                style={{ width: isMobile ? "100%" : `${chatBoxWidth}%` }}
+                className="relative z-30 flex flex-col justify-end h-full p-4 mx-auto overflow-hidden "
+              >
+                <TransactionResponseBox />
+              </div>
+            )}
+            {!isMobile && (
+              <div
+                onMouseDown={() => setIsDragging(true)}
+                className={`w-[2px] hover:w-[4px] mix-blend-soft bg-zinc-800 hover:bg-blue-500 cursor-col-resize transition-colors relative group z-40 ${
+                  isDragging ? "bg-blue-500" : ""
+                }`}
+              >
+                <div className="absolute inset-y-0 w-4 -left-2" />
+              </div>
+            )}
+            {(!isMobile || activeView === "chat") && (
+              <ChatBox width={isMobile ? 0 : chatBoxWidth} ref={chatBoxRef} />
+            )}
           </div>
         </div>
       </div>

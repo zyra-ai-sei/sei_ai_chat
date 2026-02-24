@@ -65,8 +65,7 @@ export const formatCryptoMarketData = (data: any) => {
     },
     liquidity: {
       top_exchange: topTicker.market?.name || "N/A",
-      last_traded_price:
-        topTicker.last || marketData.current_price?.usd || 0,
+      last_traded_price: topTicker.last || marketData.current_price?.usd || 0,
       volume_on_top_exchange: topTicker.volume || 0,
       spread_pct: topTicker.bid_ask_spread_percentage || 0,
       trust_score: topTicker.trust_score || "white",
@@ -82,7 +81,7 @@ export const formatDcaSimulationData = (data: any) => {
 };
 
 export const formatTweetsData = (data: any) => {
-//   if (data?.data?.length === 0) return null;
+  //   if (data?.data?.length === 0) return null;
   return {
     ...data,
     type: "TWEETS",
@@ -96,9 +95,48 @@ export const formatLumpSumSimulationData = (data: any) => {
   };
 };
 
+/**
+ * Formatter for ORDER_TX data from async tool data
+ * Extracts transactions array and normalizes them to ToolOutput format
+ */
+export const formatOrderTxData = (data: any) => {
+  if (!data?.transactions || !Array.isArray(data.transactions)) {
+    return {
+      type: "ORDER_TX",
+      transactions: [],
+      orderDetails: data?.orderDetails || {},
+    };
+  }
+
+  // Normalize transactions to match ToolOutput interface
+  const normalizedTransactions = data.transactions.map(
+    (tx: any, idx: number) => ({
+      id: idx + 1,
+      label: tx.metadata?.order?.type || `Order #${idx + 1}`,
+      transaction: tx.transaction || {},
+      metadata: tx.metadata || {},
+      metaData: tx.metadata || {}, // Some components use metaData instead of metadata
+      // NOTE: executionId intentionally omitted here - the parent executionId
+      // will be set by resolvePendingAsyncData reducer. Per-tx executionId from
+      // payload.transactions[] is NOT the one recognized by the backend DB.
+      type: "ORDER_TX",
+    }),
+  );
+
+  return {
+    type: "ORDER_TX",
+    transactions: normalizedTransactions,
+    orderDetails: data.orderDetails || {},
+    requiresApproval: data.requiresApproval || false,
+    txCount: data.txCount || normalizedTransactions.length,
+  };
+};
+
 export const dataOutputFormatters: Record<string, (data: any) => any> = {
   CRYPTO_MARKET_DATA: formatCryptoMarketData,
   DCA_SIMULATION: formatDcaSimulationData,
   LUMP_SUM_SIMULATION: formatLumpSumSimulationData,
   TWEETS: formatTweetsData,
+  TWITTER_LATEST_TWEETS: formatTweetsData, // Map to TWEETS type for rendering
+  ORDER_TX: formatOrderTxData,
 };

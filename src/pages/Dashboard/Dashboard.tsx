@@ -144,7 +144,7 @@ const Dashboard = () => {
        
 
         {/* Wallet Watcher Section */}
-        <div className="mb-8">
+        <div id="walletWatcher" className="mb-8">
           <WalletWatcher />
         </div>
 

@@ -1,4 +1,4 @@
-import { useAppSelector } from "@/hooks/useRedux";
+import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import PromptSuggestion from "../PromptSuggestion/PromptSuggestion";
 import ReactMarkdown from "react-markdown";
@@ -11,6 +11,7 @@ import "highlight.js/styles/github-dark.css";
 import iconSvg from "@/assets/icon.svg";
 import GradientBorder from "../GradientBorder";
 import { useTransactionNavigation } from "@/contexts/TransactionNavigationContext";
+import { fetchPendingBatchForChats } from "@/redux/chatData/action";
 
 // Loading text animation states
 const loadingTexts = [
@@ -25,18 +26,16 @@ const ChatIndicator = ({
   toolOutputsLength,
   chatIndex,
   isLastChat,
-  hasDataOutput,
-  dataOutputType,
+  pendingAsyncDataCount,
 }: {
   hasChat: boolean;
   toolOutputsLength: number;
   chatIndex: number;
   isLastChat: boolean;
-  hasDataOutput: boolean;
-  dataOutputType?: string;
+  pendingAsyncDataCount: number;
 }) => {
   const [textIndex, setTextIndex] = useState(0);
-  const { scrollToTransaction, scrollToDataOutput } = useTransactionNavigation();
+  const { scrollToTransaction } = useTransactionNavigation();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -50,12 +49,6 @@ const ChatIndicator = ({
     if (toolOutputsLength > 0) {
       // Scroll to the first transaction
       scrollToTransaction(chatIndex, 0);
-    }
-  };
-  const handleDataClick = () => {
-    if (hasDataOutput) {
-      // Scroll to the first transaction
-      scrollToDataOutput(chatIndex);
     }
   };
 
@@ -79,7 +72,7 @@ const ChatIndicator = ({
       <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5">
         <img src={iconSvg} alt="Zyra AI" className="w-12 h-12" />
       </div>
-      
+
       <div className="flex items-center gap-2 ml-auto">
         {toolOutputsLength > 0 && (
           <button
@@ -90,23 +83,12 @@ const ChatIndicator = ({
             {toolOutputsLength} ops
           </button>
         )}
-        
-        {hasDataOutput && (
-          <button
-            onClick={handleDataClick}
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.3em] transition-all cursor-pointer ${
-              dataOutputType === "tweets"
-                ? "border-blue-500/20 bg-blue-500/5 text-blue-400 hover:border-blue-400/40 hover:bg-blue-500/10"
-                : "border-emerald-500/20 bg-emerald-500/5 text-emerald-400/70 hover:border-emerald-400/40 hover:bg-emerald-500/10"
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                dataOutputType === "tweets" ? "bg-blue-400" : "bg-emerald-400"
-              }`}
-            />
-            {dataOutputType === "tweets" ? "Tweets" : "Data"}
-          </button>
+
+        {pendingAsyncDataCount > 0 && (
+          <div className="flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-purple-400/70">
+            <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
+            Loading {pendingAsyncDataCount} data
+          </div>
         )}
       </div>
     </div>
@@ -114,10 +96,12 @@ const ChatIndicator = ({
 };
 
 const ChatInterfaceBox = () => {
+  const dispatch = useAppDispatch();
   const chats = useAppSelector((data) => data.chatData.chats);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevChatsCountRef = useRef(0);
-  const { scrollToTransaction, scrollToDataOutput } = useTransactionNavigation();
+  const { scrollToTransaction, scrollToDataOutput } =
+    useTransactionNavigation();
 
   // Memoize chat count to avoid unnecessary re-renders
   const chatsCount = useMemo(() => chats.length, [chats.length]);
@@ -156,92 +140,139 @@ const ChatInterfaceBox = () => {
           ref={scrollContainerRef}
           className="relative z-30 flex flex-col justify-start w-full h-full gap-6 px-6 py-6 overflow-y-auto"
         >
-        {chats.length > 0 ? (
-          chats.map((chat, idx) => {
-            const isLastChat = idx === chats.length - 1;
-            const hasResponse = !!chat.response?.chat;
-            const hasDataOutput = !!chat.response?.data_output;
-            
-            // Determine the response to display
-            let displayResponse = "";
-            if (hasResponse) {
-              displayResponse = typeof chat.response.chat === "string" 
-                ? chat.response.chat 
-                : "Response format error from model";
-            } else if (!isLastChat) {
-              // For previous chats without response, show appropriate message
-              displayResponse = "⚠️ Execution stopped or reverted. No response generated.";
-            }
+          {chats.length > 0 ? (
+            chats.map((chat, idx) => {
+              const isLastChat = idx === chats.length - 1;
+              const hasResponse = !!chat.response?.chat;
+              const hasDataOutput = !!chat.response?.data_output;
 
-            return (
-            <React.Fragment key={idx}>
-              <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-white shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
-                <p className="break-words text-white/70">{chat.prompt}</p>
-              </div>
+              // Determine the response to display
+              let displayResponse = "";
+              if (hasResponse) {
+                displayResponse =
+                  typeof chat.response.chat === "string"
+                    ? chat.response.chat
+                    : "Response format error from model";
+              } else if (!isLastChat) {
+                // For previous chats without response, show appropriate message
+                displayResponse =
+                  "⚠️ Execution stopped or reverted. No response generated.";
+              }
 
-              {/* AI Response with Figma Design - Dark Theme */}
-              <div className="self-start flex w-fit min-w-[55%] max-w-[95%] flex-col gap-3">
-                {/* AI Avatar and Response Container with Gradient Border */}
-                <GradientBorder
-                  borderWidth={1.5}
-                  borderRadius="18px"
-                  gradientFrom="#6EB2FF"
-                  gradientTo="#9F6BFF"
-                  gradientDirection="to-r"
-                  innerClassName="relative overflow-hidden bg-[#05060E]/90 p-5 backdrop-blur"
-                >
-                  <ChatIndicator
-                    hasChat={hasResponse}
-                    toolOutputsLength={chat.response?.tool_outputs?.length || 0}
-                    chatIndex={idx}
-                    isLastChat={isLastChat}
-                    hasDataOutput={hasDataOutput}
-                    dataOutputType={chat.response?.data_output?.type}
-                  />
+              return (
+                <React.Fragment key={idx}>
+                  <div className="self-end w-fit max-w-[92%] rounded-2xl border border-white/10 bg-gradient-to-br from-[#161B2D]/90 via-[#0E1222]/90 to-[#090C16]/90 px-4 py-2 text-[14px] leading-6 text-white shadow-[0_10px_35px_rgba(14,18,34,0.8)]">
+                    <p className="break-words text-white/70">{chat.prompt}</p>
+                  </div>
 
-                  {/* Response Content */}
-                  {(hasResponse || !isLastChat) && (
-                    <div className={`mt-4 break-words text-wrap text-[15px] leading-7 ${hasResponse ? 'text-white/80' : 'text-orange-400/70 italic'}`}>
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight, rehypeRaw]}
-                        components={markdownComponents}
-                      >
-                        {displayResponse}
-                      </ReactMarkdown>
-                    </div>
-                  )}
+                  {/* AI Response with Figma Design - Dark Theme */}
+                  <div className="self-start flex w-fit min-w-[55%] max-w-[95%] flex-col gap-3">
+                    {/* AI Avatar and Response Container with Gradient Border */}
+                    <GradientBorder
+                      borderWidth={1.5}
+                      borderRadius="18px"
+                      gradientFrom="#6EB2FF"
+                      gradientTo="#9F6BFF"
+                      gradientDirection="to-r"
+                      innerClassName="relative overflow-hidden bg-[#05060E]/90 p-5 backdrop-blur"
+                    >
+                      <ChatIndicator
+                        hasChat={hasResponse}
+                        toolOutputsLength={
+                          chat.response?.tool_outputs?.length || 0
+                        }
+                        chatIndex={idx}
+                        isLastChat={isLastChat}
+                        pendingAsyncDataCount={
+                          chat.response?.pending_async_data?.length || 0
+                        }
+                      />
 
-                  {(chat.response?.tool_outputs?.length || (hasDataOutput && chat.response?.data_output?.type === 'tweets')) ? (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {chat.response.tool_outputs?.map((tool:any, toolIdx:any) => (
-                        <button
-                          key={`${tool.id}-${toolIdx}`}
-                          onClick={() => scrollToTransaction(idx, toolIdx)}
-                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/60 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white/80 cursor-pointer"
+                      {/* Response Content */}
+                      {(hasResponse || !isLastChat) && (
+                        <div
+                          className={`mt-4 break-words text-wrap text-[15px] leading-7 ${hasResponse ? "text-white/80" : "text-orange-400/70 italic"}`}
                         >
-                          {tool?.label || `Txn #${toolIdx + 1}`}
-                        </button>
-                      ))}
-                      {hasDataOutput && chat.response?.data_output?.type === 'tweets' && (
-                        <button
-                          onClick={() => scrollToDataOutput(idx)}
-                          className="rounded-full border border-blue-500/20 bg-blue-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-blue-400 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white cursor-pointer"
-                        >
-                          View Tweets
-                        </button>
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                            components={markdownComponents}
+                          >
+                            {displayResponse}
+                          </ReactMarkdown>
+                        </div>
                       )}
-                    </div>
-                  ) : null}
-                </GradientBorder>
-              </div>
-            </React.Fragment>
-          )})
-        ) : (
-          <>
-            <PromptSuggestion />
-          </>
-        )}
+
+                      {chat.response?.tool_outputs?.length ||
+                      hasDataOutput ||
+                      chat.response?.pending_async_data?.length ? (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {/* Tool output buttons */}
+                          {chat.response.tool_outputs?.map(
+                            (tool: any, toolIdx: any) => (
+                              <button
+                                key={`tool-${tool.id}-${toolIdx}`}
+                                onClick={() =>
+                                  scrollToTransaction(idx, toolIdx)
+                                }
+                                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/60 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white/80 cursor-pointer"
+                              >
+                                {tool?.label || `Txn #${toolIdx + 1}`}
+                              </button>
+                            ),
+                          )}
+                          {/* Pending async data buttons */}
+                          {chat.response?.pending_async_data?.map(
+                            (asyncData: any, asyncIdx: number) => (
+                              <button
+                                key={`async-${asyncData.executionId}`}
+                                onClick={() => {
+                                  // Trigger fetch for this chat's pending data
+                                  dispatch(
+                                    fetchPendingBatchForChats({
+                                      chatIndices: [idx],
+                                    }) as any,
+                                  );
+                                  // Scroll to the pending data area
+                                  scrollToDataOutput(idx);
+                                }}
+                                className="rounded-full border border-purple-500/20 bg-purple-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-purple-400 transition-all hover:border-purple-400/40 hover:bg-purple-500/10 hover:text-white cursor-pointer animate-pulse"
+                              >
+                                {asyncData.toolName ||
+                                  `Loading #${asyncIdx + 1}`}
+                              </button>
+                            ),
+                          )}
+                          {/* Data output button - for ALL data types */}
+                          {hasDataOutput && (
+                            <button
+                              onClick={() => scrollToDataOutput(idx)}
+                              className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.25em] transition-all cursor-pointer ${
+                                chat.response?.data_output?.type === "TWEETS"
+                                  ? "border-blue-500/20 bg-blue-500/5 text-blue-400 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
+                                  : "border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:border-emerald-400/40 hover:bg-emerald-500/10 hover:text-white"
+                              }`}
+                            >
+                              {chat.response?.data_output?.type === "TWEETS"
+                                ? "View Tweets"
+                                : chat.response?.data_output?.type ===
+                                    "MARKET_DATA"
+                                  ? "View Market Data"
+                                  : "View Data"}
+                            </button>
+                          )}
+                        </div>
+                      ) : null}
+                    </GradientBorder>
+                  </div>
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <>
+              <PromptSuggestion />
+            </>
+          )}
         </div>
       </div>
     </>
